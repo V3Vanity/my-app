@@ -40,7 +40,7 @@ export default function MapCanvasBlock() {
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
-  const initZoomRef = useRef(1); // минимальный (не меньше) зум
+  const initZoomRef = useRef(1);
   const offsetRef = useRef({ x: 0, y: 0 });
   const targetOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -50,7 +50,7 @@ export default function MapCanvasBlock() {
   const [initialized, setInitialized] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
-  // --- убираем скролл у всей страницы (на время использования карты) ---
+  // --- блокируем скролл страницы ---
   useEffect(() => {
     const prevBodyOverflow = document.body.style.overflow;
     const prevHtmlOverflow = document.documentElement.style.overflow;
@@ -62,7 +62,7 @@ export default function MapCanvasBlock() {
     };
   }, []);
 
-  // --- обновляем размер контейнера ---
+  // --- resize контейнера ---
   useEffect(() => {
     const updateSize = () => {
       if (!containerRef.current) return;
@@ -76,7 +76,7 @@ export default function MapCanvasBlock() {
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
-  // --- загружаем изображение и создаём offscreen background ---
+  // --- load map image + offscreen bg ---
   useEffect(() => {
     const img = new Image();
     img.src = mapImage;
@@ -96,7 +96,7 @@ export default function MapCanvasBlock() {
     };
   }, []);
 
-  // --- Универсальная функция ограничения смещения ---
+  // --- clamp offset ---
   const clampOffset = () => {
     if (!imgRef.current || !containerRef.current) return;
 
@@ -105,11 +105,11 @@ export default function MapCanvasBlock() {
     const scaledW = imgRef.current.width * targetZoomRef.current;
     const scaledH = imgRef.current.height * targetZoomRef.current;
 
-    // X: если картинка уже меньше контейнера — центрируем по X
+    // X
     if (scaledW <= cw) {
       targetOffsetRef.current.x = (cw - scaledW) / 2;
     } else {
-      const minX = cw - scaledW; // отрицательное
+      const minX = cw - scaledW;
       const maxX = 0;
       targetOffsetRef.current.x = Math.min(
         maxX,
@@ -117,11 +117,11 @@ export default function MapCanvasBlock() {
       );
     }
 
-    // Y: если картинка меньше по высоте — прижимаем к нижнему краю
+    // Y
     if (scaledH <= ch) {
       targetOffsetRef.current.y = ch - scaledH; // bottom align
     } else {
-      const minY = ch - scaledH; // отрицательное
+      const minY = ch - scaledH;
       const maxY = 0;
       targetOffsetRef.current.y = Math.min(
         maxY,
@@ -130,17 +130,16 @@ export default function MapCanvasBlock() {
     }
   };
 
-  // --- отрисовка карты ---
+  // --- draw map ---
   const drawMap = () => {
     const canvas = canvasRef.current;
     const bgCanvas = bgCanvasRef.current;
     if (!canvas || !bgCanvas) return;
     const ctx = canvas.getContext("2d");
 
-    // очистка (поскольку canvas масштабирован по DPR, это в device px)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // рисуем фон (растяненный/смещённый)
+    // draw background
     ctx.drawImage(
       bgCanvas,
       0,
@@ -153,12 +152,12 @@ export default function MapCanvasBlock() {
       bgCanvas.height * zoomRef.current
     );
 
-    // рисуем дороги/узлы поверх (в пространстве изображения)
+    // draw nodes & edges
     ctx.save();
     ctx.translate(offsetRef.current.x, offsetRef.current.y);
     ctx.scale(zoomRef.current, zoomRef.current);
 
-    // дороги
+    // edges
     ctx.strokeStyle = "rgba(128,128,128,0.5)";
     ctx.lineWidth = 6;
     edges.forEach((edge) => {
@@ -172,7 +171,7 @@ export default function MapCanvasBlock() {
       }
     });
 
-    // узлы
+    // nodes
     ctx.fillStyle = "gray";
     nodes.forEach((n) => {
       ctx.beginPath();
@@ -183,7 +182,7 @@ export default function MapCanvasBlock() {
     ctx.restore();
   };
 
-  // --- основной рендер + Retina корректировка ---
+  // --- main render + retina ---
   useEffect(() => {
     if (!initialized || canvasSize.width === 0) return;
 
@@ -195,15 +194,11 @@ export default function MapCanvasBlock() {
     canvas.style.height = `${canvasSize.height}px`;
 
     const ctx = canvas.getContext("2d");
-    // привязываем transform к DPR (позволяет рисовать в CSS px далее)
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    // начальная инициализация зума/смещения
+    // init zoom
     if (zoomRef.current === 1) {
       const img = imgRef.current;
-      // ВАЖНО: Используем initZoom = max(...) — чтобы изображение
-      // **покрывало** контейнер (не оставляя пустот). Это делает
-      // минимальный зум таким, что картинка не станет меньше контейнера.
       const initZoom = Math.min(
         canvasSize.width / img.width,
         canvasSize.height / img.height
@@ -212,22 +207,28 @@ export default function MapCanvasBlock() {
       targetZoomRef.current = initZoom;
       initZoomRef.current = initZoom;
 
-      // initial offset: центр по X, bottom-align по Y (как просил)
       targetOffsetRef.current = {
         x: (canvasSize.width - img.width * initZoom) / 2,
-        y: canvasSize.height - img.height * initZoom, // bottom align
+        y: canvasSize.height - img.height * initZoom,
       };
       offsetRef.current = { ...targetOffsetRef.current };
     }
 
+    // animation loop
     let rafId = null;
+    const lerp = (start, end, factor) => start + (end - start) * factor;
     const render = () => {
-      // сглаживание (интерполяция)
-      zoomRef.current += (targetZoomRef.current - zoomRef.current) * 0.3;
-      offsetRef.current.x +=
-        (targetOffsetRef.current.x - offsetRef.current.x) * 0.3;
-      offsetRef.current.y +=
-        (targetOffsetRef.current.y - offsetRef.current.y) * 0.3;
+      zoomRef.current = lerp(zoomRef.current, targetZoomRef.current, 0.2);
+      offsetRef.current.x = lerp(
+        offsetRef.current.x,
+        targetOffsetRef.current.x,
+        0.2
+      );
+      offsetRef.current.y = lerp(
+        offsetRef.current.y,
+        targetOffsetRef.current.y,
+        0.2
+      );
 
       drawMap();
       rafId = requestAnimationFrame(render);
@@ -239,35 +240,26 @@ export default function MapCanvasBlock() {
     };
   }, [initialized, canvasSize]);
 
-  // --- обработчик wheel (масштаб по курсору) ---
-  const handleWheel = (e) => {
-    e.preventDefault();
-    if (!canvasRef.current || !imgRef.current || !containerRef.current) return;
+  // --- wheel zoom ---
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const handleWheel = (e) => {
+      e.preventDefault();
+      if (!canvasRef.current || !imgRef.current) return;
 
-    const scaleFactor = e.deltaY < 0 ? 1.08 : 0.92; // чуть более отзывчивый
-    let newZoom = targetZoomRef.current * scaleFactor;
+      const rect = canvasRef.current.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-    // ограничиваем по диапазону [initZoom, maxZoom]
-    const MAX_ZOOM = 3;
-    newZoom = Math.max(newZoom, initZoomRef.current);
-    newZoom = Math.min(newZoom, MAX_ZOOM);
+      const scaleFactor = e.deltaY < 0 ? 1.08 : 0.92;
+      let newZoom = targetZoomRef.current * scaleFactor;
 
-    // если мы установили newZoom == initZoom (минимум), то
-    // центрируем/прижимаем изображение корректно (не "прыгая")
-    if (newZoom === initZoomRef.current) {
-      targetZoomRef.current = newZoom;
-      // bottom-align + center X
-      const img = imgRef.current;
-      targetOffsetRef.current = {
-        x: (containerRef.current.clientWidth - img.width * newZoom) / 2,
-        y: containerRef.current.clientHeight - img.height * newZoom,
-      };
-    } else {
-      // масштабирование относительно курсора
+      const MAX_ZOOM = 3;
+      newZoom = Math.max(newZoom, initZoomRef.current);
+      newZoom = Math.min(newZoom, MAX_ZOOM);
+
       const dx = mouseX - targetOffsetRef.current.x;
       const dy = mouseY - targetOffsetRef.current.y;
       targetOffsetRef.current = {
@@ -276,10 +268,13 @@ export default function MapCanvasBlock() {
       };
       targetZoomRef.current = newZoom;
       clampOffset();
-    }
-  };
+    };
 
-  // --- drag handlers ---
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [initialized]);
+
+  // --- mouse drag ---
   const onMouseDown = (e) => {
     draggingRef.current = true;
     lastMouseRef.current = { x: e.clientX, y: e.clientY };
@@ -295,14 +290,10 @@ export default function MapCanvasBlock() {
     clampOffset();
     lastMouseRef.current = { x: e.clientX, y: e.clientY };
   };
-  const onMouseUp = () => {
-    draggingRef.current = false;
-  };
-  const onMouseLeave = () => {
-    draggingRef.current = false;
-  };
+  const onMouseUp = () => (draggingRef.current = false);
+  const onMouseLeave = () => (draggingRef.current = false);
 
-  // --- (опционально) touch: drag + pinch-to-zoom ---
+  // --- touch drag + pinch ---
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -346,14 +337,12 @@ export default function MapCanvasBlock() {
           newZoom = Math.max(newZoom, initZoomRef.current);
           newZoom = Math.min(newZoom, MAX_ZOOM);
 
-          // вычислим центр между пальцами в координатах canvas
           const rect = canvasRef.current.getBoundingClientRect();
           const centerX =
             (ev.touches[0].clientX + ev.touches[1].clientX) / 2 - rect.left;
           const centerY =
             (ev.touches[0].clientY + ev.touches[1].clientY) / 2 - rect.top;
 
-          // масштаб относительно центра
           const dx = centerX - targetOffsetRef.current.x;
           const dy = centerY - targetOffsetRef.current.y;
           targetOffsetRef.current = {
@@ -374,8 +363,8 @@ export default function MapCanvasBlock() {
 
     el.addEventListener("touchstart", handleTouchStart, { passive: false });
     el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    el.addEventListener("touchend", handleTouchEnd, { passive: false });
-    el.addEventListener("touchcancel", handleTouchEnd, { passive: false });
+    el.addEventListener("touchend", handleTouchEnd);
+    el.addEventListener("touchcancel", handleTouchEnd);
 
     return () => {
       el.removeEventListener("touchstart", handleTouchStart);
@@ -383,7 +372,7 @@ export default function MapCanvasBlock() {
       el.removeEventListener("touchend", handleTouchEnd);
       el.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, [initialized, canvasSize]);
+  }, [initialized]);
 
   return (
     <div
@@ -393,15 +382,14 @@ export default function MapCanvasBlock() {
         bottom: 0,
         left: 0,
         width: "100vw",
-        height: "60vh", // подвинь под нужную тебе высоту
+        height: "60vh",
         backgroundColor: "#EBE5CF",
         overflow: "hidden",
         touchAction: "none",
-        cursor: "grab",
+        cursor: draggingRef.current ? "grabbing" : "grab",
         display: "flex",
         flexDirection: "column",
       }}
-      onWheel={handleWheel}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
