@@ -5,11 +5,31 @@ const nodes = [
   { id: "A", x: 20, y: 865 },
   { id: "B", x: 190, y: 845 },
   { id: "C", x: 400, y: 810 },
+  { id: "D", x: 500, y: 790 },
+  { id: "E", x: 520, y: 787 },
+  { id: "F", x: 895, y: 730 },
+  { id: "G", x: 930, y: 700 },
+  { id: "H", x: 979, y: 690 },
+  { id: "I", x: 951, y: 560 },
+  { id: "J", x: 952, y: 498 },
+  { id: "K", x: 933, y: 480 },
+  { id: "L", x: 914, y: 367 },
+  { id: "M", x: 811, y: 283 },
 ];
 
 const edges = [
   { from: "A", to: "B" },
   { from: "B", to: "C" },
+  { from: "C", to: "D" },
+  { from: "D", to: "E" },
+  { from: "E", to: "F" },
+  { from: "F", to: "G" },
+  { from: "G", to: "H" },
+  { from: "H", to: "I" },
+  { from: "I", to: "J" },
+  { from: "J", to: "K" },
+  { from: "K", to: "L" },
+  { from: "L", to: "M" },
 ];
 
 export default function MapCanvasBlock() {
@@ -354,8 +374,8 @@ export default function MapCanvasBlock() {
 
     el.addEventListener("touchstart", handleTouchStart, { passive: false });
     el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    el.addEventListener("touchend", handleTouchEnd);
-    el.addEventListener("touchcancel", handleTouchEnd);
+    el.addEventListener("touchend", handleTouchEnd, { passive: false });
+    el.addEventListener("touchcancel", handleTouchEnd, { passive: false });
 
     return () => {
       el.removeEventListener("touchstart", handleTouchStart);
