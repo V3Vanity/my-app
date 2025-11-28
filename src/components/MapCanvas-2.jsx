@@ -262,31 +262,16 @@ export default function MapCanvasBlock() {
 
   const affineRef = useRef(null);
 
-  // --- Получение реального GPS пользователя ---
+  // --- Тест GPS с твоими координатами ---
   useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    const handleSuccess = (pos) => {
-      const { latitude, longitude } = pos.coords;
-      setUserGPS({ lat: latitude, lon: longitude });
-    };
-
-    const handleError = (err) => {
-      console.warn("Ошибка получения GPS:", err);
-    };
-
-    const watcherId = navigator.geolocation.watchPosition(
-      handleSuccess,
-      handleError,
-      {
-        enableHighAccuracy: true,
-        maximumAge: 1000,
-        timeout: 5000,
-      }
-    );
-
-    return () => navigator.geolocation.clearWatch(watcherId);
+    // Введи сюда свои координаты для проверки
+    setUserGPS({ lat: 57.769212, lon: 40.929907 });
   }, []);
+
+  // --- Если хочешь видеть координаты в консоли ---
+  useEffect(() => {
+    console.log("Текущий GPS:", userGPS);
+  }, [userGPS]);
 
   // --- Блокировка скролла страницы ---
   useEffect(() => {
