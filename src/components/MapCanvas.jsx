@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import mapImage from "../assets/map.svg";
 
 const nodes = [
+  { id: "START", x: 492, y: 125 },
   { id: "A", x: 20, y: 865 },
   { id: "B", x: 190, y: 845 },
   { id: "C", x: 400, y: 810 },
@@ -26,6 +27,9 @@ const nodes = [
   { id: "G2", x: 760, y: 495 },
   { id: "G3", x: 746, y: 480 },
   { id: "G4", x: 735, y: 460 },
+  { id: "G5", x: 751, y: 520 },
+  { id: "G6", x: 722, y: 521 },
+  { id: "G7", x: 688, y: 555 },
   { id: "H", x: 979, y: 690 },
   { id: "I", x: 951, y: 560 },
   { id: "J", x: 952, y: 498 },
@@ -61,6 +65,9 @@ const nodes = [
   { id: "Y5", x: 628, y: 574 },
   { id: "Y6", x: 669, y: 546 },
   { id: "Y7", x: 530, y: 615 },
+  { id: "Y8", x: 530, y: 588 },
+  { id: "Y9", x: 628, y: 588 },
+  { id: "Y10", x: 578, y: 588 },
   // Z
   { id: "Z1", x: 1135, y: 655 },
   { id: "Z2", x: 1120, y: 533 },
@@ -87,7 +94,6 @@ const gpsMap = {
   C5: [57.768419, 40.918195],
   C6: [57.76874, 40.917814],
   C7: [57.768854, 40.917696],
-
   D: [57.765228, 40.921097],
   D1: [57.765237, 40.921397],
   D2: [57.766349, 40.923575],
@@ -95,38 +101,57 @@ const gpsMap = {
   D4: [57.767671, 40.926236],
   D5: [57.767937, 40.926832],
   D6: [57.768238, 40.927577],
-
   E: [57.765089, 40.921384],
-
   F: [57.761669, 40.928468],
-
   G: [57.761529, 40.929775],
   G1: [57.763678, 40.930463],
   G2: [57.765273, 40.930974],
   G3: [57.76557, 40.931057],
   G4: [57.765738, 40.931159],
-
+  G5: [57.7659, 40.9312], // плейсхолдер
+  G6: [57.76595, 40.93125], // плейсхолдер
+  G7: [57.766, 40.9313], // плейсхолдер
   H: [57.761156, 40.930741],
-  Z1: [57.75997, 40.933746],
   I: [57.762543, 40.932868],
-  Z2: [57.761256, 40.935431],
   J: [57.763049, 40.933982],
   K: [57.763386, 40.934029],
   L: [57.764639, 40.936016],
   M: [57.766457, 40.935886],
+  M1: [57.7668, 40.9352], // плейсхолдер
   N: [57.768309, 40.935747],
   O: [57.768675, 40.935886],
   P: [57.769126, 40.935635],
-  Q1: [57.769656, 40.934985],
+  P1: [57.769, 40.935], // плейсхолдер
   Q: [57.770805, 40.93297],
+  Q1: [57.769656, 40.934985],
   Q2: [57.771885, 40.931299],
   R: [57.772494, 40.93024],
+  R1: [57.772, 40.93], // плейсхолдер
   S: [57.772657, 40.930036],
   T: [57.772157, 40.927241],
   U: [57.771484, 40.924733],
+  U1: [57.771, 40.924], // плейсхолдер
   V: [57.77082, 40.921706],
   W: [57.769958, 40.918252],
+  W1: [57.77, 40.92], // плейсхолдер
+  W2: [57.7701, 40.921], // плейсхолдер
+  W3: [57.7702, 40.922], // плейсхолдер
+  W4: [57.7703, 40.923], // плейсхолдер
+  W5: [57.7704, 40.924], // плейсхолдер
   X: [57.769223, 40.916962],
+  Y1: [57.7695, 40.925], // плейсхолдер
+  Y2: [57.7696, 40.926], // плейсхолдер
+  Y3: [57.7697, 40.927], // плейсхолдер
+  Y4: [57.7698, 40.928], // плейсхолдер
+  Y5: [57.7699, 40.929], // плейсхолдер
+  Y6: [57.77, 40.93], // плейсхолдер
+  Y7: [57.7701, 40.931], // плейсхолдер
+  Y8: [57.7702, 40.932], // плейсхолдер
+  Y9: [57.7703, 40.933], // плейсхолдер
+  Y10: [57.7704, 40.934], // плейсхолдер
+  // Z
+  Z1: [57.75997, 40.933746],
+  Z2: [57.761256, 40.935431],
   Z3: [57.763688, 40.940344],
   Z4: [57.766564, 40.940607],
   Z5: [57.769953, 40.940508],
@@ -138,9 +163,9 @@ const gpsMap = {
   Z11: [57.773739, 40.92219],
   Z12: [57.772594, 40.918812],
   Z13: [57.771346, 40.915004],
-  // Обрати внимание: Y1..Y7 в твоём списке GPS не были явно указаны —
-  // если у тебя есть их GPS, добавь в этот объект (Y1..Y7).
+  START: [57.77, 40.93], // плейсхолдер
 };
+
 const edges = [
   { from: "A", to: "B" },
   { from: "B", to: "C" },
@@ -170,6 +195,9 @@ const edges = [
   { from: "G1", to: "G2" },
   { from: "G1", to: "I" },
   { from: "G2", to: "G3" },
+  { from: "G2", to: "G5" },
+  { from: "G5", to: "G6" },
+  { from: "G6", to: "G7" },
   { from: "G3", to: "G4" },
   { from: "G4", to: "L" },
   { from: "H", to: "I" },
@@ -185,6 +213,7 @@ const edges = [
   { from: "P", to: "P1" },
   { from: "Q1", to: "Q" },
   { from: "Q", to: "Q2" },
+  { from: "Q", to: "START" },
   { from: "Q2", to: "R" },
   { from: "R", to: "S" },
   { from: "R", to: "R1" },
@@ -206,14 +235,19 @@ const edges = [
   { from: "X", to: "B" },
   { from: "Y", to: "Y1" },
   { from: "Y1", to: "Y2" },
-  { from: "Y2", to: "Y7" },
+  { from: "Y2", to: "Y8" },
+  { from: "Y8", to: "Y7" },
+  { from: "Y8", to: "Y10" },
+  { from: "Y10", to: "Y9" },
   { from: "Y7", to: "Y3" },
   { from: "Y7", to: "D3" },
   { from: "Y3", to: "Y4" },
-  { from: "Y4", to: "Y5" },
+  { from: "Y4", to: "Y9" },
+  { from: "Y9", to: "Y5" },
   { from: "Y5", to: "Y6" },
   { from: "Y5", to: "Y1" },
   { from: "Y6", to: "G3" },
+  { from: "Y6", to: "G7" },
   { from: "Y1", to: "G4" },
   { from: "Y2", to: "D4" },
   // Z
@@ -239,7 +273,9 @@ const edges = [
   { from: "D5", to: "R1" },
   { from: "D5", to: "U1" },
 ];
-// const userGPS = { lat: 57.765177, lon: 40.921185 };
+
+const DEBUG_USER = true; // test GPS
+const debugUserGPS = { lat: 57.76171118495278, lon: 40.92956602433925 };
 
 export default function MapCanvasBlock() {
   const containerRef = useRef(null);
@@ -258,12 +294,21 @@ export default function MapCanvasBlock() {
 
   const [initialized, setInitialized] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-  const [userGPS, setUserGPS] = useState({ lat: 57.765177, lon: 40.921185 });
+  const [userGPS, setUserGPS] = useState(null);
+
+  // тестовая позиция (например, около D5)
+
+  const [routeNodes, setRouteNodes] = useState(null);
 
   const affineRef = useRef(null);
 
   // --- Получение реального GPS пользователя ---
   useEffect(() => {
+    if (DEBUG_USER) {
+      setUserGPS(debugUserGPS);
+      return;
+    }
+
     if (!navigator.geolocation) return;
 
     const handleSuccess = (pos) => {
@@ -405,11 +450,88 @@ export default function MapCanvasBlock() {
     (lat, lon) => {
       if (!affineRef.current) return null;
       const [ax, bx, cx] = affineRef.current.ax;
-      const [ay, bys, cy] = affineRef.current.ay;
-      return { x: ax * lon + bx * lat + cx, y: ay * lon + bys * lat + cy };
+      const [ay, by, cy] = affineRef.current.ay;
+      return { x: ax * lon + bx * lat + cx, y: ay * lon + by * lat + cy };
     },
     [affineRef]
   );
+
+  // --- поиск ближайшего узла ---
+  const findNearestNode = useCallback((pointPx) => {
+    let minDist = Infinity;
+    let nearest = null;
+
+    nodes.forEach((n) => {
+      const dx = n.x - pointPx.x;
+      const dy = n.y - pointPx.y;
+      const d = dx * dx + dy * dy;
+      if (d < minDist) {
+        minDist = d;
+        nearest = n;
+      }
+    });
+
+    return nearest;
+  }, []);
+
+  // --- построение маршрута по графу ---
+  const buildRoute = useCallback((startId, endId) => {
+    const graph = {};
+    edges.forEach(({ from, to }) => {
+      if (!graph[from]) graph[from] = [];
+      if (!graph[to]) graph[to] = [];
+      graph[from].push(to);
+      graph[to].push(from);
+    });
+
+    const queue = [startId];
+    const visited = new Set([startId]);
+    const prev = {};
+
+    while (queue.length) {
+      const cur = queue.shift();
+      if (cur === endId) break;
+
+      for (const next of graph[cur] || []) {
+        if (!visited.has(next)) {
+          visited.add(next);
+          prev[next] = cur;
+          queue.push(next);
+        }
+      }
+    }
+
+    if (!visited.has(endId)) return null;
+
+    const path = [];
+    let cur = endId;
+    while (cur) {
+      path.push(cur);
+      cur = prev[cur];
+    }
+
+    return path.reverse();
+  }, []);
+
+  // --- обработчик кнопки ---
+  const handleBuildRoute = useCallback(() => {
+    console.log("User GPS:", userGPS);
+    const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+    console.log("User pixel:", userPx);
+    if (!userPx) return;
+
+    const userNode = findNearestNode(userPx);
+    console.log("Nearest node:", userNode);
+
+    const startNode = nodes.find((n) => n.id === "START");
+    console.log("Start node:", startNode);
+
+    if (!userNode || !startNode) return;
+
+    const path = buildRoute(userNode.id, startNode.id);
+    console.log("Path:", path);
+    setRouteNodes(path);
+  }, [gpsToPixel, userGPS, findNearestNode, buildRoute]);
 
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
@@ -419,6 +541,7 @@ export default function MapCanvasBlock() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // --- background ---
     ctx.drawImage(
       bgCanvas,
       0,
@@ -435,6 +558,7 @@ export default function MapCanvasBlock() {
     ctx.translate(offsetRef.current.x, offsetRef.current.y);
     ctx.scale(zoomRef.current, zoomRef.current);
 
+    // --- draw all edges (graph) ---
     ctx.strokeStyle = "rgba(255,0,0,0.37)";
     ctx.lineWidth = 6;
     edges.forEach((edge) => {
@@ -448,6 +572,21 @@ export default function MapCanvasBlock() {
       }
     });
 
+    // --- draw route on top ---
+    if (routeNodes && routeNodes.length > 1) {
+      ctx.strokeStyle = "#0057ff";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      routeNodes.forEach((id, i) => {
+        const n = nodes.find((x) => x.id === id);
+        if (!n) return;
+        if (i === 0) ctx.moveTo(n.x, n.y);
+        else ctx.lineTo(n.x, n.y);
+      });
+      ctx.stroke();
+    }
+
+    // --- draw nodes ---
     nodes.forEach((n) => {
       ctx.fillStyle = "gray";
       ctx.beginPath();
@@ -465,22 +604,26 @@ export default function MapCanvasBlock() {
       ctx.fillText(n.id, n.x + 8, n.y);
     });
 
-    // --- draw user with real GPS ---
-    const up = gpsToPixel(userGPS.lat, userGPS.lon);
-    if (up) {
-      ctx.fillStyle = "red";
-      ctx.beginPath();
-      ctx.arc(up.x, up.y, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255,0,0,0.3)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(up.x, up.y, 12, 0, Math.PI * 2);
-      ctx.stroke();
+    // --- draw user ---
+    if (userGPS) {
+      const up = gpsToPixel(userGPS.lat, userGPS.lon);
+      if (up) {
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(up.x, up.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(255,0,0,0.3)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(up.x, up.y, 12, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
 
     ctx.restore();
-  }, [gpsToPixel, userGPS]);
+  }, [gpsToPixel, userGPS, routeNodes]);
+
   const clampOffset = useCallback(() => {
     if (!imgRef.current || !containerRef.current) return;
 
@@ -700,6 +843,39 @@ export default function MapCanvasBlock() {
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     >
+      <div
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          background: DEBUG_USER ? "orange" : "green",
+          color: "#000",
+          padding: "6px 10px",
+          borderRadius: 6,
+          fontSize: 12,
+          zIndex: 10,
+        }}
+      >
+        {DEBUG_USER ? "DEBUG GPS" : "REAL GPS"}
+      </div>
+
+      <button
+        onClick={handleBuildRoute}
+        style={{
+          position: "absolute",
+          top: 12,
+          left: 12,
+          zIndex: 20,
+          padding: "8px 14px",
+          background: "#ffffff",
+          border: "1px solid #ccc",
+          borderRadius: 6,
+          cursor: "pointer",
+        }}
+      >
+        Построить маршрут
+      </button>
+
       <canvas ref={canvasRef} style={{ display: "block", flexGrow: 1 }} />
     </div>
   );
