@@ -296,6 +296,8 @@ export default function MapCanvasBlock() {
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [userGPS, setUserGPS] = useState(null);
 
+  const [followUser, setFollowUser] = useState(false);
+  const lastInteractionRef = useRef(0);
   // тестовая позиция (например, около D5)
 
   const [routeNodes, setRouteNodes] = useState(null);
@@ -513,6 +515,42 @@ export default function MapCanvasBlock() {
     return path.reverse();
   }, []);
 
+  const clampOffset = useCallback(() => {
+    if (!imgRef.current || !containerRef.current) return;
+
+    const cw = containerRef.current.clientWidth;
+    const ch = containerRef.current.clientHeight;
+    const scaledW = imgRef.current.width * targetZoomRef.current;
+    const scaledH = imgRef.current.height * targetZoomRef.current;
+
+    targetOffsetRef.current.x =
+      scaledW <= cw
+        ? (cw - scaledW) / 2
+        : Math.min(0, Math.max(cw - scaledW, targetOffsetRef.current.x));
+    targetOffsetRef.current.y =
+      scaledH <= ch
+        ? ch - scaledH
+        : Math.min(0, Math.max(ch - scaledH, targetOffsetRef.current.y));
+  }, []);
+
+  const centerOnPixel = useCallback(
+    (px, zoom = targetZoomRef.current) => {
+      if (!containerRef.current) return;
+
+      const cw = containerRef.current.clientWidth;
+      const ch = containerRef.current.clientHeight;
+
+      targetZoomRef.current = zoom;
+      targetOffsetRef.current = {
+        x: cw / 2 - px.x * zoom,
+        y: ch / 2 - px.y * zoom,
+      };
+
+      clampOffset();
+    },
+    [clampOffset]
+  );
+
   // --- обработчик кнопки ---
   const handleBuildRoute = useCallback(() => {
     console.log("User GPS:", userGPS);
@@ -531,7 +569,10 @@ export default function MapCanvasBlock() {
     const path = buildRoute(userNode.id, startNode.id);
     console.log("Path:", path);
     setRouteNodes(path);
-  }, [gpsToPixel, userGPS, findNearestNode, buildRoute]);
+    const zoomOnUser = 2.2;
+    setFollowUser(true);
+    centerOnPixel(userPx, zoomOnUser);
+  }, [gpsToPixel, userGPS, findNearestNode, buildRoute, centerOnPixel]);
 
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
@@ -624,24 +665,6 @@ export default function MapCanvasBlock() {
     ctx.restore();
   }, [gpsToPixel, userGPS, routeNodes]);
 
-  const clampOffset = useCallback(() => {
-    if (!imgRef.current || !containerRef.current) return;
-
-    const cw = containerRef.current.clientWidth;
-    const ch = containerRef.current.clientHeight;
-    const scaledW = imgRef.current.width * targetZoomRef.current;
-    const scaledH = imgRef.current.height * targetZoomRef.current;
-
-    targetOffsetRef.current.x =
-      scaledW <= cw
-        ? (cw - scaledW) / 2
-        : Math.min(0, Math.max(cw - scaledW, targetOffsetRef.current.x));
-    targetOffsetRef.current.y =
-      scaledH <= ch
-        ? ch - scaledH
-        : Math.min(0, Math.max(ch - scaledH, targetOffsetRef.current.y));
-  }, []);
-
   // --- main render ---
   useEffect(() => {
     if (!initialized || canvasSize.width === 0) return;
@@ -690,11 +713,26 @@ export default function MapCanvasBlock() {
     return () => cancelAnimationFrame(rafId);
   }, [initialized, canvasSize, drawMap]);
 
+  useEffect(() => {
+    if (!followUser || !userGPS) return;
+
+    const now = Date.now();
+    if (now - lastInteractionRef.current < 3000) return;
+
+    const px = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!px) return;
+
+    centerOnPixel(px);
+  }, [userGPS, followUser, gpsToPixel, centerOnPixel]);
+
   // --- wheel zoom ---
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const handleWheel = (e) => {
+      lastInteractionRef.current = Date.now();
+      setFollowUser(false);
+
       e.preventDefault();
       if (!canvasRef.current || !imgRef.current) return;
 
@@ -724,6 +762,9 @@ export default function MapCanvasBlock() {
 
   // --- mouse drag ---
   const onMouseDown = (e) => {
+    lastInteractionRef.current = Date.now();
+    setFollowUser(false);
+
     draggingRef.current = true;
     lastMouseRef.current = { x: e.clientX, y: e.clientY };
   };
@@ -751,6 +792,9 @@ export default function MapCanvasBlock() {
       Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
 
     const handleTouchStart = (ev) => {
+      lastInteractionRef.current = Date.now();
+      setFollowUser(false);
+
       if (ev.touches.length === 1) {
         draggingRef.current = true;
         lastMouseRef.current = {
@@ -874,6 +918,29 @@ export default function MapCanvasBlock() {
         }}
       >
         Построить маршрут
+      </button>
+
+      <button
+        onClick={() => {
+          if (!userGPS) return;
+          const px = gpsToPixel(userGPS.lat, userGPS.lon);
+          if (!px) return;
+          setFollowUser(true);
+          centerOnPixel(px, 2.2);
+        }}
+        style={{
+          position: "absolute",
+          top: 52,
+          left: 12,
+          zIndex: 20,
+          padding: "8px 14px",
+          background: "#ffffff",
+          border: "1px solid #ccc",
+          borderRadius: 6,
+          cursor: "pointer",
+        }}
+      >
+        К пользователю
       </button>
 
       <canvas ref={canvasRef} style={{ display: "block", flexGrow: 1 }} />
