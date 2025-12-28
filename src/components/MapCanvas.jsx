@@ -300,6 +300,9 @@ export default function MapCanvasBlock() {
   const lastInteractionRef = useRef(0);
   // тестовая позиция (например, около D5)
 
+  const lastRouteNodeRef = useRef(null);
+  const lastRebuildTimeRef = useRef(0);
+
   const [routeNodes, setRouteNodes] = useState(null);
 
   const affineRef = useRef(null);
@@ -551,28 +554,38 @@ export default function MapCanvasBlock() {
     [clampOffset]
   );
 
-  // --- обработчик кнопки ---
-  const handleBuildRoute = useCallback(() => {
-    console.log("User GPS:", userGPS);
+  const rebuildRouteFromUser = useCallback(() => {
+    if (!userGPS) return;
+
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-    console.log("User pixel:", userPx);
     if (!userPx) return;
 
-    const userNode = findNearestNode(userPx);
-    console.log("Nearest node:", userNode);
+    const nearestNode = findNearestNode(userPx);
+    if (!nearestNode) return;
 
     const startNode = nodes.find((n) => n.id === "START");
-    console.log("Start node:", startNode);
+    if (!startNode) return;
 
-    if (!userNode || !startNode) return;
+    const path = buildRoute(nearestNode.id, startNode.id);
+    if (!path) return;
 
-    const path = buildRoute(userNode.id, startNode.id);
-    console.log("Path:", path);
+    lastRouteNodeRef.current = nearestNode.id;
+    lastRebuildTimeRef.current = Date.now();
+
     setRouteNodes(path);
-    const zoomOnUser = 2.2;
+  }, [userGPS, gpsToPixel, findNearestNode, buildRoute]);
+
+  // --- обработчик кнопки ---
+  const handleBuildRoute = useCallback(() => {
+    rebuildRouteFromUser();
+
+    if (!userGPS) return;
+    const px = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!px) return;
+
     setFollowUser(true);
-    centerOnPixel(userPx, zoomOnUser);
-  }, [gpsToPixel, userGPS, findNearestNode, buildRoute, centerOnPixel]);
+    centerOnPixel(px, 2.2);
+  }, [rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
 
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
@@ -725,6 +738,26 @@ export default function MapCanvasBlock() {
     centerOnPixel(px);
   }, [userGPS, followUser, gpsToPixel, centerOnPixel]);
 
+  useEffect(() => {
+    if (!userGPS) return;
+    if (!routeNodes) return;
+
+    const now = Date.now();
+
+    // защита от слишком частых перестроений
+    if (now - lastRebuildTimeRef.current < 3000) return;
+
+    const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!userPx) return;
+
+    const nearestNode = findNearestNode(userPx);
+    if (!nearestNode) return;
+
+    if (nearestNode.id !== lastRouteNodeRef.current) {
+      rebuildRouteFromUser();
+    }
+  }, [userGPS, routeNodes, gpsToPixel, findNearestNode, rebuildRouteFromUser]);
+
   // --- wheel zoom ---
   useEffect(() => {
     const el = containerRef.current;
@@ -762,6 +795,7 @@ export default function MapCanvasBlock() {
 
   // --- mouse drag ---
   const onMouseDown = (e) => {
+    lastRouteNodeRef.current = null;
     lastInteractionRef.current = Date.now();
     setFollowUser(false);
 
