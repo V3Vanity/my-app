@@ -1,5 +1,15 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import "./MapCanvas.css";
+
 import mapImage from "../assets/map.svg";
+import rabbitIcon from "../assets/rrabit.svg";
 
 const nodes = [
   { id: "START", x: 492, y: 125 },
@@ -83,6 +93,31 @@ const nodes = [
   { id: "Z12", x: 36, y: 515 },
   { id: "Z13", x: 7, y: 692 },
 ];
+
+const questPoints = [
+  {
+    id: "QP_START",
+    x: 510,
+    y: 140,
+    attachTo: "START",
+    order: 1,
+  },
+  {
+    id: "QP_1",
+    x: 470,
+    y: 520,
+    attachTo: "D5",
+    order: 2,
+  },
+  {
+    id: "QP_2",
+    x: 780,
+    y: 410,
+    attachTo: "M",
+    order: 3,
+  },
+];
+
 const gpsMap = {
   A: [57.769595, 40.912184],
   B: [57.768089, 40.914999],
@@ -277,11 +312,12 @@ const edges = [
 const DEBUG_USER = true; // test GPS
 const debugUserGPS = { lat: 57.76171118495278, lon: 40.92956602433925 };
 
-export default function MapCanvasBlock() {
+export default forwardRef(function MapCanvasBlock({ className = "" }, ref) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const bgCanvasRef = useRef(null);
+  const rabbitIconRef = useRef(null);
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -297,6 +333,11 @@ export default function MapCanvasBlock() {
   const [userGPS, setUserGPS] = useState(null);
 
   const [followUser, setFollowUser] = useState(false);
+  const [followMode, setFollowMode] = useState("user"); // "user" или "end"
+
+  // режим страницы: "home" | "quest"
+  const [pageMode, setPageMode] = useState("home");
+
   const lastInteractionRef = useRef(0);
   // тестовая позиция (например, около D5)
 
@@ -437,11 +478,17 @@ export default function MapCanvasBlock() {
     img.src = mapImage;
     img.onload = () => {
       imgRef.current = img;
+      const rabbit = new Image();
+      rabbit.src = rabbitIcon;
+      rabbit.onload = () => {
+        rabbitIconRef.current = rabbit;
+      };
+
       const bgCanvas = document.createElement("canvas");
       bgCanvas.width = img.width;
       bgCanvas.height = img.height;
       const bgCtx = bgCanvas.getContext("2d");
-      bgCtx.fillStyle = "#EBE5CF";
+      bgCtx.fillStyle = "#b89d6f17";
       bgCtx.fillRect(0, 0, img.width, img.height);
       bgCtx.drawImage(img, 0, 0);
       bgCanvasRef.current = bgCanvas;
@@ -577,6 +624,7 @@ export default function MapCanvasBlock() {
 
   // --- обработчик кнопки ---
   const handleBuildRoute = useCallback(() => {
+    if (pageMode !== "quest") return;
     rebuildRouteFromUser();
 
     if (!userGPS) return;
@@ -585,7 +633,7 @@ export default function MapCanvasBlock() {
 
     setFollowUser(true);
     centerOnPixel(px, 2.2);
-  }, [rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
+  }, [pageMode, rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
 
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
@@ -612,24 +660,25 @@ export default function MapCanvasBlock() {
     ctx.translate(offsetRef.current.x, offsetRef.current.y);
     ctx.scale(zoomRef.current, zoomRef.current);
 
-    // --- draw all edges (graph) ---
-    ctx.strokeStyle = "rgba(255,0,0,0.37)";
-    ctx.lineWidth = 6;
-    edges.forEach((edge) => {
-      const from = nodes.find((n) => n.id === edge.from);
-      const to = nodes.find((n) => n.id === edge.to);
-      if (from && to) {
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
-      }
-    });
+    if (pageMode === "quest") {
+      ctx.strokeStyle = "#b89d6f12";
+      ctx.lineWidth = 6;
+      edges.forEach((edge) => {
+        const from = nodes.find((n) => n.id === edge.from);
+        const to = nodes.find((n) => n.id === edge.to);
+        if (from && to) {
+          ctx.beginPath();
+          ctx.moveTo(from.x, from.y);
+          ctx.lineTo(to.x, to.y);
+          ctx.stroke();
+        }
+      });
+    }
 
     // --- draw route on top ---
-    if (routeNodes && routeNodes.length > 1) {
-      ctx.strokeStyle = "#0057ff";
-      ctx.lineWidth = 8;
+    if (pageMode === "quest" && routeNodes && routeNodes.length > 1) {
+      ctx.strokeStyle = "#ffffffaa";
+      ctx.lineWidth = 2;
       ctx.beginPath();
       routeNodes.forEach((id, i) => {
         const n = nodes.find((x) => x.id === id);
@@ -640,23 +689,37 @@ export default function MapCanvasBlock() {
       ctx.stroke();
     }
 
-    // --- draw nodes ---
-    nodes.forEach((n) => {
-      ctx.fillStyle = "gray";
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
-      ctx.fill();
+    // --- draw quest points (rabbits) ---
+    if (pageMode === "quest" && rabbitIconRef.current) {
+      const iconSize = 32;
 
-      ctx.fillStyle = "blue";
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
-      ctx.fill();
+      questPoints.forEach((qp) => {
+        ctx.drawImage(
+          rabbitIconRef.current,
+          qp.x - iconSize / 2,
+          qp.y - iconSize,
+          iconSize,
+          iconSize
+        );
+      });
+    }
+    // // --- draw nodes ---
+    // nodes.forEach((n) => {
+    //   ctx.fillStyle = "gray";
+    //   ctx.beginPath();
+    //   ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
+    //   ctx.fill();
 
-      ctx.fillStyle = "black";
-      ctx.font = "16px sans-serif";
-      ctx.textBaseline = "middle";
-      ctx.fillText(n.id, n.x + 8, n.y);
-    });
+    //   ctx.fillStyle = "blue";
+    //   ctx.beginPath();
+    //   ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+    //   ctx.fill();
+
+    //   ctx.fillStyle = "black";
+    //   ctx.font = "16px sans-serif";
+    //   ctx.textBaseline = "middle";
+    //   ctx.fillText(n.id, n.x + 8, n.y);
+    // });
 
     // --- draw user ---
     if (userGPS) {
@@ -676,7 +739,7 @@ export default function MapCanvasBlock() {
     }
 
     ctx.restore();
-  }, [gpsToPixel, userGPS, routeNodes]);
+  }, [pageMode, gpsToPixel, userGPS, routeNodes]);
 
   // --- main render ---
   useEffect(() => {
@@ -900,84 +963,51 @@ export default function MapCanvasBlock() {
     };
   }, [clampOffset]);
 
+  useImperativeHandle(ref, () => ({
+    startQuest: () => {
+      setPageMode("quest");
+    },
+    buildRouteToStart: () => {
+      handleBuildRoute();
+    },
+  }));
+
   return (
     <div
       ref={containerRef}
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        width: "100vw",
-        height: "60vh",
-        backgroundColor: "#EBE5CF",
-        overflow: "hidden",
-        touchAction: "none",
-        cursor: draggingRef.current ? "grabbing" : "grab",
-        display: "flex",
-        flexDirection: "column",
-      }}
+      className={`map-container ${className} ${
+        draggingRef.current ? "dragging" : ""
+      }`}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 10,
-          background: DEBUG_USER ? "orange" : "green",
-          color: "#000",
-          padding: "6px 10px",
-          borderRadius: 6,
-          fontSize: 12,
-          zIndex: 10,
-        }}
-      >
-        {DEBUG_USER ? "DEBUG GPS" : "REAL GPS"}
-      </div>
-
       <button
-        onClick={handleBuildRoute}
-        style={{
-          position: "absolute",
-          top: 12,
-          left: 12,
-          zIndex: 20,
-          padding: "8px 14px",
-          background: "#ffffff",
-          border: "1px solid #ccc",
-          borderRadius: 6,
-          cursor: "pointer",
-        }}
-      >
-        Построить маршрут
-      </button>
-
-      <button
+        className="map-follow-btn"
         onClick={() => {
-          if (!userGPS) return;
-          const px = gpsToPixel(userGPS.lat, userGPS.lon);
-          if (!px) return;
-          setFollowUser(true);
-          centerOnPixel(px, 2.2);
-        }}
-        style={{
-          position: "absolute",
-          top: 52,
-          left: 12,
-          zIndex: 20,
-          padding: "8px 14px",
-          background: "#ffffff",
-          border: "1px solid #ccc",
-          borderRadius: 6,
-          cursor: "pointer",
+          if (!routeNodes || routeNodes.length === 0 || !userGPS) return;
+
+          if (followMode === "user") {
+            const lastNodeId = routeNodes[routeNodes.length - 1];
+            const node = nodes.find((n) => n.id === lastNodeId);
+            if (!node) return;
+            setFollowUser(false);
+            centerOnPixel({ x: node.x, y: node.y }, 2.2);
+            setFollowMode("end");
+          } else {
+            const px = gpsToPixel(userGPS.lat, userGPS.lon);
+            if (!px) return;
+            setFollowUser(true);
+            centerOnPixel(px, 2.2);
+            setFollowMode("user");
+          }
         }}
       >
-        К пользователю
+        {followMode === "user" ? "🚶" : "🏁"}
       </button>
 
-      <canvas ref={canvasRef} style={{ display: "block", flexGrow: 1 }} />
+      <canvas ref={canvasRef} className="map-canvas" />
     </div>
   );
-}
+});

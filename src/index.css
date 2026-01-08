@@ -1,10 +1,11 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;       /* 🔒 убирает скроллы */
-  background-color: #EBE5CF; /* 🔆 фон под карту */
+  overflow: hidden; /* 🔒 убирает скроллы */
+  background-color: #ebe5cf; /* 🔆 фон под карту */
 }
 
 :root {
