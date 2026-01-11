@@ -9,21 +9,15 @@ import "./QuestPage.css";
 
 export default function QuestPage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [journeyStarted, setJourneyStarted] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0); // 0 = стартовый экран
   const navigate = useNavigate();
   const mapRef = useRef(null);
 
+  // Сохраняем прогресс только если текущий шаг > 0
   useEffect(() => {
-    const savedStep = parseInt(localStorage.getItem("questStep"), 10);
-    if (!isNaN(savedStep) && savedStep > 0) {
-      setJourneyStarted(true);
-      setCurrentStep(savedStep);
+    if (currentStep > 0) {
+      localStorage.setItem("questStep", currentStep);
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("questStep", currentStep);
   }, [currentStep]);
 
   const navigateTo = (page) => {
@@ -49,25 +43,21 @@ export default function QuestPage() {
   };
 
   const handleStartJourney = () => {
-    setJourneyStarted(true);
-    setCurrentStep(1);
+    setCurrentStep(1); // начинаем квест с первого текстового шага
   };
 
   const handleNextStep = () => setCurrentStep((prev) => prev + 1);
-  // const handlePrevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
-
-  const handleQuestPointReached = () => {
-    setCurrentStep((prev) => prev + 1);
-  };
 
   const handleBack = () => {
     if (currentStep === 1) {
-      // если первый шаг, возвращаемся к стартовому экрану
-      setJourneyStarted(false);
-      setCurrentStep(1);
-    } else {
+      setCurrentStep(0); // возвращаемся на стартовый экран
+    } else if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1);
     }
+  };
+
+  const handleQuestPointReached = () => {
+    setCurrentStep((prev) => prev + 1);
   };
 
   const step1Text = `Маршрут №44
@@ -94,7 +84,8 @@ export default function QuestPage() {
         navigateTo={navigateTo}
       />
 
-      {!journeyStarted ? (
+      {currentStep === 0 ? (
+        // Стартовый экран квеста
         <>
           <div className="top-image-container">
             <img src={topImage} alt="Топ" />
@@ -138,10 +129,12 @@ export default function QuestPage() {
             <MapCanvas
               ref={mapRef}
               questStep={currentStep}
-              onBack={handleBack} // ← ДОБАВИТЬ
+              onBack={handleBack}
               onQuestPointReached={handleQuestPointReached}
             />
           )}
+
+          {/* Можно добавлять новые шаги квеста по currentStep */}
         </>
       )}
     </div>
