@@ -1,7 +1,13 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./TextBlock.css";
 
-export default function TextBlock({ text, showTitle, onNextStep }) {
+export default function TextBlock({
+  text,
+  showTitle,
+  onNextStep,
+  showBackButton,
+  onBack,
+}) {
   const containerRef = useRef(null);
   const [showButton, setShowButton] = useState(false);
 
@@ -25,8 +31,17 @@ export default function TextBlock({ text, showTitle, onNextStep }) {
   return (
     <div className="text-block-container">
       <div className="text-block-scroll" ref={containerRef}>
+        {/* Кнопка Назад сверху слева */}
+        {showBackButton && (
+          <button className="back-button" onClick={onBack}>
+            ←
+          </button>
+        )}
+
         {showTitle && <h2 className="text-title">Маршрут №44</h2>}
         <p className="text-paragraph">{text}</p>
+
+        {/* Кнопка Продолжить */}
         <div
           className={`continue-button-container ${
             showButton ? "visible" : "hidden"

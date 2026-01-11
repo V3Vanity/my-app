@@ -312,7 +312,7 @@ const edges = [
 const DEBUG_USER = true; // test GPS
 const debugUserGPS = { lat: 57.76171118495278, lon: 40.92956602433925 };
 
-export default forwardRef(function MapCanvasBlock({ className = "" }, ref) {
+export default forwardRef(function MapCanvasBlock({ className = "", onBack }, ref) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
@@ -756,10 +756,9 @@ export default forwardRef(function MapCanvasBlock({ className = "" }, ref) {
     // init zoom
     if (zoomRef.current === 1) {
       const img = imgRef.current;
-      const initZoom = Math.min(
-        canvasSize.width / img.width,
-        canvasSize.height / img.height
-      );
+      const initZoom =
+        Math.min(canvasSize.width / img.width, canvasSize.height / img.height) *
+        1.8;
       zoomRef.current = targetZoomRef.current = initZoomRef.current = initZoom;
       targetOffsetRef.current = offsetRef.current = {
         x: (canvasSize.width - img.width * initZoom) / 2,
@@ -983,6 +982,9 @@ export default forwardRef(function MapCanvasBlock({ className = "" }, ref) {
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     >
+      <button className="back-step-button" onClick={onBack}>
+  ←
+     </button>
       <button
         className="map-follow-btn"
         onClick={() => {
