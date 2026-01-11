@@ -1,15 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import MapCanvas from "../components/MapCanvas.jsx";
 import Header from "../components/Header.jsx";
+import TextBlock from "../components/TextBlock.jsx";
 import topImage from "../assets/marshrut44.png";
+import questImage from "../assets/quest-img.png";
+import "../components/TextBlock.css";
 
 export default function QuestPage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const mapRef = useRef(null);
+  const [journeyStarted, setJourneyStarted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1); // шаг квеста
   const navigate = useNavigate();
 
-  // Функция навигации для Header
   const navigateTo = (page) => {
     switch (page) {
       case "quest":
@@ -32,55 +34,74 @@ export default function QuestPage() {
     }
   };
 
-  // При монтировании страницы включаем режим квеста
-  useEffect(() => {
-    if (mapRef.current) {
-      mapRef.current.startQuest(); // переключаем MapCanvas в режим квеста
-    }
-  }, []);
-
   const handleStartJourney = () => {
-    // Запускаем построение маршрута к START
-    if (mapRef.current) {
-      mapRef.current.buildRouteToStart();
-    }
+    setJourneyStarted(true);
   };
+
+  const handleNextStep = () => {
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  // Текст для первого шага
+  const step1Text = `Маршрут №44
+Они не раскрывают её сразу, но ведут
+за собой тех, кто способен видеть, слушать и замечать детали, на которые обычный взгляд не обратит внимания.
+Следуй за ними — через набережные, дворы и старые улицы. Каждый мазайский заяц — это намёк, загадка, след, который ведёт к большему. Тайна, которую они хранят, велика, и узнать её полностью можно лишь пройдя весь путь до конца.
+
+Готов ли ты отправиться по следу хранителей, внимать их знакам и раскрыть секреты, которые город хранил веками?
+Вступай, путник, в город, где прошлое
+не спит, а улицы шепчут о событиях,
+что случались века назад. Здесь, среди старых домов и набережных, спрятаны истории, которые не слышит большинство прохожих. Но для тех, кто умеет наблюдать, город открывает свои тайны.
+
+Весной, когда Волга разливается и вода касается берегов, вспоминают Мазая
+— старика, который выходил на лодке
+и спасал зайцев с затопленных островов.  
+История эта известна каждому, но её продолжение живёт в Костроме до сих пор.
+Некоторые из спасённых зайцев остались в городе. Они превратились в хранителей — маленьких наблюдателей, внимательных и осторожных. Их называют мазайскими зайцами, и каждый из них словно хранит частицу древней тайны.`;
 
   return (
     <div className="app-container">
-      {/* Шапка */}
       <Header
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
         navigateTo={navigateTo}
       />
 
-      {/* Картинка сверху */}
-      <div className="top-image-container">
-        <img src={topImage} alt="Топ" />
-      </div>
+      {!journeyStarted ? (
+        <>
+          <div className="top-image-container">
+            <img src={topImage} alt="Топ" />
+          </div>
 
-      {/* Кнопка */}
-      <div style={{ padding: "16px", textAlign: "center" }}>
-        <button
-          onClick={handleStartJourney}
-          style={{
-            padding: "12px 24px",
-            backgroundColor: "#862518",
-            color: "#d9cfb8",
-            fontSize: "16px",
-            fontWeight: "bold",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-          }}
-        >
-          Начать путешествие
-        </button>
-      </div>
+          <div style={{ padding: "16px", textAlign: "center" }}>
+            <button
+              onClick={handleStartJourney}
+              style={{
+                padding: "12px 24px",
+                backgroundColor: "#862518",
+                color: "#d9cfb8",
+                fontSize: "16px",
+                fontWeight: "bold",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+              }}
+            >
+              Начать путешествие
+            </button>
+          </div>
 
-      {/* Карта */}
-      <MapCanvas ref={mapRef} className="map-container-quest" />
+          <div className="quest-image-container">
+            <img src={questImage} alt="Квест" />
+          </div>
+        </>
+      ) : (
+        <TextBlock
+          text={step1Text}
+          showTitle={currentStep === 1}
+          onNextStep={handleNextStep}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,62 @@
+.text-block-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #c8b28d;
+  margin-top: 110px; /* пространство между шапкой и блоком */
+  height: calc(100vh - 110px); /* высота экрана минус верхний отступ */
+  box-sizing: border-box;
+  border-radius: 16px;
+}
+
+.text-block-scroll {
+  flex: 1; /* занимает всё доступное пространство внутри контейнера */
+  overflow-y: auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+/* скрываем скролл */
+.text-block-scroll::-webkit-scrollbar {
+  display: none;
+}
+.text-block-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.text-title {
+  font-size: 32px;
+  color: #862518;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.text-paragraph {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* кнопка всегда в DOM, но изначально скрыта */
+.continue-button-container {
+  text-align: center;
+  margin-top: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.continue-button-container.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.continue-button {
+  padding: 12px 24px;
+  background-color: #862518;
+  color: #d9cfb8;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
