@@ -13,6 +13,13 @@ export default function QuestPage() {
   const navigate = useNavigate();
   const mapRef = useRef(null);
 
+  useEffect(() => {
+    if (currentStep === 2 && mapRef.current) {
+      mapRef.current.startQuest();
+      mapRef.current.buildRouteToStart();
+    }
+  }, [currentStep]);
+
   // Сохраняем прогресс только если текущий шаг > 0
   useEffect(() => {
     if (currentStep > 0) {
@@ -128,13 +135,10 @@ export default function QuestPage() {
           {currentStep === 2 && (
             <MapCanvas
               ref={mapRef}
-              questStep={currentStep}
               onBack={handleBack}
               onQuestPointReached={handleQuestPointReached}
             />
           )}
-
-          {/* Можно добавлять новые шаги квеста по currentStep */}
         </>
       )}
     </div>

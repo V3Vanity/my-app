@@ -9,7 +9,7 @@ import React, {
 import "./MapCanvas.css";
 
 import mapImage from "../assets/map.svg";
-import rabbitIcon from "../assets/rrabit.svg";
+import rabbitIcon from "../assets/grabit.svg";
 
 const nodes = [
   { id: "START", x: 492, y: 125 },
@@ -215,7 +215,6 @@ const edges = [
   { from: "C7", to: "X" },
   { from: "D", to: "E" },
   { from: "D", to: "D1" },
-  { from: "D", to: "D1" },
   { from: "D1", to: "D2" },
   { from: "D2", to: "D3" },
   { from: "D3", to: "D4" },
@@ -310,9 +309,12 @@ const edges = [
 ];
 
 const DEBUG_USER = true; // test GPS
-const debugUserGPS = { lat: 57.76171118495278, lon: 40.92956602433925 };
+const debugUserGPS = { lat: 57.766, lon: 40.92 }; // точно на START
 
-export default forwardRef(function MapCanvasBlock({ className = "", onBack }, ref) {
+export default forwardRef(function MapCanvasBlock(
+  { className = "", onBack, onQuestPointReached },
+  ref
+) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
@@ -330,7 +332,7 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
 
   const [initialized, setInitialized] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-  const [userGPS, setUserGPS] = useState(null);
+  const [userGPS, setUserGPS] = useState(DEBUG_USER ? debugUserGPS : null);
 
   const [followUser, setFollowUser] = useState(false);
   const [followMode, setFollowMode] = useState("user"); // "user" или "end"
@@ -472,32 +474,6 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
     affineRef.current = { ax: coeffX, ay: coeffY };
   }, [solveLinearSystem]);
 
-  // --- Load map image ---
-  useEffect(() => {
-    const img = new Image();
-    img.src = mapImage;
-    img.onload = () => {
-      imgRef.current = img;
-      const rabbit = new Image();
-      rabbit.src = rabbitIcon;
-      rabbit.onload = () => {
-        rabbitIconRef.current = rabbit;
-      };
-
-      const bgCanvas = document.createElement("canvas");
-      bgCanvas.width = img.width;
-      bgCanvas.height = img.height;
-      const bgCtx = bgCanvas.getContext("2d");
-      bgCtx.fillStyle = "#b89d6f17";
-      bgCtx.fillRect(0, 0, img.width, img.height);
-      bgCtx.drawImage(img, 0, 0);
-      bgCanvasRef.current = bgCanvas;
-
-      computeAffineFromNodes();
-      setInitialized(true);
-    };
-  }, [computeAffineFromNodes]);
-
   const gpsToPixel = useCallback(
     (lat, lon) => {
       if (!affineRef.current) return null;
@@ -601,26 +577,68 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
     [clampOffset]
   );
 
+  // --- построение маршрута из GPS пользователя ---
   const rebuildRouteFromUser = useCallback(() => {
     if (!userGPS) return;
 
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-    if (!userPx) return;
+    if (!userPx || !imgRef.current) return;
+
+    const endNode = nodes.find((n) => n.id === "START");
+    if (!endNode) return;
 
     const nearestNode = findNearestNode(userPx);
     if (!nearestNode) return;
 
-    const startNode = nodes.find((n) => n.id === "START");
-    if (!startNode) return;
-
-    const path = buildRoute(nearestNode.id, startNode.id);
+    const path = buildRoute(nearestNode.id, endNode.id);
     if (!path) return;
+
+    const routeWithUser = [
+      { id: "USER", ...userPx },
+      ...path.map((id) => nodes.find((n) => n.id === id)).filter(Boolean),
+    ];
 
     lastRouteNodeRef.current = nearestNode.id;
     lastRebuildTimeRef.current = Date.now();
-
-    setRouteNodes(path);
+    setRouteNodes(routeWithUser);
   }, [userGPS, gpsToPixel, findNearestNode, buildRoute]);
+
+  // --- Load map image ---
+  useEffect(() => {
+    const img = new Image();
+    img.src = mapImage;
+    img.onload = () => {
+      imgRef.current = img;
+
+      const rabbit = new Image();
+      rabbit.src = rabbitIcon;
+      rabbit.onload = () => {
+        rabbitIconRef.current = rabbit;
+      };
+
+      const bgCanvas = document.createElement("canvas");
+      bgCanvas.width = img.width;
+      bgCanvas.height = img.height;
+      const bgCtx = bgCanvas.getContext("2d");
+      bgCtx.fillStyle = "#b89d6f17";
+      bgCtx.fillRect(0, 0, img.width, img.height);
+      bgCtx.drawImage(img, 0, 0);
+      bgCanvasRef.current = bgCanvas;
+
+      computeAffineFromNodes(); // вычисляем аффинное преобразование
+      setInitialized(true); // ставим флаг загрузки
+
+      // --- сразу строим маршрут, если есть GPS ---
+      if (userGPS) {
+        rebuildRouteFromUser();
+      }
+    };
+  }, [computeAffineFromNodes, userGPS, rebuildRouteFromUser]);
+
+  useEffect(() => {
+    if (!userGPS || !affineRef.current) return;
+    rebuildRouteFromUser();
+  }, [userGPS, rebuildRouteFromUser]); //
 
   // --- обработчик кнопки ---
   const handleBuildRoute = useCallback(() => {
@@ -680,8 +698,7 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
       ctx.strokeStyle = "#ffffffaa";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      routeNodes.forEach((id, i) => {
-        const n = nodes.find((x) => x.id === id);
+      routeNodes.forEach((n, i) => {
         if (!n) return;
         if (i === 0) ctx.moveTo(n.x, n.y);
         else ctx.lineTo(n.x, n.y);
@@ -691,17 +708,19 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
 
     // --- draw quest points (rabbits) ---
     if (pageMode === "quest" && rabbitIconRef.current) {
-      const iconSize = 32;
+      const iconSize = 40;
 
-      questPoints.forEach((qp) => {
-        ctx.drawImage(
-          rabbitIconRef.current,
-          qp.x - iconSize / 2,
-          qp.y - iconSize,
-          iconSize,
-          iconSize
-        );
-      });
+      questPoints
+        .filter((qp) => qp.order === 1) // только старт
+        .forEach((qp) => {
+          ctx.drawImage(
+            rabbitIconRef.current,
+            qp.x - iconSize / 2,
+            qp.y - iconSize,
+            iconSize,
+            iconSize
+          );
+        });
     }
     // // --- draw nodes ---
     // nodes.forEach((n) => {
@@ -805,10 +824,9 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
     if (!routeNodes) return;
 
     const now = Date.now();
-
-    // защита от слишком частых перестроений
     if (now - lastRebuildTimeRef.current < 3000) return;
 
+    // --- один раз вычисляем userPx ---
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!userPx) return;
 
@@ -818,7 +836,26 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
     if (nearestNode.id !== lastRouteNodeRef.current) {
       rebuildRouteFromUser();
     }
-  }, [userGPS, routeNodes, gpsToPixel, findNearestNode, rebuildRouteFromUser]);
+
+    const startNode = nodes.find((n) => n.id === "START");
+    if (!startNode) return;
+
+    const dx = userPx.x - startNode.x;
+    const dy = userPx.y - startNode.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // радиус достижения (подбирается)
+    if (dist < 20) {
+      onQuestPointReached?.();
+    }
+  }, [
+    userGPS,
+    routeNodes,
+    gpsToPixel,
+    findNearestNode,
+    rebuildRouteFromUser,
+    onQuestPointReached,
+  ]);
 
   // --- wheel zoom ---
   useEffect(() => {
@@ -965,6 +1002,7 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
   useImperativeHandle(ref, () => ({
     startQuest: () => {
       setPageMode("quest");
+      if (userGPS && initialized) rebuildRouteFromUser();
     },
     buildRouteToStart: () => {
       handleBuildRoute();
@@ -983,8 +1021,8 @@ export default forwardRef(function MapCanvasBlock({ className = "", onBack }, re
       onMouseLeave={onMouseLeave}
     >
       <button className="back-step-button" onClick={onBack}>
-  ←
-     </button>
+        ←
+      </button>
       <button
         className="map-follow-btn"
         onClick={() => {

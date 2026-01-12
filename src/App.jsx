@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,14 +6,13 @@ import {
   useNavigate,
 } from "react-router-dom";
 import "./App.css";
-import MapCanvas from "./components/MapCanvas.jsx";
 import topImage from "./assets/top-image.png";
 import QuestPage from "./pages/QuestPage.jsx";
 import Header from "./components/Header.jsx";
+import questImage from "./assets/App-img.png";
 
 function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const mapRef = useRef(null);
   const navigate = useNavigate();
 
   // Обработчик нажатия на меню
@@ -56,7 +55,9 @@ function HomePage() {
       </div>
 
       {/* Карта */}
-      <MapCanvas ref={mapRef} />
+      <div className="quest-image-container">
+        <img src={questImage} alt="Квест" />
+      </div>
     </div>
   );
 }
