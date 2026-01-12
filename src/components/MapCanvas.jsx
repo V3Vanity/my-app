@@ -309,7 +309,7 @@ const edges = [
 ];
 
 const DEBUG_USER = true; // test GPS
-const debugUserGPS = { lat: 57.7723, lon: 40.9347 }; // точно на START
+const debugUserGPS = { lat: 57.7723, lon: 40.9349 }; // точно на START  lat: 57.7723, lon: 40.9355 };
 
 export default forwardRef(function MapCanvasBlock(
   { className = "", onBack, onQuestPointReached },
@@ -587,37 +587,7 @@ export default forwardRef(function MapCanvasBlock(
     const endNode = nodes.find((n) => n.id === "START");
     if (!endNode) return;
 
-    // --- находим ближайший узел, но проверяем направление ---
     let nearestNode = findNearestNode(userPx);
-
-    // проверяем, чтобы ближайший узел был впереди (по направлению к цели)
-    const toEndVec = { x: endNode.x - userPx.x, y: endNode.y - userPx.y };
-    const nearestVec = {
-      x: nearestNode.x - userPx.x,
-      y: nearestNode.y - userPx.y,
-    };
-    const dot = toEndVec.x * nearestVec.x + toEndVec.y * nearestVec.y;
-
-    if (dot < 0) {
-      // ближайшая точка позади — ищем следующий ближайший вперед
-      const sortedNodes = nodes
-        .map((n) => ({
-          ...n,
-          dist: (n.x - userPx.x) ** 2 + (n.y - userPx.y) ** 2,
-        }))
-        .filter((n) => n.id !== nearestNode.id)
-        .sort((a, b) => a.dist - b.dist);
-
-      for (const n of sortedNodes) {
-        const vec = { x: n.x - userPx.x, y: n.y - userPx.y };
-        const dotNext = toEndVec.x * vec.x + toEndVec.y * vec.y;
-        if (dotNext > 0) {
-          nearestNode = n;
-          break;
-        }
-      }
-    }
-
     const path = buildRoute(nearestNode.id, endNode.id);
     if (!path) return;
 
@@ -626,10 +596,24 @@ export default forwardRef(function MapCanvasBlock(
       ...path.map((id) => nodes.find((n) => n.id === id)).filter(Boolean),
     ];
 
+    setRouteNodes(routeWithUser);
     lastRouteNodeRef.current = nearestNode.id;
     lastRebuildTimeRef.current = Date.now();
-    setRouteNodes(routeWithUser);
-  }, [userGPS, gpsToPixel, findNearestNode, buildRoute]);
+
+    // --- ПРОВЕРКА ДОСТИЖЕНИЯ КВЕСТ-ТОЧКИ ---
+    const startQP = questPoints[0]; // старт квеста
+    const dx = userPx.x - startQP.x;
+    const dy = userPx.y - startQP.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const REACH_RADIUS = 25;
+
+    if (dist < REACH_RADIUS) {
+      console.log(
+        "Пользователь рядом со стартом, переход к следующему шагу квеста!"
+      );
+      onQuestPointReached?.();
+    }
+  }, [userGPS, gpsToPixel, findNearestNode, buildRoute, onQuestPointReached]);
 
   // --- Load map image ---
   useEffect(() => {
@@ -854,10 +838,11 @@ export default forwardRef(function MapCanvasBlock(
     const now = Date.now();
     if (now - lastRebuildTimeRef.current < 3000) return;
 
-    // --- один раз вычисляем userPx ---
+    // --- вычисляем позицию пользователя ---
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!userPx) return;
 
+    // --- находим ближайший узел маршрута ---
     const nearestNode = findNearestNode(userPx);
     if (!nearestNode) return;
 
@@ -865,16 +850,18 @@ export default forwardRef(function MapCanvasBlock(
       rebuildRouteFromUser();
     }
 
-    const startNode = nodes.find((n) => n.id === "START");
-    if (!startNode) return;
-
-    const dx = userPx.x - startNode.x;
-    const dy = userPx.y - startNode.y;
+    // --- проверка приближения к стартовой точке квеста ---
+    const startQP = questPoints[0]; // старт квеста
+    const dx = userPx.x - startQP.x;
+    const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    // радиус достижения (подбирается)
-    if (dist < 20) {
-      onQuestPointReached?.();
+    const REACH_RADIUS = 25; // радиус достижения, подбирается под карту
+    if (dist < REACH_RADIUS) {
+      console.log(
+        "Пользователь рядом со стартом, переход к следующему шагу квеста!"
+      );
+      onQuestPointReached?.(); // переходим к следующему шагу квеста
     }
   }, [
     userGPS,
