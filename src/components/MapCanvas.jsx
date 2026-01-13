@@ -608,10 +608,8 @@ export default forwardRef(function MapCanvasBlock(
     const REACH_RADIUS = 25;
 
     if (dist < REACH_RADIUS) {
-      console.log(
-        "Пользователь рядом со стартом, переход к следующему шагу квеста!"
-      );
-      onQuestPointReached?.();
+      console.log("Пользователь рядом со стартом, переход к 3 шагу квеста!");
+      onQuestPointReached?.(2);
     }
   }, [userGPS, gpsToPixel, findNearestNode, buildRoute, onQuestPointReached]);
 
@@ -859,9 +857,9 @@ export default forwardRef(function MapCanvasBlock(
     const REACH_RADIUS = 25; // радиус достижения, подбирается под карту
     if (dist < REACH_RADIUS) {
       console.log(
-        "Пользователь рядом со стартом, переход к следующему шагу квеста!"
+        "Пользователь рядом со стартом, переход к 3 шагу квеста!"
       );
-      onQuestPointReached?.(); // переходим к следующему шагу квеста
+      onQuestPointReached?.(2); // переходим к следующему шагу квеста
     }
   }, [
     userGPS,

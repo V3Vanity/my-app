@@ -10,6 +10,7 @@ import "./QuestPage.css";
 export default function QuestPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0); // 0 = стартовый экран
+  const [completedSteps, setCompletedSteps] = useState([]);
   const navigate = useNavigate();
   const mapRef = useRef(null);
 
@@ -63,8 +64,16 @@ export default function QuestPage() {
     }
   };
 
-  const handleQuestPointReached = () => {
-    setCurrentStep((prev) => prev + 1);
+  const handleQuestPointReached = (stepNumber) => {
+    setCompletedSteps((prev) => {
+      if (!prev.includes(stepNumber)) {
+        return [...prev, stepNumber];
+      }
+      return prev;
+    });
+
+    // Автоматически переходим на следующий шаг
+    setCurrentStep(stepNumber + 1);
   };
 
   const step1Text = `Маршрут №44
@@ -82,6 +91,8 @@ export default function QuestPage() {
 и спасал зайцев с затопленных островов.  
 История эта известна каждому, но её продолжение живёт в Костроме до сих пор.
 Некоторые из спасённых зайцев остались в городе. Они превратились в хранителей — маленьких наблюдателей, внимательных и осторожных. Их называют мазайскими зайцами, и каждый из них словно хранит частицу древней тайны.`;
+
+  const step3Text = `Тут будет текст третьего шага квеста...`;
 
   return (
     <div className="app-container">
@@ -137,9 +148,20 @@ export default function QuestPage() {
               ref={mapRef}
               onBack={handleBack}
               onQuestPointReached={handleQuestPointReached}
+              completedSteps={completedSteps}
             />
           )}
         </>
+      )}
+
+      {currentStep === 3 && (
+        <TextBlock
+          text={step3Text} // потом заменим на твой текст
+          showTitle={true}
+          onNextStep={handleNextStep}
+          showBackButton={true}
+          onBack={handleBack}
+        />
       )}
     </div>
   );
