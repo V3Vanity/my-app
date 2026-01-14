@@ -312,7 +312,7 @@ const DEBUG_USER = true; // test GPS
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 }; // точно на START  lat: 57.7723, lon: 40.9355 };
 
 export default forwardRef(function MapCanvasBlock(
-  { className = "", onBack, onQuestPointReached },
+  { className = "", onBack, onQuestPointReached, mode },
   ref
 ) {
   const containerRef = useRef(null);
@@ -607,11 +607,142 @@ export default forwardRef(function MapCanvasBlock(
     const dist = Math.sqrt(dx * dx + dy * dy);
     const REACH_RADIUS = 25;
 
-    if (dist < REACH_RADIUS) {
-      console.log("Пользователь рядом со стартом, переход к 3 шагу квеста!");
+    if (dist < REACH_RADIUS && mode !== "step4") {
       onQuestPointReached?.(2);
     }
-  }, [userGPS, gpsToPixel, findNearestNode, buildRoute, onQuestPointReached]);
+  }, [
+    userGPS,
+    gpsToPixel,
+    findNearestNode,
+    buildRoute,
+    onQuestPointReached,
+    mode,
+  ]);
+
+  // --- 3️⃣ Обновление маршрута при движении пользователя (только для step2) ---
+  useEffect(() => {
+    if (mode !== "step2") return; // только step2
+    if (!userGPS) return;
+    if (!routeNodes) return;
+
+    const now = Date.now();
+    if (now - lastRebuildTimeRef.current < 3000) return;
+
+    const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!userPx) return;
+
+    const nearestNode = findNearestNode(userPx);
+    if (!nearestNode) return;
+
+    if (nearestNode.id !== lastRouteNodeRef.current) {
+      rebuildRouteFromUser();
+    }
+
+    // проверка приближения к стартовой точке квеста
+    const startQP = questPoints[0];
+    const dx = userPx.x - startQP.x;
+    const dy = userPx.y - startQP.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const REACH_RADIUS = 25;
+    if (dist < REACH_RADIUS) {
+      onQuestPointReached?.(2);
+    }
+  }, [
+    userGPS,
+    routeNodes,
+    gpsToPixel,
+    findNearestNode,
+    rebuildRouteFromUser,
+    onQuestPointReached,
+    mode,
+  ]);
+
+  const buildRouteFromStartToSecondPoint = useCallback(() => {
+    const startQP = questPoints.find((qp) => qp.order === 1);
+    const targetQP = questPoints.find((qp) => qp.order === 2);
+    if (!startQP || !targetQP) return;
+
+    // ближайший узел к старту
+    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
+    // ближайший узел к второй точке
+    const nearestNodeToTarget = findNearestNode({
+      x: targetQP.x,
+      y: targetQP.y,
+    });
+
+    if (!nearestNodeToStart || !nearestNodeToTarget) return;
+
+    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+    if (!path) return;
+
+    const route = path
+      .map((id) => nodes.find((n) => n.id === id))
+      .filter(Boolean);
+
+    // добавляем к маршруту саму стартовую точку и вторую точку
+    route.unshift({ id: "QP_START", x: startQP.x, y: startQP.y });
+    route.push({ id: "QP_2", x: targetQP.x, y: targetQP.y });
+
+    setRouteNodes(route);
+  }, [buildRoute, findNearestNode]);
+
+  const buildRouteFromSecondToThirdPoint = useCallback(() => {
+    const startQP = questPoints.find((qp) => qp.order === 2);
+    const targetQP = questPoints.find((qp) => qp.order === 3);
+    if (!startQP || !targetQP) return;
+
+    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
+    const nearestNodeToTarget = findNearestNode({
+      x: targetQP.x,
+      y: targetQP.y,
+    });
+    if (!nearestNodeToStart || !nearestNodeToTarget) return;
+
+    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+    if (!path) return;
+
+    const route = path
+      .map((id) => nodes.find((n) => n.id === id))
+      .filter(Boolean);
+
+    route.unshift({ id: `QP_${startQP.order}`, x: startQP.x, y: startQP.y });
+    route.push({ id: `QP_${targetQP.order}`, x: targetQP.x, y: targetQP.y });
+
+    setRouteNodes(route);
+  }, [buildRoute, findNearestNode]);
+
+
+  // --- построение маршрута в зависимости от шага ---
+  useEffect(() => {
+    if (!initialized || !affineRef.current) return;
+
+    switch (mode) {
+      case "step2": // маршрут от пользователя до стартовой точки
+        if (userGPS) rebuildRouteFromUser();
+        break;
+
+      case "step4": // маршрут от стартовой точки до второй квест-точки
+        buildRouteFromStartToSecondPoint();
+        break;
+
+      case "step6": // маршрут от второй до третьей квест-точки
+        buildRouteFromSecondToThirdPoint(); // <--- вызов функции
+        break;
+
+      default:
+        break;
+    }
+  }, [
+    initialized,
+    userGPS,
+    mode,
+    rebuildRouteFromUser,
+    buildRouteFromStartToSecondPoint,
+    buildRouteFromSecondToThirdPoint,
+  ]);
+
+
+  
 
   // --- Load map image ---
   useEffect(() => {
@@ -637,18 +768,8 @@ export default forwardRef(function MapCanvasBlock(
 
       computeAffineFromNodes(); // вычисляем аффинное преобразование
       setInitialized(true); // ставим флаг загрузки
-
-      // --- сразу строим маршрут, если есть GPS ---
-      if (userGPS) {
-        rebuildRouteFromUser();
-      }
     };
   }, [computeAffineFromNodes, userGPS, rebuildRouteFromUser]);
-
-  useEffect(() => {
-    if (!userGPS || !affineRef.current) return;
-    rebuildRouteFromUser();
-  }, [userGPS, rebuildRouteFromUser]); //
 
   // --- обработчик кнопки ---
   const handleBuildRoute = useCallback(() => {
@@ -721,7 +842,7 @@ export default forwardRef(function MapCanvasBlock(
       const iconSize = 40;
 
       questPoints
-        .filter((qp) => qp.order === 1) // только старт
+        .filter((qp) => qp.order === 1 || qp.order === 2) // обе точки
         .forEach((qp) => {
           ctx.drawImage(
             rabbitIconRef.current,
@@ -844,7 +965,7 @@ export default forwardRef(function MapCanvasBlock(
     const nearestNode = findNearestNode(userPx);
     if (!nearestNode) return;
 
-    if (nearestNode.id !== lastRouteNodeRef.current) {
+    if (mode !== "step4" && nearestNode.id !== lastRouteNodeRef.current) {
       rebuildRouteFromUser();
     }
 
@@ -855,11 +976,8 @@ export default forwardRef(function MapCanvasBlock(
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     const REACH_RADIUS = 25; // радиус достижения, подбирается под карту
-    if (dist < REACH_RADIUS) {
-      console.log(
-        "Пользователь рядом со стартом, переход к 3 шагу квеста!"
-      );
-      onQuestPointReached?.(2); // переходим к следующему шагу квеста
+    if (dist < REACH_RADIUS && mode !== "step4") {
+      onQuestPointReached?.(2);
     }
   }, [
     userGPS,
@@ -868,6 +986,7 @@ export default forwardRef(function MapCanvasBlock(
     findNearestNode,
     rebuildRouteFromUser,
     onQuestPointReached,
+    mode,
   ]);
 
   // --- wheel zoom ---
@@ -1015,11 +1134,21 @@ export default forwardRef(function MapCanvasBlock(
   useImperativeHandle(ref, () => ({
     startQuest: () => {
       setPageMode("quest");
-      if (userGPS && initialized) rebuildRouteFromUser();
+      buildRouteFromStartToSecondPoint();
+
+      // центрируем карту между стартом и второй точкой
+      const startQP = questPoints.find((qp) => qp.order === 1);
+      const targetQP = questPoints.find((qp) => qp.order === 2);
+      if (startQP && targetQP) {
+        const centerX = (startQP.x + targetQP.x) / 2;
+        const centerY = (startQP.y + targetQP.y) / 2;
+        centerOnPixel({ x: centerX, y: centerY }, 1.8);
+      }
     },
     buildRouteToStart: () => {
       handleBuildRoute();
     },
+    buildRouteFromStartToSecondPoint, //
   }));
 
   return (
@@ -1036,6 +1165,7 @@ export default forwardRef(function MapCanvasBlock(
       <button className="back-step-button" onClick={onBack}>
         ←
       </button>
+
       <button
         className="map-follow-btn"
         onClick={() => {
@@ -1061,6 +1191,17 @@ export default forwardRef(function MapCanvasBlock(
       </button>
 
       <canvas ref={canvasRef} className="map-canvas" />
+
+      {mode === "step4" && (
+        <div className="map-continue-container">
+          <button
+            className="map-continue-button"
+            onClick={() => onQuestPointReached?.(4)}
+          >
+            Продолжить
+          </button>
+        </div>
+      )}
     </div>
   );
 });

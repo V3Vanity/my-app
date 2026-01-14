@@ -5,19 +5,30 @@ import TextBlock from "../components/TextBlock.jsx";
 import MapCanvas from "../components/MapCanvas.jsx";
 import topImage from "../assets/marshrut44.png";
 import questImage from "../assets/quest-img.png";
+import step2Image from "../assets/step-2.png";
 import "./QuestPage.css";
 
 export default function QuestPage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0); // 0 = стартовый экран
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem("questStep");
+    return saved ? Number(saved) : 0;
+  });
   const [completedSteps, setCompletedSteps] = useState([]);
   const navigate = useNavigate();
   const mapRef = useRef(null);
 
   useEffect(() => {
+    if (!mapRef.current) return;
+
     if (currentStep === 2 && mapRef.current) {
       mapRef.current.startQuest();
       mapRef.current.buildRouteToStart();
+    }
+
+    if (currentStep === 4) {
+      mapRef.current.startQuest();
+      mapRef.current.buildRouteFromStartToSecondPoint();
     }
   }, [currentStep]);
 
@@ -92,8 +103,6 @@ export default function QuestPage() {
 История эта известна каждому, но её продолжение живёт в Костроме до сих пор.
 Некоторые из спасённых зайцев остались в городе. Они превратились в хранителей — маленьких наблюдателей, внимательных и осторожных. Их называют мазайскими зайцами, и каждый из них словно хранит частицу древней тайны.`;
 
-  const step3Text = `Тут будет текст третьего шага квеста...`;
-
   return (
     <div className="app-container">
       <Header
@@ -156,12 +165,44 @@ export default function QuestPage() {
 
       {currentStep === 3 && (
         <TextBlock
-          text={step3Text} // потом заменим на твой текст
-          showTitle={true}
-          onNextStep={handleNextStep}
+          showTitle={false}
           showBackButton={true}
           onBack={handleBack}
-        />
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">
+            Ты идёшь по проспекту Мира — старой, широкой улице, где дома словно
+            хранят дыхание прошлых веков. Здесь, среди рядов старинных зданий,
+            твой взгляд останавливается на небольшом существе: это Почтальон,
+            первый из мазайских зайцев. Он стоит прямо на фасаде дома. На нём
+            аккуратная шапочка, через плечо перекинут портфель, а рядом на стене
+            висит маленький почтовый ящик. Его глаза блестят живым огоньком, и
+            кажется, что он вот-вот двинется. И вдруг — словно ожив! — Почтальон
+            шевельнул ушками и слегка наклонил голову, будто приглашая подойти
+            ближе. С улицы слышен тихий шум, шаги прохожих, но Почтальон будто
+            слышит что-то ещё — шёпот старых домов, звуки, которые знают только
+            хранители тайн. Он приподнимает лапку и из портфеля достаёт
+            маленький свёрток. Ветер слегка подхватывает его края, и Почтальон
+            передаёт его тебе. Ты берёшь письмо и разворачиваешь его. На
+            пергаменте красивым, аккуратным почерком написано:
+          </p>
+
+          <img src={step2Image} alt="Мазайский заяц" className="text-image" />
+
+          <p className="text-paragraph">
+            Почтальон слегка подпрыгнул, будто одобряя твою внимательность, и
+            снова замер на фасаде, неподвижный и тихий, как будто его магия
+            вновь превратила его в статую. Но ты знаешь: письмо — первый ключ,
+            первая подсказка, и именно оно укажет путь дальше. Проспект Мира
+            больше не кажется обычной улицей. Каждый дом, каждый фасад, каждый
+            фонарь и брусчатка теперь могут хранить тайны, и твой путь только
+            начинается. Следуй за подсказкой, и мазайские хранители поведут тебя
+            дальше.
+          </p>
+        </TextBlock>
+      )}
+      {currentStep === 4 && (
+        <MapCanvas ref={mapRef} mode="step4" onBack={handleBack} />
       )}
     </div>
   );

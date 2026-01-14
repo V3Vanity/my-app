@@ -7,6 +7,7 @@ export default function TextBlock({
   onNextStep,
   showBackButton,
   onBack,
+  children,
 }) {
   const containerRef = useRef(null);
   const [showButton, setShowButton] = useState(false);
@@ -39,7 +40,7 @@ export default function TextBlock({
         )}
 
         {showTitle && <h2 className="text-title">Маршрут №44</h2>}
-        <p className="text-paragraph">{text}</p>
+        {children ? children : <p className="text-paragraph">{text}</p>}
 
         {/* Кнопка Продолжить */}
         <div
