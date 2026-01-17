@@ -314,7 +314,6 @@ export default forwardRef(function MapCanvasBlock(
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     const REACH_RADIUS = 25;
-
     if (dist < REACH_RADIUS) {
       if (mode === "step2") {
         onQuestPointReached?.(2);
@@ -419,31 +418,45 @@ export default forwardRef(function MapCanvasBlock(
 
   // --- построение маршрута в зависимости от шага ---
   useEffect(() => {
+    // Проверка, если компоненты не инициализированы
     if (!initialized || !affineRef.current) return;
 
-    switch (mode) {
-      case "step2": // маршрут от пользователя до стартовой точки
-        if (userGPS) rebuildRouteFromUser();
-        break;
+    console.log(`Current Step: ${mode}`);
 
-      case "step4": // маршрут от стартовой точки до второй квест-точки
-        buildRouteFromStartToSecondPoint();
-        break;
+    // Функция для построения маршрутов
+    const buildRoute = () => {
+      switch (mode) {
+        case "step2": // маршрут от пользователя до стартовой точки
+          if (userGPS) {
+            rebuildRouteFromUser(); // Проверка для наличия GPS данных
+          } else {
+            console.warn("User GPS not available for step2");
+          }
+          break;
 
-      case "step6": // маршрут от второй до третьей квест-точки
-        buildRouteFromSecondToThirdPoint();
-        break;
+        case "step4": // маршрут от стартовой точки до второй квест-точки
+          buildRouteFromStartToSecondPoint();
+          break;
 
-      default:
-        break;
-    }
+        case "step6": // маршрут от второй до третьей квест-точки
+          buildRouteFromSecondToThirdPoint();
+          break;
+
+        default:
+          console.warn("Unknown mode:", mode);
+          break;
+      }
+    };
+
+    // Строим маршрут в зависимости от текущего шага
+    buildRoute();
   }, [
-    initialized,
-    userGPS,
-    mode,
-    rebuildRouteFromUser,
-    buildRouteFromStartToSecondPoint,
-    buildRouteFromSecondToThirdPoint,
+    initialized, // Инициализация компонента
+    userGPS, // Отслеживаем данные GPS пользователя для шага 2
+    mode, // Шаг (mode), для которого строим маршрут
+    rebuildRouteFromUser, // Функция для маршрута от пользователя
+    buildRouteFromStartToSecondPoint, // Функция для маршрута от стартовой точки
+    buildRouteFromSecondToThirdPoint, // Функция для маршрута от второй точки
   ]);
 
   // --- Load map image ---
@@ -966,11 +979,16 @@ export default forwardRef(function MapCanvasBlock(
 
       <canvas ref={canvasRef} className="map-canvas" />
 
-      {mode === "step4" && (
+      {mode !== "step2" && (
         <div className="map-continue-container">
           <button
             className="map-continue-button"
-            onClick={() => onQuestPointReached?.(4)}
+            onClick={() => {
+              // Определяем, на какой шаг передаем номер
+              if (mode === "step4") onQuestPointReached?.(4);
+              else if (mode === "step6") onQuestPointReached?.(6);
+              // Можно добавить другие шаги по аналогии
+            }}
           >
             Продолжить
           </button>
