@@ -9,7 +9,8 @@ import React, {
 import "./MapCanvas.css";
 
 import mapImage from "../assets/map.svg";
-import rabbitIcon from "../assets/grabit.svg";
+import rabbitIcon from "../assets/grabbit.svg";
+import rabbitOne from "../assets/rabbitOne.svg";
 
 const nodes = [
   { id: "START", x: 492, y: 125 },
@@ -312,7 +313,7 @@ const DEBUG_USER = true; // test GPS
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 }; // точно на START  lat: 57.7723, lon: 40.9355 };
 
 export default forwardRef(function MapCanvasBlock(
-  { className = "", onBack, onQuestPointReached, mode },
+  { className = "", onBack, onQuestPointReached, mode, foundQuestPoints = [] },
   ref
 ) {
   const containerRef = useRef(null);
@@ -320,6 +321,7 @@ export default forwardRef(function MapCanvasBlock(
   const imgRef = useRef(null);
   const bgCanvasRef = useRef(null);
   const rabbitIconRef = useRef(null);
+  const rabbitOneIconRef = useRef(null);
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -605,7 +607,7 @@ export default forwardRef(function MapCanvasBlock(
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 25;
+    const REACH_RADIUS = 0;
 
     if (dist < REACH_RADIUS && mode !== "step4") {
       onQuestPointReached?.(2);
@@ -619,11 +621,10 @@ export default forwardRef(function MapCanvasBlock(
     mode,
   ]);
 
-  // --- 3️⃣ Обновление маршрута при движении пользователя (только для step2) ---
+  // ---  Обновление маршрута при движении пользователя (только для step2) ---
   useEffect(() => {
-    if (mode !== "step2") return; // только step2
+    if (mode !== "step2") return;
     if (!userGPS) return;
-    if (!routeNodes) return;
 
     const now = Date.now();
     if (now - lastRebuildTimeRef.current < 3000) return;
@@ -634,22 +635,19 @@ export default forwardRef(function MapCanvasBlock(
     const nearestNode = findNearestNode(userPx);
     if (!nearestNode) return;
 
-    if (nearestNode.id !== lastRouteNodeRef.current) {
-      rebuildRouteFromUser();
-    }
+    // всегда перестраиваем маршрут на step2
+    rebuildRouteFromUser();
 
-    // проверка приближения к стартовой точке квеста
-    const startQP = questPoints[0];
+    const startQP = questPoints[0]; // старт квеста
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 25;
+    const REACH_RADIUS = 0;
     if (dist < REACH_RADIUS) {
       onQuestPointReached?.(2);
     }
   }, [
     userGPS,
-    routeNodes,
     gpsToPixel,
     findNearestNode,
     rebuildRouteFromUser,
@@ -711,7 +709,6 @@ export default forwardRef(function MapCanvasBlock(
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
 
-
   // --- построение маршрута в зависимости от шага ---
   useEffect(() => {
     if (!initialized || !affineRef.current) return;
@@ -741,9 +738,6 @@ export default forwardRef(function MapCanvasBlock(
     buildRouteFromSecondToThirdPoint,
   ]);
 
-
-  
-
   // --- Load map image ---
   useEffect(() => {
     const img = new Image();
@@ -755,6 +749,12 @@ export default forwardRef(function MapCanvasBlock(
       rabbit.src = rabbitIcon;
       rabbit.onload = () => {
         rabbitIconRef.current = rabbit;
+      };
+
+      const start = new Image();
+      start.src = rabbitOne;
+      start.onload = () => {
+        rabbitOneIconRef.current = start;
       };
 
       const bgCanvas = document.createElement("canvas");
@@ -783,6 +783,24 @@ export default forwardRef(function MapCanvasBlock(
     setFollowUser(true);
     centerOnPixel(px, 2.2);
   }, [pageMode, rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
+
+  const getQuestPointIcon = useCallback(
+    (order) => {
+      if (mode === "step2") {
+        if (order === 1) return rabbitIconRef.current; // только старт
+        return null; // все остальные точки скрыты
+      }
+      if (mode === "step4") {
+        if (order === 1) return rabbitIconRef.current; // новая иконка для старта
+        if (order === 2) return rabbitOneIconRef.current; // старая иконка для второй точки
+        return null; // все остальные точки не отображаем
+      }
+      return foundQuestPoints.includes(order)
+        ? rabbitIconRef.current
+        : rabbitOneIconRef.current;
+    },
+    [foundQuestPoints, mode]
+  );
 
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
@@ -838,21 +856,35 @@ export default forwardRef(function MapCanvasBlock(
     }
 
     // --- draw quest points (rabbits) ---
-    if (pageMode === "quest" && rabbitIconRef.current) {
+    // --- draw quest points ---
+    if (
+      pageMode === "quest" &&
+      rabbitIconRef.current &&
+      rabbitOneIconRef.current
+    ) {
       const iconSize = 40;
 
-      questPoints
-        .filter((qp) => qp.order === 1 || qp.order === 2) // обе точки
-        .forEach((qp) => {
-          ctx.drawImage(
-            rabbitIconRef.current,
-            qp.x - iconSize / 2,
-            qp.y - iconSize,
-            iconSize,
-            iconSize
-          );
-        });
+      let pointsToDraw = questPoints;
+
+      // step2: рисуем только стартовую точку
+      if (mode === "step2") {
+        pointsToDraw = questPoints.filter((qp) => qp.order === 1);
+      }
+
+      pointsToDraw.forEach((qp) => {
+        const icon = getQuestPointIcon(qp.order);
+        if (!icon) return;
+
+        ctx.drawImage(
+          icon,
+          qp.x - iconSize / 2,
+          qp.y - iconSize,
+          iconSize,
+          iconSize
+        );
+      });
     }
+
     // // --- draw nodes ---
     // nodes.forEach((n) => {
     //   ctx.fillStyle = "gray";
@@ -889,7 +921,7 @@ export default forwardRef(function MapCanvasBlock(
     }
 
     ctx.restore();
-  }, [pageMode, gpsToPixel, userGPS, routeNodes]);
+  }, [pageMode, gpsToPixel, userGPS, routeNodes, getQuestPointIcon, mode]);
 
   // --- main render ---
   useEffect(() => {
@@ -975,7 +1007,7 @@ export default forwardRef(function MapCanvasBlock(
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    const REACH_RADIUS = 25; // радиус достижения, подбирается под карту
+    const REACH_RADIUS = 0; // радиус достижения, подбирается под карту
     if (dist < REACH_RADIUS && mode !== "step4") {
       onQuestPointReached?.(2);
     }

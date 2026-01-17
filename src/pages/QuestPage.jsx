@@ -15,6 +15,7 @@ export default function QuestPage() {
     return saved ? Number(saved) : 0;
   });
   const [completedSteps, setCompletedSteps] = useState([]);
+  const [foundQuestPoints, setFoundQuestPoints] = useState([]);
   const navigate = useNavigate();
   const mapRef = useRef(null);
 
@@ -76,6 +77,15 @@ export default function QuestPage() {
   };
 
   const handleQuestPointReached = (stepNumber) => {
+    // Добавляем точку в список найденных
+    setFoundQuestPoints((prev) => {
+      if (!prev.includes(stepNumber)) {
+        return [...prev, stepNumber];
+      }
+      return prev;
+    });
+
+    // Добавляем точку в completedSteps
     setCompletedSteps((prev) => {
       if (!prev.includes(stepNumber)) {
         return [...prev, stepNumber];
@@ -202,7 +212,13 @@ export default function QuestPage() {
         </TextBlock>
       )}
       {currentStep === 4 && (
-        <MapCanvas ref={mapRef} mode="step4" onBack={handleBack} />
+        <MapCanvas
+          ref={mapRef}
+          mode="step4"
+          foundQuestPoints={foundQuestPoints}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+        />
       )}
     </div>
   );
