@@ -168,6 +168,7 @@ export default function QuestPage() {
               onBack={handleBack}
               onQuestPointReached={handleQuestPointReached}
               completedSteps={completedSteps}
+              mode="step2"
             />
           )}
         </>

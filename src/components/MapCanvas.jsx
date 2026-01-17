@@ -607,7 +607,7 @@ export default forwardRef(function MapCanvasBlock(
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 0;
+    const REACH_RADIUS = 25;
 
     if (dist < REACH_RADIUS && mode !== "step4") {
       onQuestPointReached?.(2);
@@ -791,8 +791,8 @@ export default forwardRef(function MapCanvasBlock(
         return null; // все остальные точки скрыты
       }
       if (mode === "step4") {
-        if (order === 1) return rabbitIconRef.current; // новая иконка для старта
-        if (order === 2) return rabbitOneIconRef.current; // старая иконка для второй точки
+        if (order === 1) return rabbitOneIconRef.current; // новая иконка для старта
+        if (order === 2) return rabbitIconRef.current; // старая иконка для второй точки
         return null; // все остальные точки не отображаем
       }
       return foundQuestPoints.includes(order)
@@ -855,7 +855,6 @@ export default forwardRef(function MapCanvasBlock(
       ctx.stroke();
     }
 
-    // --- draw quest points (rabbits) ---
     // --- draw quest points ---
     if (
       pageMode === "quest" &&
