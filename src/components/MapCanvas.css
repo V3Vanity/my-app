@@ -1,12 +1,13 @@
+/* --- Контейнер карты --- */
 .map-container {
   position: fixed;
   bottom: 0;
   left: 50%;
   width: 375px;
   max-width: 100%;
-  height: 80%;
+  height: 85%;
   transform: translateX(-50%);
-  background-color: rgba(255, 162, 0, 0); /* эквивалент #ffa2000 */
+  background-color: rgba(255, 162, 0, 0); /* прозрачный фон */
   overflow: hidden;
   touch-action: none;
   display: flex;
@@ -14,6 +15,8 @@
   border-radius: 12px;
   cursor: grab;
 }
+
+/* Высота карты для шагов квеста */
 .map-container-quest {
   height: 45%;
 }
@@ -22,12 +25,15 @@
   cursor: grabbing;
 }
 
+/* Холст карты */
 .map-canvas {
   display: block;
   flex-grow: 1;
 }
 
+/* Кнопка "Следить за пользователем" */
 .map-follow-btn {
+  display: none;
   position: absolute;
   top: 52px;
   left: 12px;
@@ -40,16 +46,40 @@
   cursor: pointer;
 }
 
+/* Кнопка "Назад" */
 .back-step-button {
   background: #ffffff73;
   border-radius: 50%;
   border: none;
-  padding: 7px;
-  font-size: 20px;
+  padding: 15px;
+  font-size: 30px;
   color: #862518;
   font-weight: bold;
   cursor: pointer;
   margin: 10px;
   align-self: flex-start;
-  z-index: 99999;
+  z-index: 9999;
+}
+
+/* --- Кнопка "Продолжить" на step4 --- */
+.map-continue-container {
+  position: absolute; /* фиксируем относительно родителя .map-container */
+  bottom: 20px; /* отступ от низа карты */
+  left: 50%; /* по центру горизонтали */
+  transform: translateX(-50%);
+  z-index: 10; /* поверх карты */
+  width: auto;
+  text-align: center;
+}
+
+.map-continue-button {
+  padding: 18px 76px;
+  font-size: 32px;
+  border-radius: 41px;
+  background-color: #11ab0e;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
 }

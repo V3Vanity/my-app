@@ -32,6 +32,7 @@
 }
 
 .text-paragraph {
+  margin: 0;
   font-size: 18px;
   line-height: 1.6;
 }
@@ -51,13 +52,13 @@
 }
 
 .continue-button {
-  padding: 12px 24px;
+  padding: 18px 76px;
   background-color: #862518;
   color: #d9cfb8;
-  font-size: 16px;
+  font-size: 32px;
   font-weight: bold;
   border: none;
-  border-radius: 8px;
+  border-radius: 41px;
   cursor: pointer;
 }
 
@@ -65,8 +66,8 @@
   background: #ffffff73;
   border-radius: 50%;
   border: none;
-  padding: 6px;
-  font-size: 20px;
+  padding: 15px;
+  font-size: 30px;
   color: #862518;
   font-weight: bold;
   cursor: pointer;
