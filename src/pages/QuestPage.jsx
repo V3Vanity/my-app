@@ -23,14 +23,18 @@ export default function QuestPage() {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    if (currentStep === 2 && mapRef.current) {
-      mapRef.current.startQuest();
-      mapRef.current.buildRouteToStart();
-    }
-
-    if (currentStep === 4) {
-      mapRef.current.startQuest();
-      mapRef.current.buildRouteFromStartToSecondPoint();
+    switch (currentStep) {
+      case 2:
+        mapRef.current.startQuest("step2");
+        break;
+      case 4:
+        mapRef.current.startQuest("step4");
+        break;
+      case 6:
+        mapRef.current.startQuest("step6");
+        break;
+      default:
+        break;
     }
   }, [currentStep]);
 
@@ -95,7 +99,26 @@ export default function QuestPage() {
     });
 
     // Автоматически переходим на следующий шаг
-    setCurrentStep(stepNumber + 1);
+    setCurrentStep((prev) => {
+      // Step2 → Step3 (Убедитесь, что только после нахождения точки на шаге 2)
+      if (prev === 2 && stepNumber === 2) return 3; // Переход на шаг 3, а не 4
+
+      // Step3 → Step4
+      if (prev === 3 && stepNumber === 3) return 4; // Переход на шаг 4
+
+      // Step5 → Step6
+      if (prev === 5 && stepNumber === 5) return 6; // Переход на шаг 6
+
+      // Step6 → Step7 (или финал)
+      if (prev === 6 && stepNumber === 6) return 7; // Переход на шаг 7 (финал)
+
+      // Для всех остальных шагов просто увеличиваем на 1
+      if (stepNumber === prev) {
+        return prev + 1; // Переход на следующий шаг, если точка на текущем шаге
+      }
+
+      return prev; // Иначе остаемся на текущем шаге
+    });
   };
 
   const step1Text = `Маршрут №44
@@ -170,6 +193,7 @@ export default function QuestPage() {
               onQuestPointReached={handleQuestPointReached}
               completedSteps={completedSteps}
               mode="step2"
+              foundQuestPoints={foundQuestPoints}
             />
           )}
         </>
@@ -290,10 +314,10 @@ export default function QuestPage() {
       {currentStep === 6 && (
         <MapCanvas
           ref={mapRef}
-          mode="step6"
-          foundQuestPoints={foundQuestPoints}
           onBack={handleBack}
           onQuestPointReached={handleQuestPointReached}
+          mode="step6"
+          foundQuestPoints={foundQuestPoints}
         />
       )}
     </div>

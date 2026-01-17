@@ -11,6 +11,8 @@ import "./MapCanvas.css";
 import mapImage from "../assets/map.svg";
 import rabbitIcon from "../assets/grabbit.svg";
 import rabbitOne from "../assets/rabbitOne.svg";
+import rabbitTwo from "../assets/rabbitTwo.svg";
+
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 }; // точно на START  lat: 57.7723, lon: 40.9355 };
@@ -25,6 +27,7 @@ export default forwardRef(function MapCanvasBlock(
   const bgCanvasRef = useRef(null);
   const rabbitIconRef = useRef(null);
   const rabbitOneIconRef = useRef(null);
+  const rabbitTwoIconRef = useRef(null);
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -312,8 +315,10 @@ export default forwardRef(function MapCanvasBlock(
     const dist = Math.sqrt(dx * dx + dy * dy);
     const REACH_RADIUS = 25;
 
-    if (dist < REACH_RADIUS && mode !== "step4") {
-      onQuestPointReached?.(2);
+    if (dist < REACH_RADIUS) {
+      if (mode === "step2") {
+        onQuestPointReached?.(2);
+      }
     }
   }, [
     userGPS,
@@ -426,7 +431,7 @@ export default forwardRef(function MapCanvasBlock(
         break;
 
       case "step6": // маршрут от второй до третьей квест-точки
-        buildRouteFromSecondToThirdPoint(); // <--- вызов функции
+        buildRouteFromSecondToThirdPoint();
         break;
 
       default:
@@ -458,6 +463,12 @@ export default forwardRef(function MapCanvasBlock(
       start.src = rabbitOne;
       start.onload = () => {
         rabbitOneIconRef.current = start;
+      };
+
+      const rabbitTwoImg = new Image();
+      rabbitTwoImg.src = rabbitTwo; // импортировать rabbitTwo
+      rabbitTwoImg.onload = () => {
+        rabbitTwoIconRef.current = rabbitTwoImg;
       };
 
       const bgCanvas = document.createElement("canvas");
@@ -497,6 +508,12 @@ export default forwardRef(function MapCanvasBlock(
         if (order === 1) return rabbitOneIconRef.current; // новая иконка для старта
         if (order === 2) return rabbitIconRef.current; // старая иконка для второй точки
         return null; // все остальные точки не отображаем
+      }
+      if (mode === "step6") {
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitIconRef.current;
+        return null;
       }
       return foundQuestPoints.includes(order)
         ? rabbitIconRef.current
@@ -866,23 +883,46 @@ export default forwardRef(function MapCanvasBlock(
   }, [clampOffset]);
 
   useImperativeHandle(ref, () => ({
-    startQuest: () => {
+    startQuest: (mode) => {
       setPageMode("quest");
-      buildRouteFromStartToSecondPoint();
 
-      // центрируем карту между стартом и второй точкой
-      const startQP = questPoints.find((qp) => qp.order === 1);
-      const targetQP = questPoints.find((qp) => qp.order === 2);
-      if (startQP && targetQP) {
-        const centerX = (startQP.x + targetQP.x) / 2;
-        const centerY = (startQP.y + targetQP.y) / 2;
-        centerOnPixel({ x: centerX, y: centerY }, 1.8);
+      if (mode === "step6") {
+        // вызываем метод маршрута для 6 шага
+        buildRouteFromSecondToThirdPoint();
+
+        // центрируем карту между второй и третьей точкой
+        const startQP = questPoints.find((qp) => qp.order === 2);
+        const targetQP = questPoints.find((qp) => qp.order === 3);
+        if (startQP && targetQP) {
+          const centerX = (startQP.x + targetQP.x) / 2;
+          const centerY = (startQP.y + targetQP.y) / 2;
+          centerOnPixel({ x: centerX, y: centerY }, 1.8);
+        }
+      } else {
+        // Для остальных шагов
+        buildRouteFromStartToSecondPoint();
+
+        const startQP = questPoints.find((qp) => qp.order === 1);
+        const targetQP = questPoints.find((qp) => qp.order === 2);
+        if (startQP && targetQP) {
+          const centerX = (startQP.x + targetQP.x) / 2;
+          const centerY = (startQP.y + targetQP.y) / 2;
+          centerOnPixel({ x: centerX, y: centerY }, 1.8);
+        }
       }
     },
+
     buildRouteToStart: () => {
       handleBuildRoute();
     },
-    buildRouteFromStartToSecondPoint, //
+
+    buildRouteFromStartToSecondPoint: () => {
+      buildRouteFromStartToSecondPoint();
+    },
+
+    buildRouteFromSecondToThirdPoint: () => {
+      buildRouteFromSecondToThirdPoint();
+    },
   }));
 
   return (
