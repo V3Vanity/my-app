@@ -12,6 +12,7 @@ import mapImage from "../assets/map.svg";
 import rabbitIcon from "../assets/grabbit.svg";
 import rabbitOne from "../assets/rabbitOne.svg";
 import rabbitTwo from "../assets/rabbitTwo.svg";
+import rabbitThree from "../assets/rabbitThree.svg";
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
@@ -28,6 +29,7 @@ export default forwardRef(function MapCanvasBlock(
   const rabbitIconRef = useRef(null);
   const rabbitOneIconRef = useRef(null);
   const rabbitTwoIconRef = useRef(null);
+  const rabbitThreeIconRef = useRef(null);
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -524,6 +526,12 @@ export default forwardRef(function MapCanvasBlock(
         rabbitTwoIconRef.current = rabbitTwoImg;
       };
 
+      const rabbitThreeImg = new Image();
+      rabbitThreeImg.src = rabbitThree;
+      rabbitThreeImg.onload = () => {
+        rabbitThreeIconRef.current = rabbitThreeImg;
+      };
+
       const bgCanvas = document.createElement("canvas");
       bgCanvas.width = img.width;
       bgCanvas.height = img.height;
@@ -571,7 +579,7 @@ export default forwardRef(function MapCanvasBlock(
       if (mode === "step8") {
         if (order === 1) return rabbitOneIconRef.current; // найден 1
         if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitOneIconRef.current; // найден 3
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
         if (order === 4) return rabbitIconRef.current; // цель 4 (замочек)
         return null; // точки 5+ не показываем
       }
