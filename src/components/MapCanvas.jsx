@@ -19,7 +19,7 @@ const debugUserGPS = { lat: 57.7723, lon: 40.9349 }; // точно на START  l
 
 export default forwardRef(function MapCanvasBlock(
   { className = "", onBack, onQuestPointReached, mode, foundQuestPoints = [] },
-  ref
+  ref,
 ) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -83,7 +83,7 @@ export default forwardRef(function MapCanvasBlock(
         enableHighAccuracy: true,
         maximumAge: 1000,
         timeout: 5000,
-      }
+      },
     );
 
     return () => navigator.geolocation.clearWatch(watcherId);
@@ -189,7 +189,7 @@ export default forwardRef(function MapCanvasBlock(
       const [ay, by, cy] = affineRef.current.ay;
       return { x: ax * lon + bx * lat + cx, y: ay * lon + by * lat + cy };
     },
-    [affineRef]
+    [affineRef],
   );
 
   // --- поиск ближайшего узла ---
@@ -282,7 +282,7 @@ export default forwardRef(function MapCanvasBlock(
 
       clampOffset();
     },
-    [clampOffset]
+    [clampOffset],
   );
 
   // --- построение маршрута из GPS пользователя ---
@@ -416,6 +416,41 @@ export default forwardRef(function MapCanvasBlock(
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
 
+  // --- ДОБАВЬ ЭТО ПОСЛЕ СТРОКИ 226 ---
+  const buildRouteFromThirdToFourthPoint = useCallback(() => {
+    const startQP = questPoints.find((qp) => qp.order === 3); // точка 3
+    const targetQP = questPoints.find((qp) => qp.order === 4); // точка 4
+    if (!startQP || !targetQP) {
+      console.error("Не найдены точки для маршрута 3→4");
+      return;
+    }
+
+    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
+    const nearestNodeToTarget = findNearestNode({
+      x: targetQP.x,
+      y: targetQP.y,
+    });
+    if (!nearestNodeToStart || !nearestNodeToTarget) {
+      console.error("Не найдены узлы графа для точек");
+      return;
+    }
+
+    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+    if (!path) {
+      console.error("Не удалось построить маршрут 3→4");
+      return;
+    }
+
+    const route = path
+      .map((id) => nodes.find((n) => n.id === id))
+      .filter(Boolean);
+
+    route.unshift({ id: `QP_${startQP.order}`, x: startQP.x, y: startQP.y });
+    route.push({ id: `QP_${targetQP.order}`, x: targetQP.x, y: targetQP.y });
+
+    setRouteNodes(route);
+  }, [buildRoute, findNearestNode]);
+
   // --- построение маршрута в зависимости от шага ---
   useEffect(() => {
     // Проверка, если компоненты не инициализированы
@@ -442,6 +477,10 @@ export default forwardRef(function MapCanvasBlock(
           buildRouteFromSecondToThirdPoint();
           break;
 
+        case "step8": // маршрут от 3-й точки к 4-й
+          buildRouteFromThirdToFourthPoint();
+          break;
+
         default:
           console.warn("Unknown mode:", mode);
           break;
@@ -457,6 +496,7 @@ export default forwardRef(function MapCanvasBlock(
     rebuildRouteFromUser, // Функция для маршрута от пользователя
     buildRouteFromStartToSecondPoint, // Функция для маршрута от стартовой точки
     buildRouteFromSecondToThirdPoint, // Функция для маршрута от второй точки
+    buildRouteFromThirdToFourthPoint, // Функция для маршрута от третей точки
   ]);
 
   // --- Load map image ---
@@ -528,11 +568,18 @@ export default forwardRef(function MapCanvasBlock(
         if (order === 3) return rabbitIconRef.current;
         return null;
       }
+      if (mode === "step8") {
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitOneIconRef.current; // найден 3
+        if (order === 4) return rabbitIconRef.current; // цель 4 (замочек)
+        return null; // точки 5+ не показываем
+      }
       return foundQuestPoints.includes(order)
         ? rabbitIconRef.current
         : rabbitOneIconRef.current;
     },
-    [foundQuestPoints, mode]
+    [foundQuestPoints, mode],
   );
 
   const drawMap = useCallback(() => {
@@ -553,7 +600,7 @@ export default forwardRef(function MapCanvasBlock(
       offsetRef.current.x,
       offsetRef.current.y,
       bgCanvas.width * zoomRef.current,
-      bgCanvas.height * zoomRef.current
+      bgCanvas.height * zoomRef.current,
     );
 
     ctx.save();
@@ -601,6 +648,15 @@ export default forwardRef(function MapCanvasBlock(
       // step2: рисуем только стартовую точку
       if (mode === "step2") {
         pointsToDraw = questPoints.filter((qp) => qp.order === 1);
+      } else if (mode === "step4") {
+        // Показываем точки 1 и 2
+        pointsToDraw = questPoints.filter((qp) => qp.order <= 2);
+      } else if (mode === "step6") {
+        // Показываем точки 1, 2, 3
+        pointsToDraw = questPoints.filter((qp) => qp.order <= 3);
+      } else if (mode === "step8") {
+        // Показываем точки 1, 2, 3, 4
+        pointsToDraw = questPoints.filter((qp) => qp.order <= 4);
       }
 
       pointsToDraw.forEach((qp) => {
@@ -612,7 +668,7 @@ export default forwardRef(function MapCanvasBlock(
           qp.x - iconSize / 2,
           qp.y - iconSize,
           iconSize,
-          iconSize
+          iconSize,
         );
       });
     }
@@ -687,12 +743,12 @@ export default forwardRef(function MapCanvasBlock(
       offsetRef.current.x = lerp(
         offsetRef.current.x,
         targetOffsetRef.current.x,
-        0.2
+        0.2,
       );
       offsetRef.current.y = lerp(
         offsetRef.current.y,
         targetOffsetRef.current.y,
-        0.2
+        0.2,
       );
       drawMap();
       rafId = requestAnimationFrame(render);
@@ -899,29 +955,65 @@ export default forwardRef(function MapCanvasBlock(
     startQuest: (mode) => {
       setPageMode("quest");
 
-      if (mode === "step6") {
-        // вызываем метод маршрута для 6 шага
-        buildRouteFromSecondToThirdPoint();
+      switch (mode) {
+        case "step4": {
+          // Шаг 4: от точки 1 к точке 2
+          buildRouteFromStartToSecondPoint();
 
-        // центрируем карту между второй и третьей точкой
-        const startQP = questPoints.find((qp) => qp.order === 2);
-        const targetQP = questPoints.find((qp) => qp.order === 3);
-        if (startQP && targetQP) {
-          const centerX = (startQP.x + targetQP.x) / 2;
-          const centerY = (startQP.y + targetQP.y) / 2;
-          centerOnPixel({ x: centerX, y: centerY }, 1.8);
+          // центрируем карту между точками 1 и 2
+          const startQP1 = questPoints.find((qp) => qp.order === 1);
+          const targetQP2 = questPoints.find((qp) => qp.order === 2);
+          if (startQP1 && targetQP2) {
+            const centerX = (startQP1.x + targetQP2.x) / 2;
+            const centerY = (startQP1.y + targetQP2.y) / 2;
+            centerOnPixel({ x: centerX, y: centerY }, 1.8);
+          }
+          break;
         }
-      } else {
-        // Для остальных шагов
-        buildRouteFromStartToSecondPoint();
 
-        const startQP = questPoints.find((qp) => qp.order === 1);
-        const targetQP = questPoints.find((qp) => qp.order === 2);
-        if (startQP && targetQP) {
-          const centerX = (startQP.x + targetQP.x) / 2;
-          const centerY = (startQP.y + targetQP.y) / 2;
-          centerOnPixel({ x: centerX, y: centerY }, 1.8);
+        case "step6": {
+          // Шаг 6: от точки 2 к точке 3
+          buildRouteFromSecondToThirdPoint();
+
+          // центрируем карту между точками 2 и 3
+          const startQP2 = questPoints.find((qp) => qp.order === 2);
+          const targetQP3 = questPoints.find((qp) => qp.order === 3);
+          if (startQP2 && targetQP3) {
+            const centerX = (startQP2.x + targetQP3.x) / 2;
+            const centerY = (startQP2.y + targetQP3.y) / 2;
+            centerOnPixel({ x: centerX, y: centerY }, 1.8);
+          }
+          break;
         }
+
+        case "step8": {
+          // Шаг 8: от точки 3 к точке 4
+          buildRouteFromThirdToFourthPoint();
+
+          // центрируем карту между точками 3 и 4
+          const startQP3 = questPoints.find((qp) => qp.order === 3);
+          const targetQP4 = questPoints.find((qp) => qp.order === 4);
+          if (startQP3 && targetQP4) {
+            const centerX = (startQP3.x + targetQP4.x) / 2;
+            const centerY = (startQP3.y + targetQP4.y) / 2;
+            centerOnPixel({ x: centerX, y: centerY }, 1.8);
+          }
+          break;
+        }
+
+        // Для будущих шагов можно добавлять по аналогии:
+        // case "step10": {
+        //   buildRouteFromFourthToFifthPoint();
+        //   // центрирование...
+        //   break;
+        // }
+
+        default:
+          // Дефолтная логика для других режимов (например, step2)
+          console.warn(
+            `Режим ${mode} не обработан, используется дефолтная логика`,
+          );
+          break;
       }
     },
 
@@ -935,6 +1027,11 @@ export default forwardRef(function MapCanvasBlock(
 
     buildRouteFromSecondToThirdPoint: () => {
       buildRouteFromSecondToThirdPoint();
+    },
+
+    // Можно добавить метод для step8 если нужно вызывать извне
+    buildRouteFromThirdToFourthPoint: () => {
+      buildRouteFromThirdToFourthPoint();
     },
   }));
 
@@ -987,6 +1084,7 @@ export default forwardRef(function MapCanvasBlock(
               // Определяем, на какой шаг передаем номер
               if (mode === "step4") onQuestPointReached?.(4);
               else if (mode === "step6") onQuestPointReached?.(6);
+              else if (mode === "step8") onQuestPointReached?.(8);
               // Можно добавить другие шаги по аналогии
             }}
           >
