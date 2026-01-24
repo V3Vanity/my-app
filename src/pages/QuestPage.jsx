@@ -44,6 +44,7 @@ export default function QuestPage() {
       case 10:
         mapRef.current.startQuest("step10");
         break;
+
       default:
         break;
     }

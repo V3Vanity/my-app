@@ -575,12 +575,6 @@ export default forwardRef(function MapCanvasBlock(
         if (order === 4) return rabbitIconRef.current; // цель 4 (замочек)
         return null; // точки 5+ не показываем
       }
-      if (mode === "step10") {
-        // Режим просмотра всех точек
-        // Все точки показываем как "вопрос" (замочек)
-        // или можно показывать все как "rabbitIconRef.current"
-        return rabbitIconRef.current; // все точки как замочек
-      }
       return foundQuestPoints.includes(order)
         ? rabbitIconRef.current
         : rabbitOneIconRef.current;
@@ -663,9 +657,6 @@ export default forwardRef(function MapCanvasBlock(
       } else if (mode === "step8") {
         // Показываем точки 1, 2, 3, 4
         pointsToDraw = questPoints.filter((qp) => qp.order <= 4);
-      } else if (mode === "step10") {
-        // Показываем ВСЕ точки для расстановки
-        pointsToDraw = questPoints; // все точки
       }
 
       pointsToDraw.forEach((qp) => {
@@ -1006,27 +997,6 @@ export default forwardRef(function MapCanvasBlock(
             const centerX = (startQP3.x + targetQP4.x) / 2;
             const centerY = (startQP3.y + targetQP4.y) / 2;
             centerOnPixel({ x: centerX, y: centerY }, 1.8);
-          }
-          break;
-        }
-        case "step10": {
-          // Шаг 10: режим просмотра всех точек
-          // Не строим маршрут, просто показываем все точки
-          setRouteNodes(null); // очищаем маршрут
-
-          // Центрируем на середине карты или на всех точках
-          if (questPoints.length > 0) {
-            // Находим центр всех точек
-            let sumX = 0;
-            let sumY = 0;
-            questPoints.forEach((qp) => {
-              sumX += qp.x;
-              sumY += qp.y;
-            });
-            const centerX = sumX / questPoints.length;
-            const centerY = sumY / questPoints.length;
-
-            centerOnPixel({ x: centerX, y: centerY }, 1.5);
           }
           break;
         }
