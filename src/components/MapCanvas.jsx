@@ -13,6 +13,7 @@ import rabbitIcon from "../assets/grabbit.svg";
 import rabbitOne from "../assets/rabbitOne.svg";
 import rabbitTwo from "../assets/rabbitTwo.svg";
 import rabbitThree from "../assets/rabbitThree.svg";
+import rabbitFour from "../assets/rabbitFour.svg";
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
@@ -30,6 +31,7 @@ export default forwardRef(function MapCanvasBlock(
   const rabbitOneIconRef = useRef(null);
   const rabbitTwoIconRef = useRef(null);
   const rabbitThreeIconRef = useRef(null);
+  const rabbitFourIconRef = useRef(null);
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -418,7 +420,6 @@ export default forwardRef(function MapCanvasBlock(
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
 
-  // --- ДОБАВЬ ЭТО ПОСЛЕ СТРОКИ 226 ---
   const buildRouteFromThirdToFourthPoint = useCallback(() => {
     const startQP = questPoints.find((qp) => qp.order === 3); // точка 3
     const targetQP = questPoints.find((qp) => qp.order === 4); // точка 4
@@ -453,6 +454,39 @@ export default forwardRef(function MapCanvasBlock(
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
 
+  const buildRouteFromFourthToFifthPoint = useCallback(() => {
+    const startQP = questPoints.find((qp) => qp.order === 4); // точка 4
+    const targetQP = questPoints.find((qp) => qp.order === 5); // точка 5
+    if (!startQP || !targetQP) {
+      console.error("Не найдены точки для маршрута 4→5");
+      return;
+    }
+
+    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
+    const nearestNodeToTarget = findNearestNode({
+      x: targetQP.x,
+      y: targetQP.y,
+    });
+    if (!nearestNodeToStart || !nearestNodeToTarget) {
+      console.error("Не найдены узлы графа для точек");
+      return;
+    }
+
+    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+    if (!path) {
+      console.error("Не удалось построить маршрут 4→5");
+      return;
+    }
+
+    const route = path
+      .map((id) => nodes.find((n) => n.id === id))
+      .filter(Boolean);
+
+    route.unshift({ id: `QP_${startQP.order}`, x: startQP.x, y: startQP.y });
+    route.push({ id: `QP_${targetQP.order}`, x: targetQP.x, y: targetQP.y });
+
+    setRouteNodes(route);
+  }, [buildRoute, findNearestNode]);
   // --- построение маршрута в зависимости от шага ---
   useEffect(() => {
     // Проверка, если компоненты не инициализированы
@@ -482,6 +516,9 @@ export default forwardRef(function MapCanvasBlock(
         case "step8": // маршрут от 3-й точки к 4-й
           buildRouteFromThirdToFourthPoint();
           break;
+        case "step10": // маршрут от 4-й точки к 5-й
+          buildRouteFromFourthToFifthPoint();
+          break;
 
         default:
           console.warn("Unknown mode:", mode);
@@ -499,6 +536,7 @@ export default forwardRef(function MapCanvasBlock(
     buildRouteFromStartToSecondPoint, // Функция для маршрута от стартовой точки
     buildRouteFromSecondToThirdPoint, // Функция для маршрута от второй точки
     buildRouteFromThirdToFourthPoint, // Функция для маршрута от третей точки
+    buildRouteFromFourthToFifthPoint, // Функция для маршрута от четвертой точки
   ]);
 
   // --- Load map image ---
@@ -530,6 +568,11 @@ export default forwardRef(function MapCanvasBlock(
       rabbitThreeImg.src = rabbitThree;
       rabbitThreeImg.onload = () => {
         rabbitThreeIconRef.current = rabbitThreeImg;
+      };
+      const rabbitFourImg = new Image();
+      rabbitFourImg.src = rabbitFour;
+      rabbitFourImg.onload = () => {
+        rabbitFourIconRef.current = rabbitFourImg;
       };
 
       const bgCanvas = document.createElement("canvas");
@@ -582,6 +625,16 @@ export default forwardRef(function MapCanvasBlock(
         if (order === 3) return rabbitThreeIconRef.current; // найден 3
         if (order === 4) return rabbitIconRef.current; // цель 4 (замочек)
         return null; // точки 5+ не показываем
+      }
+      // В getQuestPointIcon добавь:
+      if (mode === "step10") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4 (нужна 4-я иконка!)
+        if (order === 5) return rabbitIconRef.current; // цель 5 (замочек)
+        return null;
       }
       return foundQuestPoints.includes(order)
         ? rabbitIconRef.current
@@ -665,6 +718,9 @@ export default forwardRef(function MapCanvasBlock(
       } else if (mode === "step8") {
         // Показываем точки 1, 2, 3, 4
         pointsToDraw = questPoints.filter((qp) => qp.order <= 4);
+      } else if (mode === "step10") {
+        // Показываем точки 1, 2, 3, 4, 5
+        pointsToDraw = questPoints.filter((qp) => qp.order <= 5);
       }
 
       pointsToDraw.forEach((qp) => {
@@ -1009,12 +1065,20 @@ export default forwardRef(function MapCanvasBlock(
           break;
         }
 
-        // Для будущих шагов можно добавлять по аналогии:
-        // case "step10": {
-        //   buildRouteFromFourthToFifthPoint();
-        //   // центрирование...
-        //   break;
-        // }
+        case "step10": {
+          // Шаг 10: от точки 4 к точке 5
+          buildRouteFromFourthToFifthPoint();
+
+          // центрируем карту между точками 4 и 5
+          const startQP4 = questPoints.find((qp) => qp.order === 4);
+          const targetQP5 = questPoints.find((qp) => qp.order === 5);
+          if (startQP4 && targetQP5) {
+            const centerX = (startQP4.x + targetQP5.x) / 2;
+            const centerY = (startQP4.y + targetQP5.y) / 2;
+            centerOnPixel({ x: centerX, y: centerY }, 1.8);
+          }
+          break;
+        }
 
         default:
           // Дефолтная логика для других режимов (например, step2)
@@ -1093,6 +1157,7 @@ export default forwardRef(function MapCanvasBlock(
               if (mode === "step4") onQuestPointReached?.(4);
               else if (mode === "step6") onQuestPointReached?.(6);
               else if (mode === "step8") onQuestPointReached?.(8);
+
               // Можно добавить другие шаги по аналогии
             }}
           >
