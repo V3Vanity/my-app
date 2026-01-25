@@ -59,6 +59,7 @@ export default forwardRef(function MapCanvasBlock(
   const lastRebuildTimeRef = useRef(0);
 
   const [routeNodes, setRouteNodes] = useState(null);
+  const [currentMapMode, setCurrentMapMode] = useState(null);
 
   const affineRef = useRef(null);
 
@@ -291,6 +292,13 @@ export default forwardRef(function MapCanvasBlock(
 
   // --- построение маршрута из GPS пользователя ---
   const rebuildRouteFromUser = useCallback(() => {
+    if (mode !== "step2") {
+      console.log(
+        `⚠️ rebuildRouteFromUser вызван для mode=${mode}, но должен быть только для step2`,
+      );
+      return;
+    }
+
     if (!userGPS) return;
 
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
@@ -335,6 +343,9 @@ export default forwardRef(function MapCanvasBlock(
   // ---  Обновление маршрута при движении пользователя (только для step2) ---
   useEffect(() => {
     if (mode !== "step2") return;
+    // Дополнительная проверка через currentMapMode
+    if (currentMapMode && currentMapMode !== "step2") return;
+
     if (!userGPS) return;
 
     const now = Date.now();
@@ -346,10 +357,10 @@ export default forwardRef(function MapCanvasBlock(
     const nearestNode = findNearestNode(userPx);
     if (!nearestNode) return;
 
-    // всегда перестраиваем маршрут на step2
+    // Перестраиваем маршрут ТОЛЬКО для step2
     rebuildRouteFromUser();
 
-    const startQP = questPoints[0]; // старт квеста
+    const startQP = questPoints[0];
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -364,67 +375,95 @@ export default forwardRef(function MapCanvasBlock(
     rebuildRouteFromUser,
     onQuestPointReached,
     mode,
+    currentMapMode, // Добавил зависимость
   ]);
 
   const buildRouteFromStartToSecondPoint = useCallback(() => {
+    // Старт квеста (order: 1)
     const startQP = questPoints.find((qp) => qp.order === 1);
+    // Целевая точка (order: 2)
     const targetQP = questPoints.find((qp) => qp.order === 2);
-    if (!startQP || !targetQP) return;
 
-    // ближайший узел к старту
+    if (!startQP || !targetQP) {
+      return;
+    }
+
     const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    // ближайший узел к второй точке
     const nearestNodeToTarget = findNearestNode({
       x: targetQP.x,
       y: targetQP.y,
     });
 
-    if (!nearestNodeToStart || !nearestNodeToTarget) return;
+    if (!nearestNodeToStart || !nearestNodeToTarget) {
+      return;
+    }
 
     const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-    if (!path) return;
+
+    if (!path) {
+      return;
+    }
 
     const route = path
       .map((id) => nodes.find((n) => n.id === id))
       .filter(Boolean);
 
-    // добавляем к маршруту саму стартовую точку и вторую точку
-    route.unshift({ id: "QP_START", x: startQP.x, y: startQP.y });
-    route.push({ id: "QP_2", x: targetQP.x, y: targetQP.y });
+    // ИСПРАВЛЕНО: Используем id из questPoints
+    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
+    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
 
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
 
   const buildRouteFromSecondToThirdPoint = useCallback(() => {
+    // Точка 2 (уже найдена)
     const startQP = questPoints.find((qp) => qp.order === 2);
+    // Целевая точка 3
     const targetQP = questPoints.find((qp) => qp.order === 3);
-    if (!startQP || !targetQP) return;
+
+    if (!startQP || !targetQP) {
+      return;
+    }
 
     const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
     const nearestNodeToTarget = findNearestNode({
       x: targetQP.x,
       y: targetQP.y,
     });
-    if (!nearestNodeToStart || !nearestNodeToTarget) return;
+
+    if (!nearestNodeToStart || !nearestNodeToTarget) {
+      return;
+    }
 
     const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-    if (!path) return;
+
+    if (!path) {
+      return;
+    }
 
     const route = path
       .map((id) => nodes.find((n) => n.id === id))
       .filter(Boolean);
 
-    route.unshift({ id: `QP_${startQP.order}`, x: startQP.x, y: startQP.y });
-    route.push({ id: `QP_${targetQP.order}`, x: targetQP.x, y: targetQP.y });
+    route.unshift({
+      id: startQP.id, // Используем id из questPoints, а не создаем новый
+      x: startQP.x,
+      y: startQP.y,
+    });
+    route.push({
+      id: targetQP.id, // Используем id из questPoints
+      x: targetQP.x,
+      y: targetQP.y,
+    });
 
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
 
   const buildRouteFromThirdToFourthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 3); // точка 3
-    const targetQP = questPoints.find((qp) => qp.order === 4); // точка 4
+    const startQP = questPoints.find((qp) => qp.order === 3);
+    const targetQP = questPoints.find((qp) => qp.order === 4);
+
     if (!startQP || !targetQP) {
-      console.error("Не найдены точки для маршрута 3→4");
       return;
     }
 
@@ -433,14 +472,14 @@ export default forwardRef(function MapCanvasBlock(
       x: targetQP.x,
       y: targetQP.y,
     });
+
     if (!nearestNodeToStart || !nearestNodeToTarget) {
-      console.error("Не найдены узлы графа для точек");
       return;
     }
 
     const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+
     if (!path) {
-      console.error("Не удалось построить маршрут 3→4");
       return;
     }
 
@@ -448,17 +487,18 @@ export default forwardRef(function MapCanvasBlock(
       .map((id) => nodes.find((n) => n.id === id))
       .filter(Boolean);
 
-    route.unshift({ id: `QP_${startQP.order}`, x: startQP.x, y: startQP.y });
-    route.push({ id: `QP_${targetQP.order}`, x: targetQP.x, y: targetQP.y });
+    // ИСПРАВЛЕНО: Используем id из questPoints
+    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
+    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
 
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
 
   const buildRouteFromFourthToFifthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 4); // точка 4
-    const targetQP = questPoints.find((qp) => qp.order === 5); // точка 5
+    const startQP = questPoints.find((qp) => qp.order === 4);
+    const targetQP = questPoints.find((qp) => qp.order === 5);
+
     if (!startQP || !targetQP) {
-      console.error("Не найдены точки для маршрута 4→5");
       return;
     }
 
@@ -467,14 +507,14 @@ export default forwardRef(function MapCanvasBlock(
       x: targetQP.x,
       y: targetQP.y,
     });
+
     if (!nearestNodeToStart || !nearestNodeToTarget) {
-      console.error("Не найдены узлы графа для точек");
       return;
     }
 
     const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+
     if (!path) {
-      console.error("Не удалось построить маршрут 4→5");
       return;
     }
 
@@ -482,63 +522,29 @@ export default forwardRef(function MapCanvasBlock(
       .map((id) => nodes.find((n) => n.id === id))
       .filter(Boolean);
 
-    route.unshift({ id: `QP_${startQP.order}`, x: startQP.x, y: startQP.y });
-    route.push({ id: `QP_${targetQP.order}`, x: targetQP.x, y: targetQP.y });
+    // ИСПРАВЛЕНО: Используем id из questPoints
+    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
+    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
 
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
-  // --- построение маршрута в зависимости от шага ---
+
+  // --- Обработка изменения режима из пропсов ---
   useEffect(() => {
-    // Проверка, если компоненты не инициализированы
+    // Если компонент еще не инициализирован - ждем
     if (!initialized || !affineRef.current) return;
 
-    console.log(`Current Step: ${mode}`);
+    // Если mode не изменился или mode пустой - ничего не делаем
+    if (!mode) return;
 
-    // Функция для построения маршрутов
-    const buildRoute = () => {
-      switch (mode) {
-        case "step2": // маршрут от пользователя до стартовой точки
-          if (userGPS) {
-            rebuildRouteFromUser(); // Проверка для наличия GPS данных
-          } else {
-            console.warn("User GPS not available for step2");
-          }
-          break;
+    console.log(`Mode changed via props: ${mode}`);
 
-        case "step4": // маршрут от стартовой точки до второй квест-точки
-          buildRouteFromStartToSecondPoint();
-          break;
-
-        case "step6": // маршрут от второй до третьей квест-точки
-          buildRouteFromSecondToThirdPoint();
-          break;
-
-        case "step8": // маршрут от 3-й точки к 4-й
-          buildRouteFromThirdToFourthPoint();
-          break;
-        case "step10": // маршрут от 4-й точки к 5-й
-          buildRouteFromFourthToFifthPoint();
-          break;
-
-        default:
-          console.warn("Unknown mode:", mode);
-          break;
-      }
-    };
-
-    // Строим маршрут в зависимости от текущего шага
-    buildRoute();
-  }, [
-    initialized, // Инициализация компонента
-    userGPS, // Отслеживаем данные GPS пользователя для шага 2
-    mode, // Шаг (mode), для которого строим маршрут
-    rebuildRouteFromUser, // Функция для маршрута от пользователя
-    buildRouteFromStartToSecondPoint, // Функция для маршрута от стартовой точки
-    buildRouteFromSecondToThirdPoint, // Функция для маршрута от второй точки
-    buildRouteFromThirdToFourthPoint, // Функция для маршрута от третей точки
-    buildRouteFromFourthToFifthPoint, // Функция для маршрута от четвертой точки
-  ]);
-
+    // Только для step2 вызываем rebuildRouteFromUser через useEffect
+    // Для остальных режимов маршрут будет строиться через startQuest
+    if (mode === "step2" && userGPS) {
+      rebuildRouteFromUser();
+    }
+  }, [mode, initialized, userGPS, rebuildRouteFromUser]);
   // --- Load map image ---
   useEffect(() => {
     const img = new Image();
@@ -646,9 +652,12 @@ export default forwardRef(function MapCanvasBlock(
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
     const bgCanvas = bgCanvasRef.current;
-    if (!canvas || !bgCanvas) return;
-    const ctx = canvas.getContext("2d");
+    if (!canvas || !bgCanvas) {
+      console.log("❌ Canvas не готов");
+      return;
+    }
 
+    const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // --- background ---
@@ -685,13 +694,16 @@ export default forwardRef(function MapCanvasBlock(
 
     // --- draw route on top ---
     if (pageMode === "quest" && routeNodes && routeNodes.length > 1) {
-      ctx.strokeStyle = "#ffffffaa";
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#ffffffaa"; // Изменил цвет на КРАСНЫЙ для видимости
+      ctx.lineWidth = 2; // Увеличил толщину
       ctx.beginPath();
       routeNodes.forEach((n, i) => {
         if (!n) return;
-        if (i === 0) ctx.moveTo(n.x, n.y);
-        else ctx.lineTo(n.x, n.y);
+        if (i === 0) {
+          ctx.moveTo(n.x, n.y);
+        } else {
+          ctx.lineTo(n.x, n.y);
+        }
       });
       ctx.stroke();
     }
@@ -835,43 +847,26 @@ export default forwardRef(function MapCanvasBlock(
   }, [userGPS, followUser, gpsToPixel, centerOnPixel]);
 
   useEffect(() => {
+    // Этот эффект больше не нужен для автоматического перестроения маршрута
+    // Оставляем только для проверки достижения точек
     if (!userGPS) return;
-    if (!routeNodes) return;
 
-    const now = Date.now();
-    if (now - lastRebuildTimeRef.current < 3000) return;
-
-    // --- вычисляем позицию пользователя ---
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!userPx) return;
 
-    // --- находим ближайший узел маршрута ---
-    const nearestNode = findNearestNode(userPx);
-    if (!nearestNode) return;
+    // Только для step2 проверяем достижение стартовой точки
+    if (mode === "step2") {
+      const startQP = questPoints[0];
+      const dx = userPx.x - startQP.x;
+      const dy = userPx.y - startQP.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const REACH_RADIUS = 25; // Верни правильный радиус
 
-    if (mode !== "step4" && nearestNode.id !== lastRouteNodeRef.current) {
-      rebuildRouteFromUser();
+      if (dist < REACH_RADIUS) {
+        onQuestPointReached?.(2);
+      }
     }
-
-    // --- проверка приближения к стартовой точке квеста ---
-    const startQP = questPoints[0]; // старт квеста
-    const dx = userPx.x - startQP.x;
-    const dy = userPx.y - startQP.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-
-    const REACH_RADIUS = 0; // радиус достижения, подбирается под карту
-    if (dist < REACH_RADIUS && mode !== "step4") {
-      onQuestPointReached?.(2);
-    }
-  }, [
-    userGPS,
-    routeNodes,
-    gpsToPixel,
-    findNearestNode,
-    rebuildRouteFromUser,
-    onQuestPointReached,
-    mode,
-  ]);
+  }, [userGPS, gpsToPixel, onQuestPointReached, mode]);
 
   // --- wheel zoom ---
   useEffect(() => {
@@ -1016,10 +1011,33 @@ export default forwardRef(function MapCanvasBlock(
   }, [clampOffset]);
 
   useImperativeHandle(ref, () => ({
-    startQuest: (mode) => {
+    startQuest: (newMode) => {
+      setCurrentMapMode(newMode);
+
       setPageMode("quest");
 
-      switch (mode) {
+      // Очищаем предыдущий маршрут
+      setRouteNodes(null);
+      lastRouteNodeRef.current = null;
+      lastRebuildTimeRef.current = 0;
+
+      switch (newMode) {
+        case "step2": {
+          // Для step2 строим маршрут от пользователя до старта
+          if (userGPS) {
+            rebuildRouteFromUser();
+            // Центрируем на пользователе
+            const px = gpsToPixel(userGPS.lat, userGPS.lon);
+            if (px) {
+              centerOnPixel(px, 2.2);
+              setFollowUser(true);
+            }
+          } else {
+            console.warn("User GPS not available for step2");
+          }
+          break;
+        }
+
         case "step4": {
           // Шаг 4: от точки 1 к точке 2
           buildRouteFromStartToSecondPoint();
@@ -1081,9 +1099,8 @@ export default forwardRef(function MapCanvasBlock(
         }
 
         default:
-          // Дефолтная логика для других режимов (например, step2)
           console.warn(
-            `Режим ${mode} не обработан, используется дефолтная логика`,
+            `Режим ${newMode} не обработан, используется дефолтная логика`,
           );
           break;
       }

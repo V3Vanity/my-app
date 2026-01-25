@@ -25,29 +25,35 @@ export default function QuestPage() {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    switch (currentStep) {
-      case 2:
-        mapRef.current.startQuest("step2");
-        break;
-      case 4:
-        mapRef.current.startQuest("step4");
-        break;
-      case 6:
-        mapRef.current.startQuest("step6");
-        break;
-      case 8:
-        mapRef.current.startQuest("step8");
-        break;
-      case 9:
-        mapRef.current.startQuest("step10");
-        break;
-      case 10:
-        mapRef.current.startQuest("step10");
-        break;
+    // Небольшая задержка для гарантии инициализации карты
+    const timer = setTimeout(() => {
+      console.log(
+        `=== QuestPage: Calling startQuest for step ${currentStep} ===`,
+      );
 
-      default:
-        break;
-    }
+      switch (currentStep) {
+        case 2:
+          mapRef.current.startQuest("step2");
+          break;
+        case 4:
+          mapRef.current.startQuest("step4");
+          break;
+        case 6:
+          mapRef.current.startQuest("step6");
+          break;
+        case 8:
+          mapRef.current.startQuest("step8");
+          break;
+        case 9:
+        case 10:
+          mapRef.current.startQuest("step10");
+          break;
+        default:
+          break;
+      }
+    }, 300); // Увеличил задержку до 300ms
+
+    return () => clearTimeout(timer);
   }, [currentStep]);
 
   // Сохраняем прогресс только если текущий шаг > 0
