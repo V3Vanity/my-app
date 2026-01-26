@@ -14,6 +14,16 @@ import rabbitOne from "../assets/rabbitOne.svg";
 import rabbitTwo from "../assets/rabbitTwo.svg";
 import rabbitThree from "../assets/rabbitThree.svg";
 import rabbitFour from "../assets/rabbitFour.svg";
+import rabbitFive from "../assets/rabbitFive.svg";
+import rabbitSix from "../assets/rabbitSix.svg";
+import rabbitSeven from "../assets/rabbitSeven.svg";
+import rabbitEight from "../assets/rabbitEight .svg";
+import rabbitNine from "../assets/rabbitNine .svg";
+import rabbitTen from "../assets/rabbitTen .svg";
+import rabbitEleven from "../assets/rabbitEleven.svg";
+import rabbitTwelve from "../assets/rabbitTwelve.svg";
+import rabbitThirteen from "../assets/rabbitThirteen.svg";
+import rabbitFourteen from "../assets/rabbitFourteen.svg";
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
@@ -32,6 +42,16 @@ export default forwardRef(function MapCanvasBlock(
   const rabbitTwoIconRef = useRef(null);
   const rabbitThreeIconRef = useRef(null);
   const rabbitFourIconRef = useRef(null);
+  const rabbitFiveIconRef = useRef(null);
+  const rabbitSixIconRef = useRef(null);
+  const rabbitSevenIconRef = useRef(null);
+  const rabbitEightIconRef = useRef(null);
+  const rabbitNineIconRef = useRef(null);
+  const rabbitTenIconRef = useRef(null);
+  const rabbitElevenIconRef = useRef(null);
+  const rabbitTwelveIconRef = useRef(null);
+  const rabbitThirteenIconRef = useRef(null);
+  const rabbitFourteenIconRef = useRef(null);
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
