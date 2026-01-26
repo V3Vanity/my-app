@@ -17,9 +17,9 @@ import rabbitFour from "../assets/rabbitFour.svg";
 import rabbitFive from "../assets/rabbitFive.svg";
 import rabbitSix from "../assets/rabbitSix.svg";
 import rabbitSeven from "../assets/rabbitSeven.svg";
-import rabbitEight from "../assets/rabbitEight .svg";
-import rabbitNine from "../assets/rabbitNine .svg";
-import rabbitTen from "../assets/rabbitTen .svg";
+import rabbitEight from "../assets/rabbitEight.svg";
+import rabbitNine from "../assets/rabbitNine.svg";
+import rabbitTen from "../assets/rabbitTen.svg";
 import rabbitEleven from "../assets/rabbitEleven.svg";
 import rabbitTwelve from "../assets/rabbitTwelve.svg";
 import rabbitThirteen from "../assets/rabbitThirteen.svg";
@@ -595,10 +595,55 @@ export default forwardRef(function MapCanvasBlock(
       rabbitThreeImg.onload = () => {
         rabbitThreeIconRef.current = rabbitThreeImg;
       };
-      const rabbitFourImg = new Image();
-      rabbitFourImg.src = rabbitFour;
-      rabbitFourImg.onload = () => {
-        rabbitFourIconRef.current = rabbitFourImg;
+      const rabbitFiveImg = new Image();
+      rabbitFiveImg.src = rabbitFour;
+      rabbitFiveImg.onload = () => {
+        rabbitFiveIconRef.current = rabbitFiveImg;
+      };
+      const rabbitSixImg = new Image();
+      rabbitSixImg.src = rabbitFour;
+      rabbitSixImg.onload = () => {
+        rabbitSixIconRef.current = rabbitSixImg;
+      };
+      const rabbitSevenImg = new Image();
+      rabbitSevenImg.src = rabbitFour;
+      rabbitSevenImg.onload = () => {
+        rabbitSevenIconRef.current = rabbitSevenImg;
+      };
+      const rabbitEightImg = new Image();
+      rabbitEightImg.src = rabbitFour;
+      rabbitEightImg.onload = () => {
+        rabbitEightIconRef.current = rabbitEightImg;
+      };
+      const rabbitNineImg = new Image();
+      rabbitNineImg.src = rabbitFour;
+      rabbitNineImg.onload = () => {
+        rabbitNineIconRef.current = rabbitNineImg;
+      };
+      const rabbitTenImg = new Image();
+      rabbitTenImg.src = rabbitFour;
+      rabbitTenImg.onload = () => {
+        rabbitTenIconRef.current = rabbitTenImg;
+      };
+      const rabbitElevenImg = new Image();
+      rabbitElevenImg.src = rabbitFour;
+      rabbitElevenImg.onload = () => {
+        rabbitElevenIconRef.current = rabbitElevenImg;
+      };
+      const rabbitTwelveImg = new Image();
+      rabbitTwelveImg.src = rabbitFour;
+      rabbitTwelveImg.onload = () => {
+        rabbitTwelveIconRef.current = rabbitTwelveImg;
+      };
+      const rabbitThirteenImg = new Image();
+      rabbitThirteenImg.src = rabbitFour;
+      rabbitThirteenImg.onload = () => {
+        rabbitIconRef.current = rabbitThirteenImg;
+      };
+      const rabbitFourteenImg = new Image();
+      rabbitFourteenImg.src = rabbitFour;
+      rabbitFourteenImg.onload = () => {
+        rabbitFourteenIconRef.current = rabbitFourteenImg;
       };
 
       const bgCanvas = document.createElement("canvas");
@@ -658,10 +703,155 @@ export default forwardRef(function MapCanvasBlock(
         if (order === 1) return rabbitOneIconRef.current; // найден 1
         if (order === 2) return rabbitTwoIconRef.current; // найден 2
         if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4 (нужна 4-я иконка!)
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
         if (order === 5) return rabbitIconRef.current; // цель 5 (замочек)
         return null;
       }
+      if (mode === "step12") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitIconRef.current; // цель  (замочек)
+        return null;
+      }
+      if (mode === "step14") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitIconRef.current; // цель 7 (замочек)
+        return null;
+      }
+      if (mode === "step16") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 9) return rabbitIconRef.current; // цель 8 (замочек)
+        return null;
+      }
+      if (mode === "step18") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 8) return rabbitEightIconRef.current; // найден 8
+        if (order === 9) return rabbitIconRef.current; // цель 9 (замочек)
+        return null;
+      }
+      if (mode === "step20") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 8) return rabbitEightIconRef.current; // найден 8
+        if (order === 9) return rabbitNineIconRef.current; // найден 9
+        if (order === 10) return rabbitIconRef.current; // цель 10 (замочек)
+        return null;
+      }
+      if (mode === "step22") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 8) return rabbitEightIconRef.current; // найден 8
+        if (order === 9) return rabbitNineIconRef.current; // найден 9
+        if (order === 10) return rabbitTenIconRef.current; // найден 10
+        if (order === 11) return rabbitIconRef.current; // цель 11 (замочек)
+        return null;
+      }
+      if (mode === "step24") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 8) return rabbitEightIconRef.current; // найден 8
+        if (order === 9) return rabbitNineIconRef.current; // найден 9
+        if (order === 10) return rabbitTenIconRef.current; // найден 10
+        if (order === 11) return rabbitElevenIconRef.current; // найден 11
+        if (order === 12) return rabbitIconRef.current; // цель 12 (замочек)
+        return null;
+      }
+      if (mode === "step26") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 8) return rabbitEightIconRef.current; // найден 8
+        if (order === 9) return rabbitNineIconRef.current; // найден 9
+        if (order === 10) return rabbitTenIconRef.current; // найден 10
+        if (order === 11) return rabbitElevenIconRef.current; // найден 11
+        if (order === 12) return rabbitTwelveIconRef.current; // найден 12
+        if (order === 13) return rabbitIconRef.current; // цель 13 (замочек)
+        return null;
+      }
+      if (mode === "step28") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 8) return rabbitEightIconRef.current; // найден 8
+        if (order === 9) return rabbitNineIconRef.current; // найден 9
+        if (order === 10) return rabbitTenIconRef.current; // найден 10
+        if (order === 11) return rabbitElevenIconRef.current; // найден 11
+        if (order === 12) return rabbitTwelveIconRef.current; // найден 12
+        if (order === 13) return rabbitThirteenIconRef.current; // найден 13
+        if (order === 14) return rabbitIconRef.current; // цель 14 (замочек)
+        return null;
+      }
+      if (mode === "step30") {
+        // Порядок: 1,2,3,4 - найдены, 5 - цель
+        if (order === 1) return rabbitOneIconRef.current; // найден 1
+        if (order === 2) return rabbitTwoIconRef.current; // найден 2
+        if (order === 3) return rabbitThreeIconRef.current; // найден 3
+        if (order === 4) return rabbitFourIconRef.current; // найден 4
+        if (order === 5) return rabbitFiveIconRef.current; // найден 5
+        if (order === 6) return rabbitSixIconRef.current; // найден 6
+        if (order === 7) return rabbitSevenIconRef.current; // найден 7
+        if (order === 8) return rabbitEightIconRef.current; // найден 8
+        if (order === 9) return rabbitNineIconRef.current; // найден 9
+        if (order === 10) return rabbitTenIconRef.current; // найден 10
+        if (order === 11) return rabbitElevenIconRef.current; // найден 11
+        if (order === 12) return rabbitTwelveIconRef.current; // найден 12
+        if (order === 13) return rabbitThirteenIconRef.current; // найден 13
+        if (order === 14) return rabbitFourteenIconRef.current; // найден 14
+        return null;
+      }
+
       return foundQuestPoints.includes(order)
         ? rabbitIconRef.current
         : rabbitOneIconRef.current;
