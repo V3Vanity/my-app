@@ -22,15 +22,10 @@ export default function QuestPage() {
   const navigate = useNavigate();
   const mapRef = useRef(null);
 
+  // В useEffect где вызывается startQuest добавьте:
   useEffect(() => {
     if (!mapRef.current) return;
-
-    // Небольшая задержка для гарантии инициализации карты
     const timer = setTimeout(() => {
-      console.log(
-        `=== QuestPage: Calling startQuest for step ${currentStep} ===`,
-      );
-
       switch (currentStep) {
         case 2:
           mapRef.current.startQuest("step2");
@@ -44,15 +39,43 @@ export default function QuestPage() {
         case 8:
           mapRef.current.startQuest("step8");
           break;
-        case 9:
         case 10:
           mapRef.current.startQuest("step10");
+          break;
+        case 12:
+          mapRef.current.startQuest("step12");
+          break;
+        case 14:
+          mapRef.current.startQuest("step14");
+          break;
+        case 16:
+          mapRef.current.startQuest("step16");
+          break;
+        case 18:
+          mapRef.current.startQuest("step18");
+          break;
+        case 20:
+          mapRef.current.startQuest("step20");
+          break;
+        case 22:
+          mapRef.current.startQuest("step22");
+          break;
+        case 24:
+          mapRef.current.startQuest("step24");
+          break;
+        case 26:
+          mapRef.current.startQuest("step26");
+          break;
+        case 28:
+          mapRef.current.startQuest("step28");
+          break;
+        case 30:
+          mapRef.current.startQuest("step30");
           break;
         default:
           break;
       }
-    }, 300); // Увеличил задержку до 300ms
-
+    }, 300);
     return () => clearTimeout(timer);
   }, [currentStep]);
 
@@ -118,33 +141,37 @@ export default function QuestPage() {
 
     // Автоматически переходим на следующий шаг
     setCurrentStep((prev) => {
-      // Step2 → Step3 (Убедитесь, что только после нахождения точки на шаге 2)
-      if (prev === 2 && stepNumber === 2) return 3; // Переход на шаг 3, а не 4
+      // Карта → Текст (нечетные шаги карта, четные - текст)
+      // Шаг 2 (карта) → 3 (текст)
+      // Шаг 4 (карта) → 5 (текст)
+      // Шаг 6 (карта) → 7 (текст)
+      // Шаг 8 (карта) → 9 (текст)
+      // Шаг 10 (карта) → 11 (текст)
+      // и т.д.
 
-      // Step3 → Step4
-      if (prev === 3 && stepNumber === 3) return 4; // Переход на шаг 4
-
-      // Step5 → Step6
-      if (prev === 5 && stepNumber === 5) return 6; // Переход на шаг 6
-
-      // Step6 → Step7 (или финал)
-      if (prev === 6 && stepNumber === 6) return 7; // Переход на шаг 7
-
-      // Step7 → Step8 (следующая карта)
-      if (prev === 7 && stepNumber === 7) return 8; // Переход на шаг 8
-
-      // Step8 → Step9 (карта → текст после 4-го зайца)
-      if (prev === 8 && stepNumber === 8) return 9;
-
-      // Step9 → Step10 (текст → карта до 5-го зайца)
-      if (prev === 9 && stepNumber === 9) return 10;
-
-      // Для всех остальных шагов просто увеличиваем на 1
-      if (stepNumber === prev) {
-        return prev + 1; // Переход на следующий шаг, если точка на текущем шаге
+      // Простая логика: если это четный шаг (карта), переходим на следующий нечетный (текст)
+      if (prev % 2 === 0 && stepNumber === prev) {
+        return prev + 1;
       }
 
-      return prev; // Иначе остаемся на текущем шаге
+      // Для шагов, где есть особая логика (если нужно)
+      if (prev === 2 && stepNumber === 2) return 3;
+      if (prev === 4 && stepNumber === 4) return 5;
+      if (prev === 6 && stepNumber === 6) return 7;
+      if (prev === 8 && stepNumber === 8) return 9;
+      if (prev === 10 && stepNumber === 10) return 11;
+      if (prev === 12 && stepNumber === 12) return 13;
+      if (prev === 14 && stepNumber === 14) return 15;
+      if (prev === 16 && stepNumber === 16) return 17;
+      if (prev === 18 && stepNumber === 18) return 19;
+      if (prev === 20 && stepNumber === 20) return 21;
+      if (prev === 22 && stepNumber === 22) return 23;
+      if (prev === 24 && stepNumber === 24) return 25;
+      if (prev === 26 && stepNumber === 26) return 27;
+      if (prev === 28 && stepNumber === 28) return 29;
+      if (prev === 30 && stepNumber === 30) return 31; // финальный шаг
+
+      return prev;
     });
   };
 
@@ -353,7 +380,7 @@ export default function QuestPage() {
           showTitle={false}
           showBackButton={true}
           onBack={handleBack}
-          onNextStep={handleNextStep} // или handleQuestPointReached(7)
+          onNextStep={handleNextStep} // или handleQuestPointReached(8)
         >
           <p className="text-paragraph">
             Ты ступил на улицу Симановского и идёшь по её вымощенному тротуару,
@@ -433,7 +460,7 @@ export default function QuestPage() {
           showTitle={false}
           showBackButton={true}
           onBack={handleBack}
-          onNextStep={() => handleQuestPointReached(9)}
+          onNextStep={handleNextStep}
         >
           <p className="text-paragraph">
             Ты держишь в руках письмо от Зайца-Пожарного и идёшь вдоль парка,
@@ -485,6 +512,250 @@ export default function QuestPage() {
           mode="step10"
           foundQuestPoints={foundQuestPoints}
         />
+      )}
+      {currentStep === 11 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст11 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 11</p>
+        </TextBlock>
+      )}
+      {currentStep === 12 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step12"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 13 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст13 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 13</p>
+        </TextBlock>
+      )}
+      {currentStep === 14 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step14"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 15 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст15 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 15</p>
+        </TextBlock>
+      )}
+      {currentStep === 16 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step16"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 17 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст17 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 17</p>
+        </TextBlock>
+      )}
+      {currentStep === 18 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step18"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 19 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст19 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 19</p>
+        </TextBlock>
+      )}
+      {currentStep === 20 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step20"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 21 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст21 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 21</p>
+        </TextBlock>
+      )}
+      {currentStep === 22 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step22"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 23 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">23 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 23</p>
+        </TextBlock>
+      )}
+      {currentStep === 24 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step24"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 25 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст 25 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 25</p>
+        </TextBlock>
+      )}
+      {currentStep === 26 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step26"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 27 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст 27 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 27</p>
+        </TextBlock>
+      )}
+      {currentStep === 28 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step28"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 29 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Текст29 </p>
+
+          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+
+          <p className="text-paragraph">Текст 29</p>
+        </TextBlock>
+      )}
+      {currentStep === 30 && (
+        <MapCanvas
+          ref={mapRef}
+          onBack={handleBack}
+          onQuestPointReached={handleQuestPointReached}
+          mode="step30"
+          foundQuestPoints={foundQuestPoints}
+        />
+      )}
+      {currentStep === 31 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph">Конец </p>
+
+          {/* <img src={step9Image} alt="Заяц-Часовой" className="text-image" /> */}
+
+          <p className="text-paragraph">Конец</p>
+        </TextBlock>
       )}
     </div>
   );
