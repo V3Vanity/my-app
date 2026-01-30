@@ -1276,23 +1276,23 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
-    // --- draw nodes ---
-    nodes.forEach((n) => {
-      ctx.fillStyle = "gray";
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
-      ctx.fill();
+    // // --- draw nodes ---
+    // nodes.forEach((n) => {
+    //   ctx.fillStyle = "gray";
+    //   ctx.beginPath();
+    //   ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
+    //   ctx.fill();
 
-      ctx.fillStyle = "blue";
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
-      ctx.fill();
+    //   ctx.fillStyle = "blue";
+    //   ctx.beginPath();
+    //   ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+    //   ctx.fill();
 
-      ctx.fillStyle = "black";
-      ctx.font = "16px sans-serif";
-      ctx.textBaseline = "middle";
-      ctx.fillText(n.id, n.x + 8, n.y);
-    });
+    //   ctx.fillStyle = "black";
+    //   ctx.font = "16px sans-serif";
+    //   ctx.textBaseline = "middle";
+    //   ctx.fillText(n.id, n.x + 8, n.y);
+    // });
 
     // --- draw user ---
     if (userGPS) {

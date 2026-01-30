@@ -17,3 +17,10 @@
   margin-bottom: 8px;
   align-self: flex-start;
 }
+
+.text-paragraph {
+  line-height: 30px;
+  margin-right: 3px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+}
