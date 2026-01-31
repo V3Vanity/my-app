@@ -24,3 +24,20 @@
   margin-bottom: 10px;
   font-family: sans-serif;
 }
+.text-paragraph__title {
+  text-align: center;
+  line-height: 30px;
+  margin-right: 3px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: #862518;
+}
+.text-paragraph__end {
+  text-align: center;
+  line-height: 30px;
+  margin-right: 3px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+}
