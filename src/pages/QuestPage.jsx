@@ -1373,6 +1373,23 @@ export default function QuestPage() {
             приглашаем тебя пройти следующий квест и продолжить путешествие по
             улицам и уголкам Костромы!
           </p>
+
+          {/* Кнопка "Забрать награду" - всегда видна, без условий прокрутки */}
+          <div className="reward-button-container">
+            <button className="reward-button" onClick={handleNextStep}>
+              Забрать награду
+            </button>
+          </div>
+        </TextBlock>
+      )}
+      {currentStep === 33 && (
+        <TextBlock
+          showTitle={false}
+          showBackButton={true}
+          onBack={handleBack}
+          onNextStep={handleNextStep}
+        >
+          <p className="text-paragraph__title">НАГРАДА!</p>
         </TextBlock>
       )}
     </div>

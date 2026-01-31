@@ -41,3 +41,26 @@
   margin-bottom: 10px;
   font-family: sans-serif;
 }
+
+.reward-button-container {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.reward-button {
+  padding: 18px 40px;
+  background-color: #862518;
+  color: #d9cfb8;
+  font-size: 24px;
+  font-weight: bold;
+  border: none;
+  border-radius: 41px;
+  cursor: pointer;
+  white-space: nowrap; /* предотвращает перенос текста */
+  min-width: 280px; /* минимальная ширина, чтобы текст не сжимался */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+}
