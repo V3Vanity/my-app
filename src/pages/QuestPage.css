@@ -64,3 +64,106 @@
     transform 0.2s,
     background-color 0.2s;
 }
+
+/* Контейнер для поздравления */
+.congratulations-container {
+  position: fixed;
+  top: 110px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(100vh - 110px);
+  overflow: hidden;
+  z-index: 999;
+}
+
+/* Красный фон с повторяющимся текстом */
+.congratulations-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #862518;
+  overflow: hidden;
+}
+
+/* Контейнер для бесконечной ленты текста */
+.congratulations-text-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200%; /* В 2 раза больше высоты для бесшовности */
+  animation: textScroll 15s linear infinite;
+}
+
+/* Каждая строка текста */
+.congratulations-text {
+  color: #7e2216;
+  font-size: 33px;
+  font-weight: 900;
+  line-height: 1.3; /* Больше межстрочный интервал */
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  margin: 15px 0;
+}
+
+/* Анимация бесконечного скролла */
+@keyframes textScroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%); /* Сдвигаем на половину высоты */
+  }
+}
+
+/* Слой для награды поверх фона */
+.reward-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.reward-overlay > * {
+  pointer-events: auto;
+}
+
+/* Для ПК-тестирования */
+@media (min-width: 768px) {
+  .congratulations-container {
+    max-width: 375px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 16px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 100vh;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .congratulations-bg {
+    border-radius: 16px;
+  }
+
+  .congratulations-text {
+    font-size: 36px;
+  }
+}
+
+/* Мобильные устройства */
+@media (max-width: 374px) {
+  .congratulations-text {
+    font-size: 36px;
+  }
+}

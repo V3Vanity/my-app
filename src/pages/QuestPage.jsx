@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header.jsx";
 import TextBlock from "../components/TextBlock.jsx";
+import RewardPage from "../components/RewardPage.jsx";
 import MapCanvas from "../components/MapCanvas.jsx";
 import topImage from "../assets/marshrut44.png";
 import questImage from "../assets/quest-img.png";
@@ -1383,14 +1384,30 @@ export default function QuestPage() {
         </TextBlock>
       )}
       {currentStep === 33 && (
-        <TextBlock
-          showTitle={false}
-          showBackButton={true}
-          onBack={handleBack}
-          onNextStep={handleNextStep}
-        >
-          <p className="text-paragraph__title">НАГРАДА!</p>
-        </TextBlock>
+        <div className="congratulations-container">
+          {/* Красный фон с повторяющимся текстом */}
+          <div className="congratulations-bg">
+            <div className="congratulations-text-track">
+              {/* Первая половина (видимая) */}
+              {Array.from({ length: 15 }).map((_, index) => (
+                <div key={`top-${index}`} className="congratulations-text">
+                  Поздравляем!
+                </div>
+              ))}
+              {/* Вторая половина (для бесшовного повтора) */}
+              {Array.from({ length: 15 }).map((_, index) => (
+                <div key={`bottom-${index}`} className="congratulations-text">
+                  Поздравляем!
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Блок с наградой поверх */}
+          <div className="reward-overlay">
+            <RewardPage />
+          </div>
+        </div>
       )}
     </div>
   );
