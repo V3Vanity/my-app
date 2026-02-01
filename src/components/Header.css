@@ -11,12 +11,13 @@
   justify-content: space-between;
   padding: 0 10px;
   background-color: var(--color-red);
-  background-image: url("./assets/bgr-header.svg");
+  background-image: url("../assets/bgr-header.svg"); /* Путь к картинке */
+  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   font-family: sans-serif;
   z-index: 1000;
-  border-radius: 12px; /* по умолчанию */
+  border-radius: 12px;
   transition: border-radius 0.2s;
 }
 
@@ -31,7 +32,7 @@
 }
 
 .menu-button {
-  background-color: var(--color-red);
+  background-color: transparent; /* Прозрачный фон */
   border: none;
   padding: 0;
   margin: 0;
@@ -41,11 +42,15 @@
 /* Меню */
 .app-menu {
   position: fixed;
-  top: 71px; /* 69px шапка + 2px отступ */
+  top: 71px;
   left: 50%;
   transform: translateX(-50%) translateY(-100%);
   width: 375px;
   background-color: var(--color-red);
+  background-image: url("../assets/bgr-header.svg"); /* Тот же фон */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border-radius: 0 0 12px 12px;
   display: flex;
   flex-direction: column;
@@ -65,6 +70,13 @@
   color: var(--color-white-gold);
   cursor: pointer;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(
+    134,
+    37,
+    24,
+    0.7
+  ); /* Полупрозрачный красный поверх фона */
+  backdrop-filter: blur(2px); /* Легкое размытие */
 }
 
 .menu-item:last-child {
@@ -73,7 +85,25 @@
 
 .menu-item.primary {
   font-weight: bold;
-  background-color: var(--color-red);
+  background-color: rgba(134, 37, 24, 0.9); /* Более насыщенный красный */
   color: var(--color-white-gold);
   border-bottom: none;
+}
+
+/* Эффект при наведении (для ПК-тестирования) */
+@media (hover: hover) {
+  .menu-item:hover {
+    background-color: rgba(134, 37, 24, 0.95);
+  }
+}
+
+/* Для мобильных - активное состояние */
+.menu-item:active {
+  background-color: rgba(134, 37, 24, 0.95);
+}
+
+/* Переменные цветов (если еще нет) */
+:root {
+  --color-red: #862518;
+  --color-white-gold: #d9cfb8;
 }
