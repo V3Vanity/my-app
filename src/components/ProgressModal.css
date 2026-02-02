@@ -1,0 +1,375 @@
+/* Фон модального окна */
+.progress-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(3px);
+  background-color: rgba(203, 180, 0, 0.1);
+}
+
+/* Само модальное окно */
+.progress-modal {
+  position: relative;
+  width: 90%;
+  max-width: 420px; /* Увеличил максимальную ширину */
+  height: auto;
+
+  /* Фон с увеличенной картинкой */
+  background-image: url("../assets/progress-bgc-img.svg");
+  background-size: 200% auto; /* Немного увеличили */
+  background-position: center -220px; /* Сдвинули вверх чтобы было больше видно */
+  background-repeat: no-repeat;
+  background-color: rgba(240, 230, 184, 0.8); /* Цвет подложки */
+
+  border-radius: 24px;
+  padding: 30px 20px; /* Уменьшил боковые отступы */
+
+  /* Эффект свечения окна */
+  animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.2),
+    0 0 15px rgba(203, 180, 0, 0.3);
+
+  border: 2px solid rgba(139, 124, 0, 0.3);
+  overflow: hidden;
+}
+
+/* Слой для улучшения читаемости текста */
+.progress-modal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(240, 230, 184, 0.6); /* Светлый слой поверх фона */
+  border-radius: 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Контейнер для контента */
+.progress-modal > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Кнопка закрытия */
+.progress-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(145deg, #b39e00, #8a7a00);
+  color: #f5f0d8;
+  border: none;
+  border-radius: 50%;
+  font-size: 26px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(139, 124, 0, 0.3);
+}
+
+.progress-close-btn:hover {
+  transform: scale(1.05);
+}
+
+.progress-close-btn:active {
+  transform: scale(0.95);
+}
+
+/* ЗАГОЛОВОК */
+.progress-title {
+  color: #ececec;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 15px 0; /* Уменьшил отступ снизу */
+  line-height: 1.3;
+  padding: 0 5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.327);
+}
+
+/* СЕТКА ИКОНОК - ИСПРАВЛЕННАЯ */
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px 5px; /* Уменьшил горизонтальные отступы */
+  margin: 0 auto 15px; /* Уменьшил отступ снизу */
+  max-width: 340px; /* Увеличил максимальную ширину */
+}
+
+/* Кружок для иконки - УМЕНЬШЕННЫЙ */
+.progress-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 0 auto;
+  transition: transform 0.3s ease;
+}
+
+/* Найденный заяц */
+.progress-circle.found {
+  background: linear-gradient(145deg, #d4b800, #b39e00);
+  border: 2px solid #8a7a00; /* Уменьшил толщину границы */
+  box-shadow:
+    inset 0 1px 3px rgba(255, 255, 255, 0.3),
+    0 3px 6px rgba(179, 158, 0, 0.4);
+}
+
+/* Не найденный заяц */
+.progress-circle.not-found {
+  background: rgba(203, 180, 0, 0.15);
+  border: 1px dashed rgba(139, 124, 0, 0.4); /* Уменьшил толщину */
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Последний найденный заяц */
+.progress-circle.last-found {
+  transform: scale(1.1);
+  box-shadow:
+    inset 0 1px 3px rgba(255, 255, 255, 0.4),
+    0 4px 8px rgba(179, 158, 0, 0.6),
+    0 0 8px rgba(203, 180, 0, 0.5);
+}
+
+/* Иконка зайца - УМЕНЬШЕННАЯ */
+.progress-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+  transition: transform 0.2s ease;
+}
+
+.progress-circle.found:hover .progress-icon {
+  transform: scale(1.05);
+}
+
+/* НОМЕРА ПОД ИКОНКАМИ - ИСПРАВЛЕННОЕ РАСПОЛОЖЕНИЕ */
+.progress-number {
+  position: absolute;
+  bottom: -24px; /* Увеличил отступ от кружка */
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px; /* Уменьшил размер шрифта */
+  font-weight: 600; /* Сделал не таким жирным */
+  white-space: nowrap;
+  width: 20px;
+  text-align: center;
+  padding: 1px 3px;
+}
+
+.progress-number.found {
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.367);
+  text-align: center;
+}
+
+.progress-number.not-found {
+  color: rgba(139, 124, 0, 0.7);
+  text-align: center;
+}
+
+/* Текст прогресса */
+.progress-text {
+  text-align: center;
+  width: 300px;
+  color: #fdfdfd;
+  font-size: 16px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.149);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 30px 0 10px; /* Увеличил верхний отступ */
+  border: 1px solid rgba(139, 124, 0, 0.2);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin: auto;
+}
+
+.progress-count {
+  color: #b39e00;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Анимация появления для найденных зайцев */
+@keyframes iconAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.progress-circle.found .progress-icon {
+  animation: iconAppear 0.4s ease-out;
+}
+
+/* Адаптивность */
+@media (max-width: 375px) {
+  .progress-modal {
+    width: 95%;
+    padding: 20px 15px;
+    max-width: 340px;
+  }
+
+  .progress-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .progress-grid {
+    gap: 35px 4px;
+    max-width: 300px;
+  }
+
+  .progress-circle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .progress-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .progress-number {
+    bottom: -22px;
+    font-size: 9px;
+    width: 18px;
+  }
+
+  .progress-text {
+    font-size: 16px;
+    padding: 10px;
+    margin: 30px 0 8px;
+  }
+
+  .progress-count {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 320px) {
+  .progress-grid {
+    gap: 35px 3px;
+    max-width: 280px;
+  }
+
+  .progress-circle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .progress-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .progress-number {
+    bottom: -20px;
+    font-size: 8px;
+  }
+}
+
+@media (min-width: 768px) {
+  .progress-modal {
+    padding: 25px 25px;
+  }
+
+  .progress-grid {
+    gap: 35px 8px;
+    max-width: 380px;
+  }
+
+  .progress-circle {
+    width: 42px;
+    height: 42px;
+  }
+
+  .progress-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .progress-number {
+    bottom: -26px;
+    font-size: 11px;
+  }
+
+  .progress-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+
+  .progress-text {
+    font-size: 16px;
+    margin-top: 40px;
+  }
+}
+
+/* Для очень высоких экранов */
+@media (min-height: 800px) {
+  .progress-grid {
+    margin-bottom: 25px;
+  }
+
+  .progress-number {
+    bottom: -28px;
+  }
+}
+
+/* Дополнительная оптимизация */
+@media (prefers-reduced-motion: reduce) {
+  .progress-modal,
+  .progress-circle,
+  .progress-icon,
+  .progress-close-btn {
+    animation: none !important;
+    transition: none !important;
+  }
+}
