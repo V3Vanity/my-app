@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./TextBlock.css";
+import HintModal from "../components/HintModal.jsx";
 
 export default function TextBlock({
   text,
@@ -8,9 +9,13 @@ export default function TextBlock({
   showBackButton,
   onBack,
   children,
+  hintImage,
+  hintAddress,
+  stepNumber,
 }) {
   const containerRef = useRef(null);
   const [showButton, setShowButton] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const handleScroll = () => {
     const el = containerRef.current;
@@ -30,29 +35,47 @@ export default function TextBlock({
   }, []);
 
   return (
-    <div className="text-block-container">
-      <div className="text-block-scroll" ref={containerRef}>
-        {/* Кнопка Назад сверху слева */}
-        {showBackButton && (
-          <button className="back-button" onClick={onBack}>
-            ←
-          </button>
-        )}
+    <>
+      <div className="text-block-container">
+        <div className="text-block-scroll" ref={containerRef}>
+          {/* Кнопка Назад сверху слева */}
+          {showBackButton && (
+            <button className="back-button" onClick={onBack}>
+              ←
+            </button>
+          )}
 
-        {showTitle && <h2 className="text-title">Маршрут №44</h2>}
-        {children ? children : <p className="text-paragraph">{text}</p>}
+          {/* Кнопка Подсказки сверху справа */}
+          {hintImage && hintAddress && (
+            <button className="hint-button" onClick={() => setShowHint(true)}>
+              ?
+            </button>
+          )}
 
-        {/* Кнопка Продолжить */}
-        <div
-          className={`continue-button-container ${
-            showButton ? "visible" : "hidden"
-          }`}
-        >
-          <button className="continue-button" onClick={onNextStep}>
-            Продолжить
-          </button>
+          {showTitle && <h2 className="text-title">Маршрут №44</h2>}
+          {children ? children : <p className="text-paragraph">{text}</p>}
+
+          {/* Кнопка Продолжить */}
+          <div
+            className={`continue-button-container ${
+              showButton ? "visible" : "hidden"
+            }`}
+          >
+            <button className="continue-button" onClick={onNextStep}>
+              Продолжить
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Модальное окно с подсказкой */}
+      <HintModal
+        isOpen={showHint}
+        onClose={() => setShowHint(false)}
+        imageSrc={hintImage}
+        address={hintAddress}
+        stepNumber={stepNumber}
+      />
+    </>
   );
 }

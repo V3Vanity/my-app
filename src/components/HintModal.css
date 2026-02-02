@@ -1,0 +1,137 @@
+/* Фон модального окна */
+.hint-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #862518;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Само модальное окно */
+.hint-modal {
+  position: relative;
+  width: 100%;
+  max-width: 375px; /* Ограничиваем максимальную ширину */
+  background-color: #c8b28d;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  margin: 0 auto;
+}
+
+/* Кнопка закрытия */
+.hint-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  background-color: #862518;
+  color: #d9cfb8;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.hint-close-btn:active {
+  background-color: #6a1e15;
+  transform: scale(0.95);
+}
+
+/* Заголовок */
+.hint-title {
+  color: #36241a;
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0 5px 0;
+}
+
+/* Подзаголовок */
+.hint-subtitle {
+  color: #333;
+  font-size: 16px;
+  text-align: center;
+  margin: 0 0 15px 0;
+  font-weight: normal;
+  line-height: 1.4;
+}
+
+/* Контейнер для картинки */
+.hint-image-container {
+  width: 100%;
+  height: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+/* Картинка */
+.hint-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Адрес */
+.hint-address {
+  text-align: center;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+  color: #333;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* Анимации - УПРОЩЕННЫЕ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Адаптивность */
+@media (max-width: 375px) {
+  .hint-modal {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .hint-image-container {
+    height: 180px;
+  }
+
+  .hint-title {
+    font-size: 22px;
+  }
+
+  .hint-subtitle {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  .hint-modal {
+    max-width: 400px;
+  }
+
+  .hint-image-container {
+    height: 220px;
+  }
+}

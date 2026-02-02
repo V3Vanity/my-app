@@ -20,6 +20,19 @@ import step23Image from "../assets/step-23.svg";
 import step25Image from "../assets/step-25.svg";
 import step27Image from "../assets/step-27.svg";
 import step29Image from "../assets/step-29.svg";
+import hint1Image from "../assets/hint-img-1.png";
+import hint2Image from "../assets/hint-img-2.png";
+import hint3Image from "../assets/hint-img-3.png";
+import hint4Image from "../assets/hint-img-4.png";
+import hint5Image from "../assets/hint-img-5.png";
+import hint6Image from "../assets/hint-img-6.png";
+import hint7Image from "../assets/hint-img-7.png";
+import hint8Image from "../assets/hint-img-8.png";
+import hint9Image from "../assets/hint-img-9.png";
+import hint10Image from "../assets/hint-img-10.png";
+import hint11Image from "../assets/hint-img-11.png";
+import hint12Image from "../assets/hint-img-12.png";
+import hint13Image from "../assets/hint-img-13.png";
 import "./QuestPage.css";
 
 export default function QuestPage() {
@@ -293,6 +306,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint1Image}
+          hintAddress="Проспект Мира, 4"
         >
           <p className="text-paragraph">
             &emsp;Ты идёшь по проспекту Мира — старой, широкой улице, где дома
@@ -348,6 +363,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint2Image}
+          hintAddress="Симановского, 4 "
         >
           <p className="text-paragraph">
             &emsp;Перед тобой возвышается дом, что старше многих поколений
@@ -436,6 +453,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep} // или handleQuestPointReached(8)
+          hintImage={hint3Image}
+          hintAddress="ул. Мучные Ряды"
         >
           <p className="text-paragraph">
             &emsp;Ты ступил на улицу Симановского и идёшь по её вымощенному
@@ -519,6 +538,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint4Image}
+          hintAddress="Симановского, 4 "
         >
           <p className="text-paragraph">
             &emsp;Ты держишь в руках письмо от Зайца-Пожарного и идёшь вдоль
@@ -584,6 +605,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint5Image}
+          hintAddress="Улица Молочная гора"
         >
           <p className="text-paragraph">
             &emsp;Перед тобой открывается широкая арка Гостиного двора. Стоит
@@ -651,6 +674,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint6Image}
+          hintAddress="Фабричный район"
         >
           <p className="text-paragraph">
             &emsp;Письмо от Зайчихи-Купчихи приводит тебя на Молочную Гору —
@@ -738,6 +763,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint7Image}
+          hintAddress="Центральный парк"
         >
           <p className="text-paragraph">
             &emsp;Следуя совету Зимогора, ты спускаешься к Волге. Воздух здесь
@@ -828,6 +855,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint8Image}
+          hintAddress="улица 1 Мая"
         >
           <p className="text-paragraph">
             &emsp;Ты идёшь вдоль набережной, как советовал Заяц-Моряк. Волга
@@ -919,6 +948,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint9Image}
+          hintAddress="Советская площадь, 4"
         >
           <p className="text-paragraph">
             &emsp;Ты подходишь к белоснежной ротонде на берегу Волги — Беседке
@@ -982,6 +1013,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint10Image}
+          hintAddress="Советская ул, 15"
         >
           <p className="text-paragraph">
             &emsp;Ты поднимаешься вверх от Беседки Островского, следуя по
@@ -1045,6 +1078,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint11Image}
+          hintAddress="Советская площадь"
         >
           <p className="text-paragraph">
             &emsp;Ты переходишь дорогу от трактира и оказываешься на улице
@@ -1102,6 +1137,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint12Image}
+          hintAddress="ул. Красные Ряды, 1"
         >
           <p className="text-paragraph">
             &emsp;Площадь Советская — одно из тех мест Костромы, где город
@@ -1178,6 +1215,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint13Image}
+          hintAddress="ул. Табачные Ряды, 1"
         >
           <p className="text-paragraph">
             &emsp;Ты выходишь к торговым рядам — месту, где веками ценили
@@ -1338,6 +1377,8 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
+          hintImage={hint1Image}
+          hintAddress="Проспект Мира 4"
         >
           <p className="text-paragraph">
             {" "}

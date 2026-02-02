@@ -71,3 +71,36 @@
   cursor: pointer;
   margin-bottom: 16px;
 }
+
+/* Кнопка Подсказки (знак вопроса) */
+.hint-button {
+  position: absolute;
+  top: 80px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  background-color: #862518;
+  color: #d9cfb8;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.hint-button:active {
+  background-color: #6a1e15;
+  transform: scale(0.95);
+}
+
+/* Для ПК-тестирования */
+@media (hover: hover) {
+  .hint-button:hover {
+    background-color: #6a1e15;
+  }
+}
