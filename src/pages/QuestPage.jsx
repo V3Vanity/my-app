@@ -1405,8 +1405,6 @@ export default function QuestPage() {
           showBackButton={true}
           onBack={handleBack}
           onNextStep={handleNextStep}
-          hintImage={hint1Image}
-          hintAddress="Проспект Мира 4"
           stepNumber={31}
           showProgress={true}
         >

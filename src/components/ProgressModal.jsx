@@ -43,6 +43,9 @@ export default function ProgressModal({ isOpen, onClose, currentStep }) {
   // Ограничиваем максимальное количество найденных зайцев
   const visibleIconsCount = Math.min(foundRabbits, rabbitIcons.length);
 
+  // Проверяем, все ли зайцы собраны
+  const allRabbitsFound = visibleIconsCount === rabbitIcons.length;
+
   return (
     <div className="progress-modal-overlay" onClick={onClose}>
       <div
@@ -51,9 +54,20 @@ export default function ProgressModal({ isOpen, onClose, currentStep }) {
         role="dialog"
         aria-labelledby="progress-title"
       >
-        {/* Заголовок */}
-        <h2 id="progress-title" className="progress-title">
-          Собери все тайны мазайских зайцев, и получи подарок!
+        {/* Заголовок - меняется при сборе всех зайцев */}
+        <h2
+          id="progress-title"
+          className={`progress-title ${allRabbitsFound ? "all-found" : ""}`}
+        >
+          {allRabbitsFound ? (
+            <>
+              Поздравляем!
+              <br />
+              Все мазайские зайцы собраны
+            </>
+          ) : (
+            "Собери все тайны мазайских зайцев, и получи подарок!"
+          )}
         </h2>
 
         {/* Сетка иконок - 2 строки по 7 */}
@@ -100,13 +114,6 @@ export default function ProgressModal({ isOpen, onClose, currentStep }) {
           Найдено зайцев:{" "}
           <span className="progress-count">{visibleIconsCount}</span> из 14
         </div>
-
-        {/* Сообщение о завершении квеста */}
-        {visibleIconsCount === rabbitIcons.length && (
-          <div className="progress-complete">
-            🎉 Поздравляем! Вы нашли всех мазайских зайцев!
-          </div>
-        )}
       </div>
     </div>
   );

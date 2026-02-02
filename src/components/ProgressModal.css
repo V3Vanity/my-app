@@ -62,36 +62,6 @@
   z-index: 1;
 }
 
-/* Кнопка закрытия */
-.progress-close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(145deg, #b39e00, #8a7a00);
-  color: #f5f0d8;
-  border: none;
-  border-radius: 50%;
-  font-size: 26px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: transform 0.2s ease;
-  box-shadow: 0 4px 8px rgba(139, 124, 0, 0.3);
-}
-
-.progress-close-btn:hover {
-  transform: scale(1.05);
-}
-
-.progress-close-btn:active {
-  transform: scale(0.95);
-}
-
 /* ЗАГОЛОВОК */
 .progress-title {
   color: #ececec;
@@ -367,8 +337,7 @@
 @media (prefers-reduced-motion: reduce) {
   .progress-modal,
   .progress-circle,
-  .progress-icon,
-  .progress-close-btn {
+  .progress-icon {
     animation: none !important;
     transition: none !important;
   }
