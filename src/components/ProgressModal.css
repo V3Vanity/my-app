@@ -23,10 +23,10 @@
 
   /* Фон с увеличенной картинкой */
   background-image: url("../assets/progress-bgc-img.svg");
-  background-size: 200% auto; /* Немного увеличили */
-  background-position: center -220px; /* Сдвинули вверх чтобы было больше видно */
-  background-repeat: no-repeat;
-  background-color: rgba(240, 230, 184, 0.8); /* Цвет подложки */
+  background-size: 200% auto;
+  background-position: center -155px;
+  background-repeat: repeat;
+  background-color: rgba(240, 230, 184, 0.8);
 
   border-radius: 24px;
   padding: 30px 20px; /* Уменьшил боковые отступы */
@@ -79,15 +79,15 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 8px 5px; /* Уменьшил горизонтальные отступы */
-  margin: 0 auto 15px; /* Уменьшил отступ снизу */
+  gap: 45px 5px; /* Уменьшил горизонтальные отступы */
+  margin: 0 auto 35px; /* Уменьшил отступ снизу */
   max-width: 340px; /* Увеличил максимальную ширину */
 }
 
-/* Кружок для иконки - УМЕНЬШЕННЫЙ */
+/* Кружок для иконки */
 .progress-circle {
-  width: 38px;
-  height: 38px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -124,8 +124,8 @@
 
 /* Иконка зайца - УМЕНЬШЕННАЯ */
 .progress-icon {
-  width: 26px;
-  height: 26px;
+  width: 25px;
+  height: 25px;
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
   transition: transform 0.2s ease;
@@ -238,13 +238,13 @@
   }
 
   .progress-circle {
-    width: 34px;
-    height: 34px;
+    width: 35px;
+    height: 35px;
   }
 
   .progress-icon {
-    width: 22px;
-    height: 22px;
+    width: 25px;
+    height: 25px;
   }
 
   .progress-number {
@@ -271,8 +271,8 @@
   }
 
   .progress-circle {
-    width: 32px;
-    height: 32px;
+    width: 35px;
+    height: 35px;
   }
 
   .progress-icon {
@@ -288,7 +288,7 @@
 
 @media (min-width: 768px) {
   .progress-modal {
-    padding: 25px 25px;
+    padding: 25px 15px;
   }
 
   .progress-grid {
@@ -297,13 +297,13 @@
   }
 
   .progress-circle {
-    width: 42px;
-    height: 42px;
+    width: 35px;
+    height: 35px;
   }
 
   .progress-icon {
-    width: 30px;
-    height: 30px;
+    width: 25px;
+    height: 25px;
   }
 
   .progress-number {
@@ -325,7 +325,7 @@
 /* Для очень высоких экранов */
 @media (min-height: 800px) {
   .progress-grid {
-    margin-bottom: 25px;
+    margin-bottom: 35px;
   }
 
   .progress-number {

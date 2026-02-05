@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import "./TextBlock.css";
 import HintModal from "../components/HintModal.jsx";
-import ProgressModal from "../components/ProgressModal.jsx";
 
 export default function TextBlock({
   text,
@@ -12,13 +11,10 @@ export default function TextBlock({
   children,
   hintImage,
   hintAddress,
-  stepNumber,
-  showProgress, // Новая пропса: показывать ли прогресс
 }) {
   const containerRef = useRef(null);
   const [showButton, setShowButton] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const [showProgressModal, setShowProgressModal] = useState(false);
 
   const handleScroll = () => {
     const el = containerRef.current;
@@ -36,14 +32,6 @@ export default function TextBlock({
       return () => el.removeEventListener("scroll", handleScroll);
     }
   }, []);
-
-  // Показываем прогресс при открытии текстового блока (если нужно)
-  useEffect(() => {
-    if (showProgress && stepNumber >= 3) {
-      // Открываем немедленно
-      setShowProgressModal(true);
-    }
-  }, [showProgress, stepNumber]);
 
   return (
     <>
@@ -85,13 +73,6 @@ export default function TextBlock({
         onClose={() => setShowHint(false)}
         imageSrc={hintImage}
         address={hintAddress}
-      />
-
-      {/* Модальное окно с прогрессом */}
-      <ProgressModal
-        isOpen={showProgressModal}
-        onClose={() => setShowProgressModal(false)}
-        currentStep={stepNumber}
       />
     </>
   );

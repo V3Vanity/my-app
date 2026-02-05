@@ -24,6 +24,7 @@ import rabbitEleven from "../assets/rabbitEleven.svg";
 import rabbitTwelve from "../assets/rabbitTwelve.svg";
 import rabbitThirteen from "../assets/rabbitThirteen.svg";
 import rabbitFourteen from "../assets/rabbitFourteen.svg";
+import ProgressModal from "./ProgressModal.jsx";
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
@@ -68,7 +69,7 @@ export default forwardRef(function MapCanvasBlock(
 
   const [followUser, setFollowUser] = useState(false);
   const [followMode, setFollowMode] = useState("user"); // "user" или "end"
-
+  const [showProgressModal, setShowProgressModal] = useState(false);
   // режим страницы: "home" | "quest"
   const [pageMode, setPageMode] = useState("home");
 
@@ -1537,6 +1538,18 @@ export default forwardRef(function MapCanvasBlock(
     };
   }, [clampOffset]);
 
+  // Эффект для автоматического показа прогресса
+  useEffect(() => {
+    // Показываем прогресс для всех режимов кроме step2
+    if (mode && mode.startsWith("step") && mode !== "step2") {
+      const timer = setTimeout(() => {
+        setShowProgressModal(true);
+      }, 800); // Задержка для плавности
+
+      return () => clearTimeout(timer);
+    }
+  }, [mode]);
+
   useImperativeHandle(ref, () => ({
     startQuest: (newMode) => {
       setCurrentMapMode(newMode);
@@ -1676,6 +1689,9 @@ export default forwardRef(function MapCanvasBlock(
     buildRouteToStart: () => {
       handleBuildRoute();
     },
+    howProgress: () => {
+      setShowProgressModal(true);
+    },
 
     // Экспортируем все функции построения маршрутов для внешнего использования
     buildRouteFromStartToSecondPoint,
@@ -1707,6 +1723,28 @@ export default forwardRef(function MapCanvasBlock(
     },
     [centerOnPixel],
   );
+
+  // Функция для получения номера шага из режима
+  const getStepNumberFromMode = (mode) => {
+    const stepMap = {
+      step2: 2,
+      step4: 4,
+      step6: 6,
+      step8: 8,
+      step10: 10,
+      step12: 12,
+      step14: 14,
+      step16: 16,
+      step18: 18,
+      step20: 20,
+      step22: 22,
+      step24: 24,
+      step26: 26,
+      step28: 28,
+      step30: 30,
+    };
+    return stepMap[mode] || 0;
+  };
 
   return (
     <div
@@ -1748,6 +1786,12 @@ export default forwardRef(function MapCanvasBlock(
       </button>
 
       <canvas ref={canvasRef} className="map-canvas" />
+
+      <ProgressModal
+        isOpen={showProgressModal}
+        onClose={() => setShowProgressModal(false)}
+        currentStep={getStepNumberFromMode(mode)}
+      />
 
       {mode !== "step2" && (
         <div className="map-continue-container">

@@ -309,7 +309,6 @@ export default function QuestPage() {
           hintImage={hint1Image}
           hintAddress="Проспект Мира, 4"
           stepNumber={3}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты идёшь по проспекту Мира — старой, широкой улице, где дома
@@ -368,7 +367,6 @@ export default function QuestPage() {
           hintImage={hint2Image}
           hintAddress="Симановского, 4 "
           stepNumber={5}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Перед тобой возвышается дом, что старше многих поколений
@@ -460,7 +458,6 @@ export default function QuestPage() {
           hintImage={hint3Image}
           hintAddress="ул. Мучные Ряды"
           stepNumber={7}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты ступил на улицу Симановского и идёшь по её вымощенному
@@ -547,7 +544,6 @@ export default function QuestPage() {
           hintImage={hint4Image}
           hintAddress="Симановского, 4 "
           stepNumber={9}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты держишь в руках письмо от Зайца-Пожарного и идёшь вдоль
@@ -616,7 +612,6 @@ export default function QuestPage() {
           hintImage={hint5Image}
           hintAddress="Улица Молочная гора"
           stepNumber={11}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Перед тобой открывается широкая арка Гостиного двора. Стоит
@@ -687,7 +682,6 @@ export default function QuestPage() {
           hintImage={hint6Image}
           hintAddress="Фабричный район"
           stepNumber={13}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Письмо от Зайчихи-Купчихи приводит тебя на Молочную Гору —
@@ -778,7 +772,6 @@ export default function QuestPage() {
           hintImage={hint7Image}
           hintAddress="Центральный парк"
           stepNumber={15}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Следуя совету Зимогора, ты спускаешься к Волге. Воздух здесь
@@ -872,7 +865,6 @@ export default function QuestPage() {
           hintImage={hint8Image}
           hintAddress="улица 1 Мая"
           stepNumber={17}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты идёшь вдоль набережной, как советовал Заяц-Моряк. Волга
@@ -967,7 +959,6 @@ export default function QuestPage() {
           hintImage={hint9Image}
           hintAddress="Советская площадь, 4"
           stepNumber={19}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты подходишь к белоснежной ротонде на берегу Волги — Беседке
@@ -1034,7 +1025,6 @@ export default function QuestPage() {
           hintImage={hint10Image}
           hintAddress="Советская ул, 15"
           stepNumber={21}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты поднимаешься вверх от Беседки Островского, следуя по
@@ -1101,7 +1091,6 @@ export default function QuestPage() {
           hintImage={hint11Image}
           hintAddress="Советская площадь"
           stepNumber={23}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты переходишь дорогу от трактира и оказываешься на улице
@@ -1162,7 +1151,6 @@ export default function QuestPage() {
           hintImage={hint12Image}
           hintAddress="ул. Красные Ряды, 1"
           stepNumber={25}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Площадь Советская — одно из тех мест Костромы, где город
@@ -1242,7 +1230,6 @@ export default function QuestPage() {
           hintImage={hint13Image}
           hintAddress="ул. Табачные Ряды, 1"
           stepNumber={27}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты выходишь к торговым рядам — месту, где веками ценили
@@ -1328,7 +1315,6 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           stepNumber={29}
-          showProgress={true}
         >
           <p className="text-paragraph">
             &emsp;Ты подходишь к Табачным рядам — величественному зданию начала
@@ -1406,7 +1392,6 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           stepNumber={31}
-          showProgress={true}
         >
           <p className="text-paragraph">
             Ты держишь в руках письмо последнего зайца, и перед глазами словно
