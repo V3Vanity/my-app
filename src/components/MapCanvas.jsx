@@ -346,7 +346,7 @@ export default forwardRef(function MapCanvasBlock(
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 25;
+    const REACH_RADIUS = 0;
     if (dist < REACH_RADIUS) {
       if (mode === "step2") {
         onQuestPointReached?.(2);
@@ -1215,17 +1215,30 @@ export default forwardRef(function MapCanvasBlock(
 
     // --- draw route on top ---
     if (pageMode === "quest" && routeNodes && routeNodes.length > 1) {
-      ctx.strokeStyle = "#ffffffaa"; // Изменил цвет на КРАСНЫЙ для видимости
-      ctx.lineWidth = 2; // Увеличил толщину
+      ctx.strokeStyle = "#ffffffaa";
+      ctx.lineWidth = 2;
       ctx.beginPath();
+
       routeNodes.forEach((n, i) => {
         if (!n) return;
+
+        let x = n.x;
+        let y = n.y;
+        const iconSize = 40;
+
+        // Для ВСЕХ квестовых точек (не USER) корректируем Y-координату
+        if (n.id !== "USER") {
+          // Простой вариант: центр иконки + небольшой отступ
+          y = n.y - iconSize / 2 - 2; // -2 пикселя чтобы маршрут заходил под иконку
+        }
+
         if (i === 0) {
-          ctx.moveTo(n.x, n.y);
+          ctx.moveTo(x, y);
         } else {
-          ctx.lineTo(n.x, n.y);
+          ctx.lineTo(x, y);
         }
       });
+
       ctx.stroke();
     }
 
