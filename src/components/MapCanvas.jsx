@@ -325,28 +325,42 @@ export default forwardRef(function MapCanvasBlock(
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!userPx || !imgRef.current) return;
 
-    const endNode = nodes.find((n) => n.id === "START");
-    if (!endNode) return;
+    // ИСПОЛЬЗУЕМ КООРДИНАТЫ ИЗ QUESTPOINTS ДЛЯ СТАРТА
+    const startQP = questPoints.find((qp) => qp.order === 1); // Находим стартовую точку квеста
+    if (!startQP) return;
 
     let nearestNode = findNearestNode(userPx);
-    const path = buildRoute(nearestNode.id, endNode.id);
+    const path = buildRoute(nearestNode.id, "START"); // Используем id "START"
     if (!path) return;
 
+    // Создаем маршрут с правильными координатами
     const routeWithUser = [
       { id: "USER", ...userPx },
-      ...path.map((id) => nodes.find((n) => n.id === id)).filter(Boolean),
+      ...path
+        .map((id) => {
+          const node = nodes.find((n) => n.id === id);
+          return node ? { id: node.id, x: node.x, y: node.y } : null;
+        })
+        .filter(Boolean),
     ];
+
+    // ВАЖНО: добавляем стартовую точку квеста в конец маршрута с ее координатами
+    // Эта точка будет последней в маршруте и к ней подойдет линия
+    routeWithUser.push({
+      id: "START",
+      x: startQP.x,
+      y: startQP.y,
+    });
 
     setRouteNodes(routeWithUser);
     lastRouteNodeRef.current = nearestNode.id;
     lastRebuildTimeRef.current = Date.now();
 
     // --- ПРОВЕРКА ДОСТИЖЕНИЯ КВЕСТ-ТОЧКИ ---
-    const startQP = questPoints[0]; // старт квеста
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 0;
+    const REACH_RADIUS = 25; // Исправьте радиус на нужное значение
     if (dist < REACH_RADIUS) {
       if (mode === "step2") {
         onQuestPointReached?.(2);
