@@ -6,16 +6,44 @@ import "./Header.css";
 export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
   const navigate = useNavigate();
 
-  // Клик по заголовку — возвращаемся на главную страницу
   const handleTitleClick = () => {
     navigate("/");
-    // Можно при желании закрыть меню
     setMenuOpen(false);
+  };
+
+  const handleMenuItemClick = (page) => {
+    console.log("Клик по меню:", page);
+    setMenuOpen(false);
+
+    if (onMenuItemClick) {
+      onMenuItemClick(page);
+    } else {
+      // Фолбэк навигация если onMenuItemClick не передан
+      switch (page) {
+        case "quest":
+          navigate("/quest");
+          break;
+        case "temples":
+          navigate("/temples");
+          break;
+        case "gastro":
+          navigate("/gastro");
+          break;
+        case "about":
+          navigate("/about");
+          break;
+        case "reviews":
+          navigate("/reviews");
+          break;
+        default:
+          navigate("/");
+          break;
+      }
+    }
   };
 
   return (
     <>
-      {/* Шапка */}
       <header className={`app-header ${menuOpen ? "open" : ""}`}>
         <div
           className="page-title"
@@ -29,24 +57,32 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
         </button>
       </header>
 
-      {/* Меню */}
       <div className={`app-menu ${menuOpen ? "open" : ""}`}>
         <div
           className="menu-item primary"
-          onClick={() => onMenuItemClick("quest")}
+          onClick={() => handleMenuItemClick("quest")}
         >
           Квест-экскурсия мазайские зайцы
         </div>
-        <div className="menu-item" onClick={() => onMenuItemClick("temples")}>
+        <div
+          className="menu-item"
+          onClick={() => handleMenuItemClick("temples")}
+        >
           Квест-экскурсия по храмам и музеям
         </div>
-        <div className="menu-item" onClick={() => onMenuItemClick("gastro")}>
+        <div
+          className="menu-item"
+          onClick={() => handleMenuItemClick("gastro")}
+        >
           Гастро-тур
         </div>
-        <div className="menu-item" onClick={() => onMenuItemClick("about")}>
+        <div className="menu-item" onClick={() => handleMenuItemClick("about")}>
           О нас
         </div>
-        <div className="menu-item" onClick={() => onMenuItemClick("reviews")}>
+        <div
+          className="menu-item"
+          onClick={() => handleMenuItemClick("reviews")}
+        >
           Отзывы
         </div>
       </div>
