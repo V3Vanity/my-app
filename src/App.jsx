@@ -8,6 +8,7 @@ import {
 import "./App.css";
 import topImage from "./assets/top-image.png";
 import QuestPage from "./pages/QuestPage.jsx";
+import GastroTour from "./pages/GastroTour.jsx";
 import Header from "./components/Header.jsx";
 import questImage from "./assets/App-img.png";
 
@@ -24,16 +25,19 @@ function HomePage() {
         navigate("/quest");
         break;
       case "temples":
-        navigate("/temples");
+        // Пока заглушка
+        alert("Страница 'Квест-экскурсия по храмам и музеям' в разработке");
         break;
       case "gastro":
         navigate("/gastro");
         break;
       case "about":
-        navigate("/about");
+        // Пока заглушка
+        alert("Страница 'О нас' в разработке");
         break;
       case "reviews":
-        navigate("/reviews");
+        // Пока заглушка
+        alert("Страница 'Отзывы' в разработке");
         break;
       default:
         break;
@@ -68,7 +72,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/quest" element={<QuestPage />} />
-        {/* Можно добавить другие страницы */}
+        <Route path="/gastro" element={<GastroTour />} />
       </Routes>
     </Router>
   );

@@ -16,7 +16,7 @@
   background-position: center;
   background-repeat: no-repeat;
   font-family: sans-serif;
-  z-index: 1000;
+  z-index: 10000;
   border-radius: 12px;
   transition: border-radius 0.2s;
 }
