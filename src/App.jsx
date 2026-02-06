@@ -68,7 +68,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/quest" element={<QuestPage />} />
-        {/* Можно добавить другие страницы */}
+        {/* Добавьте заглушки для других страниц */}
+        <Route
+          path="/temples"
+          element={<div>Страница храмов (в разработке)</div>}
+        />
+        <Route path="/gastro" element={<div>Гастро-тур (в разработке)</div>} />
+        <Route path="/about" element={<div>О нас (в разработке)</div>} />
+        <Route path="/reviews" element={<div>Отзывы (в разработке)</div>} />
       </Routes>
     </Router>
   );
