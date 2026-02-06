@@ -1,85 +1,240 @@
-/* --- Контейнер карты --- */
-.map-container {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  width: 375px;
-  max-width: 100%;
-  height: 85%;
-  transform: translateX(-50%);
-  background-color: rgba(255, 162, 0, 0); /* прозрачный фон */
-  overflow: hidden;
-  touch-action: none;
-  display: flex;
-  flex-direction: column;
-  border-radius: 12px;
-  cursor: grab;
+/* Базовые стили для всего приложения */
+* {
+  box-sizing: border-box;
 }
 
-/* Высота карты для шагов квеста */
-.map-container-quest {
-  height: 45%;
+.map-step-wrapper {
+  position: relative;
+  height: calc(100vh - 110px);
+  padding: 110px 16px 16px 16px;
+  box-sizing: border-box;
+  /* Центрирование и ограничение ширины для мобильного вида */
+  max-width: 375px;
+  margin: 0 auto;
+  width: 100%;
+  z-index: 1;
 }
 
-.map-container.dragging {
-  cursor: grabbing;
-}
-
-/* Холст карты */
-.map-canvas {
-  display: block;
-  flex-grow: 1;
-}
-
-/* Кнопка "Следить за пользователем" */
-.map-follow-btn {
-  display: none;
-  position: absolute;
-  top: 52px;
-  left: 12px;
-  z-index: 20;
-  padding: 8px 14px;
-  background: #862518;
-  border: none;
-  color: #d9cfb8;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-/* Кнопка "Назад" */
-.back-step-button {
+.map-step-wrapper .back-button {
   background: #ffffff73;
   border-radius: 50%;
   border: none;
-  padding: 10px;
-  font-size: 25px;
+  padding: 7px;
+  font-size: 20px;
   color: #862518;
   font-weight: bold;
   cursor: pointer;
-  margin: 10px;
+  margin-bottom: 8px;
   align-self: flex-start;
-  z-index: 9999;
+  position: relative;
+  z-index: 2;
 }
 
-/* --- Кнопка "Продолжить" на step4 --- */
-.map-continue-container {
-  position: absolute; /* фиксируем относительно родителя .map-container */
-  bottom: 20px; /* отступ от низа карты */
-  left: 50%; /* по центру горизонтали */
-  transform: translateX(-50%);
-  z-index: 10; /* поверх карты */
-  width: auto;
+.text-paragraph {
+  line-height: 30px;
+  margin-right: 3px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+}
+.text-paragraph__title {
   text-align: center;
+  line-height: 30px;
+  margin-right: 3px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 20px;
+  color: #862518;
+}
+.text-paragraph__end {
+  text-align: center;
+  line-height: 30px;
+  margin-right: 3px;
+  margin-bottom: 10px;
+  font-family: sans-serif;
 }
 
-.map-continue-button {
-  padding: 18px 76px;
-  font-size: 32px;
-  border-radius: 41px;
-  background-color: #11ab0e;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  border: none;
-  cursor: pointer;
+.reward-button-container {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.reward-button {
+  padding: 18px 40px;
+  background-color: #862518;
+  color: #d9cfb8;
+  font-size: 24px;
   font-weight: bold;
+  border: none;
+  border-radius: 41px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 280px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+  position: relative;
+  z-index: 2;
+}
+
+/* Контейнер для поздравления */
+.congratulations-container {
+  position: fixed;
+  top: 110px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(100vh - 110px);
+  overflow: hidden;
+  z-index: 9999; /* Очень высокий z-index */
+  /* Центрирование для ПК */
+  max-width: 375px;
+  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Красный фон с повторяющимся текстом */
+.congratulations-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #862518;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Контейнер для бесконечной ленты текста */
+.congratulations-text-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200%;
+  animation: textScroll 15s linear infinite;
+  z-index: 2;
+}
+
+/* Каждая строка текста */
+.congratulations-text {
+  color: #7e2216;
+  font-size: 33px;
+  font-weight: 900;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  margin: 15px 0;
+}
+
+/* Анимация бесконечного скролла */
+@keyframes textScroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+/* Слой для награды поверх фона */
+.reward-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.reward-overlay > * {
+  pointer-events: auto;
+}
+
+/* Стили для ПК/ноутбуков - создаем эффект "мобильного устройства" */
+@media (min-width: 768px) {
+  .map-step-wrapper {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    height: calc(100vh - 150px);
+  }
+
+  .congratulations-container {
+    border-radius: 12px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 667px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .congratulations-bg {
+    border-radius: 12px;
+  }
+
+  .congratulations-text {
+    font-size: 36px;
+  }
+}
+
+/* Мобильные устройства - полная ширина */
+@media (max-width: 767px) {
+  .map-step-wrapper {
+    max-width: 100%;
+    margin: 0;
+    padding: 110px 16px 16px;
+    height: calc(100vh - 110px);
+    border: none;
+    box-shadow: none;
+  }
+
+  .congratulations-container {
+    max-width: 100%;
+    left: 0;
+    transform: none;
+    border-radius: 0;
+    top: 110px;
+  }
+}
+
+/* Очень маленькие мобильные устройства */
+@media (max-width: 374px) {
+  .congratulations-text {
+    font-size: 28px;
+  }
+
+  .reward-button {
+    padding: 16px 32px;
+    font-size: 20px;
+    min-width: 250px;
+  }
+}
+
+/* Специальные стили для выпадающего меню */
+.dropdown-menu {
+  position: relative;
+  z-index: 10000; /* Самый высокий приоритет */
+}
+
+/* Если есть header или шапка */
+.header,
+nav,
+.navbar {
+  position: relative;
+  z-index: 10001; /* Еще выше, чем выпадающее меню */
 }
