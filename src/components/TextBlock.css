@@ -3,7 +3,7 @@
   flex-direction: column;
   background-color: #c8b28d;
   margin-top: 60px;
-  height: calc(100vh - 62px);
+  height: calc(100dvh - 62px);
   box-sizing: border-box;
   border-radius: 0 0 16px 16px;
 }
