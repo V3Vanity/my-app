@@ -63,34 +63,7 @@
   transform: scale(1.05);
 }
 
-/* Кнопка центрирования на карте */
-.restaurant-center-btn {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  background: rgba(255, 233, 231, 0.2);
-  color: #ffe9e7;
-  border: 1px solid rgba(255, 233, 231, 0.5);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  transition: all 0.2s;
-  padding: 0;
-}
-
-.restaurant-center-btn:hover,
-.restaurant-center-btn:active {
-  background: rgba(255, 233, 231, 0.3);
-  transform: scale(1.05);
-}
-
-/* ===== СЛАЙДЕР ФОТО - НА ВСЮ ШИРИНУ ===== */
+/* ===== СЛАЙДЕР ФОТО РЕСТОРАНА ===== */
 .restaurant-photos-slider {
   position: relative;
   width: 100%;
@@ -98,7 +71,6 @@
   cursor: pointer;
 }
 
-/* Контейнер фото - занимает всю ширину */
 .restaurant-photo-container {
   position: relative;
   width: 100%;
@@ -113,21 +85,15 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.photo-placeholder {
+.restaurant-photo {
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 233, 231, 0.08);
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.photo-label {
-  color: #ffe9e7;
-  font-size: 18px;
-  font-weight: 500;
-  opacity: 0.9;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+.restaurant-photo-container:hover .restaurant-photo {
+  transform: scale(1.05);
 }
 
 .photo-counter {
@@ -144,153 +110,8 @@
   border: 1px solid rgba(255, 233, 231, 0.2);
 }
 
-/* Кнопки слайдера - ВНУТРИ контейнера, по бокам, полупрозрачные */
-.restaurant-photos-slider .slider-nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.5);
-  color: #ffe9e7;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 32px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  z-index: 20;
-  padding: 0;
-  margin: 0;
-  line-height: 0; /* Важно для центрирования */
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  opacity: 0.3;
-}
-
-.restaurant-photos-slider .slider-nav-btn.prev {
-  left: 12px;
-}
-
-.restaurant-photos-slider .slider-nav-btn.next {
-  right: 12px;
-}
-
-.restaurant-photos-slider .slider-nav-btn:hover,
-.restaurant-photos-slider .slider-nav-btn:active {
-  background: rgba(0, 0, 0, 0.7);
-  transform: translateY(-50%) scale(1.1);
-}
-
-/* Символы стрелок */
-.restaurant-photos-slider .slider-nav-btn span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  line-height: 1;
-  margin-top: -2px; /* Тонкая настройка по вертикали */
-}
-
-/* Название ресторана - ПО ЦЕНТРУ */
-.restaurant-name {
-  color: #ffe9e7;
-  margin: 0 0 12px 0;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-align: center;
-  word-break: break-word;
-  padding: 0 40px;
-}
-
-/* Описание ресторана */
-.restaurant-description {
-  color: rgba(255, 233, 231, 0.9);
-  margin-bottom: 24px;
-  line-height: 1.6;
-  font-size: 16px;
-  text-align: center;
-  padding: 0 8px;
-}
-
-/* ===== СЛАЙДЕР МЕНЮ - НА ВСЮ ШИРИНУ ===== */
-.menu-section {
-  position: relative;
-  width: 100%;
-}
-
-.menu-slider {
-  position: relative;
-  width: 100%;
-  margin: 16px 0 16px 0;
-}
-
-/* Контейнер блюда - занимает всю ширину */
-.menu-item-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(255, 233, 231, 0.08);
-  border-radius: 20px;
-  padding: 20px 16px;
-  transition: transform 0.2s;
-  border: 1px solid rgba(255, 233, 231, 0.15);
-  box-sizing: border-box;
-}
-
-.menu-item-container:hover,
-.menu-item-container:active {
-  background: rgba(255, 233, 231, 0.12);
-  transform: translateY(-2px);
-}
-
-.menu-item-placeholder {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #7a2e1e 0%, #5a1e14 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  border: 2px solid rgba(255, 233, 231, 0.25);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.menu-item-label {
-  color: #ffe9e7;
-  font-weight: 500;
-  font-size: 16px;
-  text-align: center;
-  opacity: 0.9;
-}
-
-.menu-item-info {
-  text-align: center;
-  width: 100%;
-}
-
-.menu-item-info h4 {
-  margin: 0 0 8px 0;
-  color: #ffe9e7;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.menu-item-price {
-  color: #ffe9e7;
-  font-weight: 700;
-  font-size: 24px;
-  margin: 0;
-  opacity: 0.95;
-}
-
-/* Кнопки слайдера меню - ВНУТРИ контейнера, по бокам, полупрозрачные */
+/* Кнопки слайдера */
+.restaurant-photos-slider .slider-nav-btn,
 .menu-slider .slider-nav-btn {
   position: absolute;
   top: 50%;
@@ -316,21 +137,25 @@
   opacity: 0.3;
 }
 
+.restaurant-photos-slider .slider-nav-btn.prev,
 .menu-slider .slider-nav-btn.prev {
   left: 12px;
 }
 
+.restaurant-photos-slider .slider-nav-btn.next,
 .menu-slider .slider-nav-btn.next {
   right: 12px;
 }
 
+.restaurant-photos-slider .slider-nav-btn:hover,
+.restaurant-photos-slider .slider-nav-btn:active,
 .menu-slider .slider-nav-btn:hover,
 .menu-slider .slider-nav-btn:active {
   background: rgba(0, 0, 0, 0.7);
   transform: translateY(-50%) scale(1.1);
 }
 
-/* Символы стрелок для меню */
+.restaurant-photos-slider .slider-nav-btn span,
 .menu-slider .slider-nav-btn span {
   display: flex;
   align-items: center;
@@ -341,9 +166,110 @@
   margin-top: -2px;
 }
 
+/* Название и описание */
+.restaurant-name {
+  color: #ffe9e7;
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-word;
+  padding: 0 40px;
+}
+
+.restaurant-description {
+  color: rgba(255, 233, 231, 0.9);
+  margin-bottom: 24px;
+  line-height: 1.6;
+  font-size: 16px;
+  text-align: center;
+  padding: 0 8px;
+}
+
+/* ===== СРЕДНИЙ ЧЕК ===== */
+.average-check-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px 20px;
+  margin: 0 0 24px 0;
+  box-sizing: border-box;
+}
+
+.average-check-label {
+  color: rgba(255, 233, 231, 0.9);
+  font-size: 16px;
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+.average-check-value {
+  color: #ffe9e7;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ===== СЛАЙДЕР МЕНЮ - ФОТО ВО ВСЮ ШИРИНУ ===== */
+.menu-section {
+  position: relative;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.section-title {
+  color: #ffe9e7;
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  letter-spacing: 1px;
+}
+
+.menu-slider {
+  position: relative;
+  width: 100%;
+  margin: 0 0 16px 0;
+}
+
+.menu-item-container-fullwidth {
+  width: 100%;
+  height: 200px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, #7a2e1e 0%, #5a1e14 100%);
+  border: 2px solid rgba(255, 233, 231, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.menu-item-image-fullwidth {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.menu-item-container-fullwidth:hover .menu-item-image-fullwidth {
+  transform: scale(1.05);
+}
+
+.menu-item-placeholder-fullwidth {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 233, 231, 0.08);
+  color: #ffe9e7;
+  font-size: 18px;
+}
+
 /* Прогресс-бар меню */
 .menu-progress {
-  margin: 16px 0 24px;
+  margin: 16px 0 0;
   position: relative;
   width: 100%;
 }
@@ -365,73 +291,58 @@
   font-weight: 500;
 }
 
-/* Заголовки секций - ПО ЦЕНТРУ */
-.section-title {
-  color: #ffe9e7;
-  margin: 24px 0 20px 0;
-  font-size: 24px;
-  font-weight: 600;
-  text-align: center;
+/* ===== ЭКСКЛЮЗИВНЫЕ БЛЮДА - ФОТО ВО ВСЮ ШИРИНУ ===== */
+.exclusive-dishes-section {
   width: 100%;
-  position: relative;
-  letter-spacing: 1px;
+  margin-bottom: 32px;
 }
 
-/* Сетка местных блюд */
-.local-dishes-grid {
+.exclusive-dishes-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 16px;
-  margin: 16px 0 8px;
+  width: 100%;
 }
 
-.local-dish-item {
-  text-align: center;
-  background: rgba(255, 233, 231, 0.08);
-  border-radius: 20px;
-  padding: 20px 12px;
-  transition: transform 0.2s;
-  border: 1px solid rgba(255, 233, 231, 0.15);
-}
-
-.local-dish-item:hover,
-.local-dish-item:active {
-  background: rgba(255, 233, 231, 0.12);
-  transform: translateY(-2px);
-}
-
-.local-dish-placeholder {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
+.exclusive-dish-item {
+  width: 100%;
+  height: 180px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
   background: linear-gradient(135deg, #7a2e1e 0%, #5a1e14 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 16px auto;
-  border: 2px solid rgba(255, 233, 231, 0.25);
+  border: 2px solid rgba(255, 233, 231, 0.15);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.local-dish-label {
-  color: #ffe9e7;
-  font-weight: 500;
-  font-size: 15px;
-  text-align: center;
-  opacity: 0.9;
-  padding: 0 8px;
+.exclusive-dish-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.local-dish-name {
+.exclusive-dish-item:hover .exclusive-dish-image {
+  transform: scale(1.05);
+}
+
+.exclusive-dish-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 233, 231, 0.08);
   color: #ffe9e7;
   font-size: 18px;
-  font-weight: 600;
-  margin: 0;
-  text-align: center;
-  line-height: 1.3;
 }
 
-/* Секция карты */
+/* Если 2 эксклюзивных блюда */
+.exclusive-dishes-grid:has(.exclusive-dish-item:nth-child(2)) {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* ===== КАРТА И АДРЕС ===== */
 .map-section {
   margin: 24px 0 16px;
   text-align: center;
@@ -440,7 +351,7 @@
 .yandex-map-preview {
   height: 160px;
   background: linear-gradient(135deg, #7a2e1e 0%, #5a1e14 100%);
-  border-radius: 20px;
+  border-radius: 16px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -469,181 +380,14 @@
   line-height: 1.5;
 }
 
-/* Адрес ресторана - ПО ЦЕНТРУ */
-.restaurant-address {
-  text-align: center;
-  color: #ffe9e7;
-  font-size: 16px;
-  padding: 16px 20px;
-  background: rgba(255, 233, 231, 0.08);
-  border-radius: 40px;
-  margin: 8px 0 0;
-  border: 1px solid rgba(255, 233, 231, 0.15);
-  font-weight: 500;
-  word-break: break-word;
-  line-height: 1.5;
-}
-
-.restaurant-address strong {
-  font-weight: 700;
-  opacity: 0.9;
-}
-
-/* ===== FULLSCREEN MODAL ДЛЯ ФОТО ===== */
-.photo-fullscreen-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.95);
-  z-index: 20000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.photo-fullscreen-content {
-  position: relative;
-  width: 375px;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.photo-fullscreen-image {
-  width: 100%;
-  height: auto;
-  max-height: 80vh;
-  object-fit: contain;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-}
-
-.photo-fullscreen-close {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  font-size: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 20010;
-  transition: all 0.2s;
-  backdrop-filter: blur(4px);
-  line-height: 0;
-  padding: 0;
-}
-
-.photo-fullscreen-close span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  margin-top: -2px;
-}
-
-.photo-fullscreen-close:hover,
-.photo-fullscreen-close:active {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
-}
-
-.photo-fullscreen-counter {
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 10px 24px;
-  border-radius: 40px;
-  font-size: 16px;
-  font-weight: 500;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Мобильная адаптация */
-@media (max-width: 375px) {
-  .restaurant-detail {
-    width: 100%;
-    left: 0;
-    transform: translateX(0);
-    border-radius: 24px 24px 0 0;
-  }
-
-  .photo-fullscreen-content {
-    width: 100%;
-  }
-
-  @keyframes slideUp {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-}
-
-@media (max-width: 360px) {
-  .restaurant-detail {
-    padding: 20px 16px 28px;
-  }
-
-  .restaurant-name {
-    font-size: 24px;
-  }
-
-  .restaurant-photo-container {
-    height: 180px;
-  }
-
-  .menu-item-placeholder {
-    width: 90px;
-    height: 90px;
-  }
-
-  .local-dish-placeholder {
-    width: 80px;
-    height: 80px;
-  }
-
-  .local-dish-name {
-    font-size: 16px;
-  }
-}
-
-/* ===== FULLSCREEN MODAL (ОБЩИЕ СТИЛИ) ===== */
+/* ===== FULLSCREEN ===== */
 .fullscreen-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.98);
+  background-color: rgba(0, 0, 0, 0.804);
   z-index: 20000;
   display: flex;
   align-items: center;
@@ -672,7 +416,6 @@
   box-sizing: border-box;
 }
 
-/* Кнопка закрытия для fullscreen */
 .fullscreen-close-btn {
   position: absolute;
   top: 20px;
@@ -711,7 +454,6 @@
   transform: scale(1.1);
 }
 
-/* Навигационные кнопки в fullscreen */
 .fullscreen-nav-btn {
   position: absolute;
   top: 50%;
@@ -737,6 +479,13 @@
   opacity: 0.3;
 }
 
+.fullscreen-nav-btn.prev {
+  left: 20px;
+}
+.fullscreen-nav-btn.next {
+  right: 20px;
+}
+
 .fullscreen-nav-btn span {
   display: flex;
   align-items: center;
@@ -746,22 +495,12 @@
   margin-top: -4px;
 }
 
-.fullscreen-nav-btn.prev {
-  left: 20px;
-}
-
-.fullscreen-nav-btn.next {
-  right: 20px;
-}
-
 .fullscreen-nav-btn:hover,
 .fullscreen-nav-btn:active {
   background: rgba(0, 0, 0, 0.8);
   transform: translateY(-50%) scale(1.1);
-  border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Счетчик в fullscreen */
 .fullscreen-counter {
   position: absolute;
   bottom: 30px;
@@ -775,135 +514,91 @@
   font-weight: 500;
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  letter-spacing: 1px;
 }
 
-/* ===== FULLSCREEN ДЛЯ ФОТО ===== */
-.fullscreen-image-container {
-  width: 100%;
-  height: auto;
-  max-height: 70vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.photo-placeholder.fullscreen {
-  width: 100%;
-  height: 500px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #7a2e1e 0%, #5a1e14 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid rgba(255, 233, 231, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.photo-placeholder.fullscreen .photo-label {
-  font-size: 24px;
-  color: rgba(255, 233, 231, 0.9);
-}
-
-/* ===== FULLSCREEN ДЛЯ МЕНЮ ===== */
+.fullscreen-image-container,
 .fullscreen-menu-container {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-}
-
-.menu-item-placeholder.fullscreen {
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #7a2e1e 0%, #5a1e14 100%);
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 4px solid rgba(255, 233, 231, 0.3);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  margin-bottom: 20px;
 }
 
-.menu-item-placeholder.fullscreen .menu-item-label {
-  font-size: 28px;
-  color: rgba(255, 233, 231, 0.95);
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+.fullscreen-image {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.fullscreen-menu-info {
-  text-align: center;
-  color: white;
+.fullscreen-menu-image-fullwidth {
   width: 100%;
-  padding: 0 20px;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.fullscreen-menu-info h2 {
-  font-size: 36px;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-  color: #ffe9e7;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.fullscreen-menu-price {
-  font-size: 42px;
-  font-weight: 800;
-  color: #ffe9e7;
-  margin: 0 0 24px 0;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.fullscreen-menu-description {
-  font-size: 18px;
-  line-height: 1.6;
-  color: rgba(255, 233, 231, 0.9);
-  margin: 0;
-  max-width: 300px;
-  margin: 0 auto;
-}
-
-/* Мобильная адаптация для fullscreen */
+/* Мобильная адаптация */
 @media (max-width: 375px) {
+  .restaurant-detail {
+    width: 100%;
+    left: 0;
+    transform: translateX(0);
+  }
+
   .fullscreen-content {
     width: 100%;
-    padding: 16px;
-  }
-
-  .menu-item-placeholder.fullscreen {
-    width: 200px;
-    height: 200px;
-  }
-
-  .menu-item-placeholder.fullscreen .menu-item-label {
-    font-size: 22px;
-  }
-
-  .fullscreen-menu-info h2 {
-    font-size: 28px;
-  }
-
-  .fullscreen-menu-price {
-    font-size: 32px;
-  }
-
-  .fullscreen-menu-description {
-    font-size: 16px;
   }
 }
 
 @media (max-width: 360px) {
-  .menu-item-placeholder.fullscreen {
-    width: 180px;
+  .restaurant-detail {
+    padding: 20px 16px 28px;
+  }
+
+  .restaurant-name {
+    font-size: 24px;
+  }
+
+  .restaurant-photo-container,
+  .menu-item-container-fullwidth {
     height: 180px;
   }
 
-  .fullscreen-nav-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 32px;
+  .exclusive-dish-item {
+    height: 160px;
   }
+}
+
+/* Добавьте в конец файла */
+
+/* Контейнер для Яндекс Карты */
+.yandex-map-container {
+  width: 100%;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Стили для iframe карты */
+.yandex-map-container iframe {
+  display: block;
+  border: none;
+}
+
+/* Адрес ресторана - ПО ЦЕНТРУ */
+.restaurant-address {
+  text-align: center;
+  color: #ffe9e7;
+  font-size: 16px;
+  padding: 16px 20px;
+  border-radius: 40px;
+  margin: 8px 0 0;
+  font-weight: 500;
+  word-break: break-word;
+  line-height: 1.5;
 }

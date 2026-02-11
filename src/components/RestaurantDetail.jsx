@@ -67,9 +67,19 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
             className="restaurant-photo-container"
             onClick={handlePhotoClick}
           >
-            <div className="photo-placeholder">
-              <span className="photo-label">Фото {currentPhotoIndex + 1}</span>
-            </div>
+            {restaurant.photos && restaurant.photos.length > 0 ? (
+              <img
+                src={restaurant.photos[currentPhotoIndex]}
+                alt={`${restaurant.name} фото ${currentPhotoIndex + 1}`}
+                className="restaurant-photo"
+              />
+            ) : (
+              <div className="photo-placeholder">
+                <span className="photo-label">
+                  Фото {currentPhotoIndex + 1}
+                </span>
+              </div>
+            )}
             <div className="photo-counter">
               {currentPhotoIndex + 1} / {restaurant.photos.length}
             </div>
@@ -88,26 +98,26 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
         <h2 className="restaurant-name">{restaurant.name}</h2>
         <p className="restaurant-description">{restaurant.description}</p>
 
-        {/* Слайдер с меню */}
+        {/* Слайдер с меню - ТОЛЬКО ФОТО, ВО ВСЮ ШИРИНУ */}
         <div className="menu-section">
           <h3 className="section-title">Меню</h3>
           <div className="menu-slider">
             <div
-              className="menu-item-container"
+              className="menu-item-container-fullwidth"
               onClick={handleMenuClick}
               style={{ cursor: "pointer" }}
             >
-              <div className="menu-item-placeholder">
-                <span className="menu-item-label">
-                  {restaurant.menu[currentMenuIndex].name}
-                </span>
-              </div>
-              <div className="menu-item-info">
-                <h4>{restaurant.menu[currentMenuIndex].name}</h4>
-                <p className="menu-item-price">
-                  {restaurant.menu[currentMenuIndex].price} ₽
-                </p>
-              </div>
+              {restaurant.menu && restaurant.menu.length > 0 ? (
+                <img
+                  src={restaurant.menu[currentMenuIndex].image}
+                  alt={`Блюдо ${currentMenuIndex + 1}`}
+                  className="menu-item-image-fullwidth"
+                />
+              ) : (
+                <div className="menu-item-placeholder-fullwidth">
+                  <span className="menu-item-label">Блюдо</span>
+                </div>
+              )}
             </div>
 
             <button className="slider-nav-btn prev" onClick={handlePrevMenu}>
@@ -119,6 +129,13 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
             </button>
           </div>
 
+          {/* СРЕДНИЙ ЧЕК */}
+          <div className="average-check-container">
+            <span className="average-check-label">Средний чек от</span>
+            <span className="average-check-value">
+              {restaurant.averageCheck || 0} ₽
+            </span>
+          </div>
           {/* Прогресс-бар для меню */}
           <div className="menu-progress">
             <div
@@ -133,16 +150,22 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Сделано в Костроме */}
-        <div className="local-dishes-section">
+        <div className="exclusive-dishes-section">
           <h3 className="section-title">Сделано в Костроме</h3>
-          <div className="local-dishes-grid">
+          <div className="exclusive-dishes-grid">
             {restaurant.localDishes.map((dish, index) => (
-              <div key={index} className="local-dish-item">
-                <div className="local-dish-placeholder">
-                  <span className="local-dish-label">{dish.name}</span>
-                </div>
-                <p className="local-dish-name">{dish.name}</p>
+              <div key={index} className="exclusive-dish-item">
+                {dish.image ? (
+                  <img
+                    src={dish.image}
+                    alt={`Эксклюзив ${index + 1}`}
+                    className="exclusive-dish-image"
+                  />
+                ) : (
+                  <div className="exclusive-dish-placeholder">
+                    <span className="exclusive-dish-label">Продукт</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -151,15 +174,68 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
         {/* Карта и адрес */}
         <div className="map-section">
           <h3 className="section-title">Местоположение</h3>
-          <div className="yandex-map-preview">
-            <div className="map-placeholder">
-              <p>Карта заведения</p>
-              <small>Адрес: {restaurant.address}</small>
+
+          {/* Яндекс Карта - динамическая для каждого ресторана */}
+          <div className="yandex-map-container">
+            <div
+              style={{
+                position: "relative",
+                overflow: "hidden",
+                width: "100%",
+                height: "200px",
+                borderRadius: "16px",
+              }}
+            >
+              {/* Ссылки для каждого ресторана */}
+              <a
+                href={`https://yandex.ru/maps/org/${restaurant.mapName || "restaurant"}/${restaurant.mapOid}/?utm_medium=mapframe&utm_source=maps`}
+                style={{
+                  color: "#eee",
+                  fontSize: "12px",
+                  position: "absolute",
+                  top: "0px",
+                  zIndex: 1,
+                }}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {restaurant.name}
+              </a>
+
+              <a
+                href="https://yandex.ru/maps/7/kostroma/category/restaurant/184106394/?utm_medium=mapframe&utm_source=maps"
+                style={{
+                  color: "#eee",
+                  fontSize: "12px",
+                  position: "absolute",
+                  top: "14px",
+                  zIndex: 1,
+                }}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Ресторан в Костроме
+              </a>
+
+              {/* Динамический iframe */}
+              <iframe
+                src={`https://yandex.ru/map-widget/v1/?ll=${restaurant.mapLon || "40.933710"}%2C${restaurant.mapLat || "57.768915"}&mode=search&oid=${restaurant.mapOid}&ol=biz&sctx=ZAAAAAgBEAAaKAoSCedtbHakdkRAET8BFCNL4kxAEhIJDJQUWABT1j8RKSUEq%2Brluz8iBgABAgMEBSgKOABAnIQGSABqAnJ1nQHNzMw9oAEAqAEAvQHSISTrwgEG59Cn57cFggIf0KHRi9GA0L7QstCw0YAg0LrQvtGB0YLRgNC%2B0LzQsIoCAJICATeaAgxkZXNrdG9wLW1hcHM%3D&sll=${restaurant.mapLon || "40.929590"}%2C${restaurant.mapLat || "57.768915"}&sspn=0.021801%2C0.006811&text=${encodeURIComponent(restaurant.name)}&utm_source=share&z=16`}
+                width="100%"
+                height="200"
+                frameBorder="0"
+                allowFullScreen={true}
+                style={{
+                  position: "relative",
+                  border: "2px solid rgba(255, 233, 231, 0.15)",
+                  borderRadius: "16px",
+                }}
+                title={`Яндекс Карта - ${restaurant.name}`}
+              />
             </div>
           </div>
-          <p className="restaurant-address">
-            <strong>Адрес:</strong> {restaurant.address}
-          </p>
+
+          {/* Адрес ресторана под картой */}
+          <p className="restaurant-address">{restaurant.address}</p>
         </div>
       </div>
 
@@ -178,11 +254,11 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
             </button>
 
             <div className="fullscreen-image-container">
-              <div className="photo-placeholder fullscreen">
-                <span className="photo-label">
-                  Фото {currentPhotoIndex + 1}
-                </span>
-              </div>
+              <img
+                src={restaurant.photos[currentPhotoIndex]}
+                alt={`${restaurant.name} фото ${currentPhotoIndex + 1}`}
+                className="fullscreen-image"
+              />
             </div>
 
             <div className="fullscreen-counter">
@@ -221,21 +297,11 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
             </button>
 
             <div className="fullscreen-menu-container">
-              <div className="menu-item-placeholder fullscreen">
-                <span className="menu-item-label">
-                  {restaurant.menu[currentMenuIndex].name}
-                </span>
-              </div>
-              <div className="fullscreen-menu-info">
-                <h2>{restaurant.menu[currentMenuIndex].name}</h2>
-                <p className="fullscreen-menu-price">
-                  {restaurant.menu[currentMenuIndex].price} ₽
-                </p>
-                <p className="fullscreen-menu-description">
-                  {restaurant.menu[currentMenuIndex].description ||
-                    "Вкуснейшее блюдо от наших поваров"}
-                </p>
-              </div>
+              <img
+                src={restaurant.menu[currentMenuIndex].image}
+                alt={`Блюдо ${currentMenuIndex + 1}`}
+                className="fullscreen-menu-image-fullwidth"
+              />
             </div>
 
             <div className="fullscreen-counter">

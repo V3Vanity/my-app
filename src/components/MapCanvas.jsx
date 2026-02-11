@@ -1568,7 +1568,7 @@ export default forwardRef(function MapCanvasBlock(
     const mapX = (canvasX - offsetRef.current.x) / zoomRef.current;
     const mapY = (canvasY - offsetRef.current.y) / zoomRef.current;
 
-    const HIT_RADIUS = 30;
+    const HIT_RADIUS = 70;
 
     restaurants.forEach((restaurant) => {
       const dx = mapX - restaurant.location.x;
