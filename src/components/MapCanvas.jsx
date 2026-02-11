@@ -152,6 +152,7 @@ export default forwardRef(function MapCanvasBlock(
       setCanvasSize({
         width: containerRef.current.clientWidth,
         height: containerRef.current.clientHeight,
+        devicePixelRatio: window.devicePixelRatio,
       });
     };
     updateSize();
@@ -1557,18 +1558,38 @@ export default forwardRef(function MapCanvasBlock(
   const handleCanvasClick = (e) => {
     if (!canvasRef.current || mode !== "gastro" || !restaurants.length) return;
 
-    const rect = canvasRef.current.getBoundingClientRect();
-    const scaleX = canvasRef.current.width / rect.width;
-    const scaleY = canvasRef.current.height / rect.height;
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
 
-    const canvasX = (e.clientX - rect.left) * scaleX;
-    const canvasY = (e.clientY - rect.top) * scaleY;
+    // ========== 1. Учитываем devicePixelRatio ==========
+    const dpr = window.devicePixelRatio || 1;
 
-    // Координаты на карте
-    const mapX = (canvasX - offsetRef.current.x) / zoomRef.current;
-    const mapY = (canvasY - offsetRef.current.y) / zoomRef.current;
+    // ========== 2. Правильный пересчет ==========
+    const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const canvasY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-    const HIT_RADIUS = 70;
+    // ========== 3. Учитываем трансформацию карты ==========
+    const mapX =
+      (canvasX - offsetRef.current.x * dpr) / (zoomRef.current * dpr);
+    const mapY =
+      (canvasY - offsetRef.current.y * dpr) / (zoomRef.current * dpr);
+
+    // ========== 4. Дебаг-визуализация ==========
+    console.log({
+      dpr,
+      canvasSize: { width: canvas.width, height: canvas.height },
+      rectSize: { width: rect.width, height: rect.height },
+      ratio: { x: canvas.width / rect.width, y: canvas.height / rect.height },
+      canvasClick: { x: canvasX, y: canvasY },
+      mapClick: { x: mapX, y: mapY },
+      marker: {
+        x: restaurants[0].location.x,
+        y: restaurants[0].location.y,
+      },
+    });
+
+    // ========== 5. Радиус ==========
+    const HIT_RADIUS = 70 / zoomRef.current; // Уменьшаем при зуме
 
     restaurants.forEach((restaurant) => {
       const dx = mapX - restaurant.location.x;

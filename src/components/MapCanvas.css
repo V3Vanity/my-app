@@ -29,6 +29,7 @@
 .map-canvas {
   display: block;
   flex-grow: 1;
+  pointer-events: auto !important;
 }
 
 /* Кнопка "Следить за пользователем" */
