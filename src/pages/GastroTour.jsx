@@ -10,9 +10,9 @@ import "./GastroTour.css";
 import rest1Outside from "../assets/restaurants/restaurant-1/outside.jpg";
 import rest1Inside1 from "../assets/restaurants/restaurant-1/inside1.jpg";
 import rest1Inside2 from "../assets/restaurants/restaurant-1/inside2.jpg";
-import menu11 from "../assets/restaurants/restaurant-1/menu.jpg";
-import menu12 from "../assets/restaurants/restaurant-1/menu1.jpg";
-import menu13 from "../assets/restaurants/restaurant-1/menu2.jpg";
+import menu11 from "../assets/restaurants/restaurant-1/menu.svg";
+import menu12 from "../assets/restaurants/restaurant-1/menu1.svg";
+import menu13 from "../assets/restaurants/restaurant-1/menu2.svg";
 import plate11 from "../assets/restaurants/restaurant-1/plate1.jpg";
 import plate12 from "../assets/restaurants/restaurant-1/plate2.jpg";
 
