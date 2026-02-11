@@ -85,3 +85,31 @@
   cursor: pointer;
   font-weight: bold;
 }
+
+/* ===== GASTRO MODE - КАРТА В ГАСТРОТУРЕ ===== */
+.gastro-mode .map-container {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.gastro-mode .map-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: pointer;
+}
+
+/* Скрываем кнопки квеста */
+.gastro-mode .back-step-button,
+.gastro-mode .map-follow-btn,
+.gastro-mode .map-continue-container,
+.gastro-mode .ProgressModal {
+  display: none !important;
+}
+
+/* Стили для ProgressModal в гастро-режиме */
+.gastro-mode .progress-modal-overlay {
+  display: none !important;
+}

@@ -1,19 +1,58 @@
 .gastro-tour-container {
   position: relative;
+  width: 375px; /* фиксированная ширина как в приложении */
   height: 100vh;
-  width: 100%;
-  overflow: hidden;
+  margin: 0 auto; /* центрируем */
+  padding: 0;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  background-color: #c5af8a;
+  overflow: hidden; /* запрещаем скролл */
 }
 
+/* Контейнер карты - считаем от шапки */
 .gastro-map-container {
   position: relative;
-  flex: 1;
-  /* Header фиксированный, поэтому не нужен margin-top */
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  margin-top: 69px; /* высота шапки */
+  box-sizing: border-box;
 }
 
+/* Оборачиваем карту в скругленный контейнер */
 .gastro-map {
+  position: relative;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  background-color: #c5af8a;
+}
+
+/* Canvas внутри карты */
+.gastro-map .map-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  object-fit: cover;
+}
+
+/* Адаптация для разных экранов - сохраняем 375px */
+@media (max-width: 375px) {
+  .gastro-tour-container {
+    width: 100%;
+  }
+
+  .gastro-map-container {
+    padding: 0 12px 12px 12px;
+  }
+}
+
+/* Для очень маленьких */
+@media (max-width: 360px) {
+  .gastro-map-container {
+    padding: 0 8px 8px 8px;
+  }
 }

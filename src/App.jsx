@@ -8,6 +8,7 @@ import {
 import "./App.css";
 import topImage from "./assets/top-image.png";
 import QuestPage from "./pages/QuestPage.jsx";
+import GastroTour from "./pages/GastroTour.jsx";
 import Header from "./components/Header.jsx";
 import questImage from "./assets/App-img.png";
 
@@ -68,12 +69,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/quest" element={<QuestPage />} />
-        {/* Добавьте заглушки для других страниц */}
+        {/* ✅ ЗАМЕНИ ЭТО: */}
         <Route
           path="/temples"
           element={<div>Страница храмов (в разработке)</div>}
         />
-        <Route path="/gastro" element={<div>Гастро-тур (в разработке)</div>} />
+        <Route path="/gastro" element={<GastroTour />} />{" "}
+        {/* ✅ ТЕПЕРЬ ТУТ ТВОЙ КОМПОНЕНТ */}
         <Route path="/about" element={<div>О нас (в разработке)</div>} />
         <Route path="/reviews" element={<div>Отзывы (в разработке)</div>} />
       </Routes>

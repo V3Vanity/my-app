@@ -121,22 +121,22 @@ export default function GastroTour() {
 
   return (
     <div className="gastro-tour-container">
-      {/* Используем существующий Header компонент */}
       <Header
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
         onMenuItemClick={handleMenuItemClick}
       />
 
-      {/* Карта с маркерами ресторанов */}
       <div className="gastro-map-container">
-        <MapCanvas
-          ref={mapRef}
-          mode={mapMode}
-          restaurants={RESTAURANTS}
-          onMarkerClick={handleMarkerClick}
-          className="gastro-map"
-        />
+        <div className="gastro-map">
+          <MapCanvas
+            ref={mapRef}
+            mode={mapMode}
+            restaurants={RESTAURANTS}
+            onMarkerClick={handleMarkerClick}
+            className="gastro-map"
+          />
+        </div>
       </div>
 
       {/* Детальная информация о ресторане */}

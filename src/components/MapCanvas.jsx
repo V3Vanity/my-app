@@ -25,13 +25,25 @@ import rabbitTwelve from "../assets/rabbitTwelve.svg";
 import rabbitThirteen from "../assets/rabbitThirteen.svg";
 import rabbitFourteen from "../assets/rabbitFourteen.svg";
 import ProgressModal from "./ProgressModal.jsx";
+// Иконки для ресторанов (гастро-тур)
+import restaurantIcon from "../assets/restaurant-icon.svg"; // нужно создать/добавить
+import cafeIcon from "../assets/cafe-icon.svg"; // нужно создать/добавить
+import pubIcon from "../assets/pub-icon.svg"; // нужно создать/добавить
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 }; // точно на START  lat: 57.7723, lon: 40.9355 };
 
 export default forwardRef(function MapCanvasBlock(
-  { className = "", onBack, onQuestPointReached, mode, foundQuestPoints = [] },
+  {
+    className = "",
+    onBack,
+    onQuestPointReached,
+    mode,
+    foundQuestPoints = [],
+    restaurants = [],
+    onMarkerClick = () => {},
+  },
   ref,
 ) {
   const containerRef = useRef(null);
@@ -83,6 +95,12 @@ export default forwardRef(function MapCanvasBlock(
   const [currentMapMode, setCurrentMapMode] = useState(null);
 
   const affineRef = useRef(null);
+
+  const restaurantIconsRef = useRef({
+    restaurant: null,
+    cafe: null,
+    pub: null,
+  });
 
   // --- Получение реального GPS пользователя ---
   useEffect(() => {
@@ -971,6 +989,24 @@ export default forwardRef(function MapCanvasBlock(
         rabbitFourteenIconRef.current = rabbitFourteenImg;
       };
 
+      // Загружаем иконки для ресторанов
+      const restIcon = new Image();
+      restIcon.src = restaurantIcon;
+      restIcon.onload = () => {
+        restaurantIconsRef.current.restaurant = restIcon;
+      };
+
+      const cafeIconImg = new Image();
+      cafeIconImg.src = cafeIcon;
+      cafeIconImg.onload = () => {
+        restaurantIconsRef.current.cafe = cafeIconImg;
+      };
+
+      const pubIconImg = new Image();
+      pubIconImg.src = pubIcon;
+      pubIconImg.onload = () => {
+        restaurantIconsRef.current.pub = pubIconImg;
+      };
       const bgCanvas = document.createElement("canvas");
       bgCanvas.width = img.width;
       bgCanvas.height = img.height;
@@ -1339,8 +1375,44 @@ export default forwardRef(function MapCanvasBlock(
       }
     }
 
+    // --- ОТРИСОВКА РЕСТОРАНОВ ---
+    if (mode === "gastro" && restaurants && restaurants.length > 0) {
+      const iconSize = 40;
+
+      restaurants.forEach((restaurant) => {
+        // Выбираем иконку по типу
+        let icon = restaurantIconsRef.current.restaurant;
+
+        if (restaurant.type === "cafe" && restaurantIconsRef.current.cafe) {
+          icon = restaurantIconsRef.current.cafe;
+        } else if (
+          restaurant.type === "pub" &&
+          restaurantIconsRef.current.pub
+        ) {
+          icon = restaurantIconsRef.current.pub;
+        }
+
+        if (!icon) return;
+
+        ctx.drawImage(
+          icon,
+          restaurant.location.x - iconSize / 2,
+          restaurant.location.y - iconSize,
+          iconSize,
+          iconSize,
+        );
+      });
+    }
     ctx.restore();
-  }, [pageMode, gpsToPixel, userGPS, routeNodes, getQuestPointIcon, mode]);
+  }, [
+    pageMode,
+    gpsToPixel,
+    userGPS,
+    routeNodes,
+    getQuestPointIcon,
+    mode,
+    restaurants,
+  ]);
 
   // --- main render ---
   useEffect(() => {
@@ -1480,6 +1552,34 @@ export default forwardRef(function MapCanvasBlock(
   };
   const onMouseUp = () => (draggingRef.current = false);
   const onMouseLeave = () => (draggingRef.current = false);
+
+  // --- КЛИК ПО МАРКЕРУ РЕСТОРАНА ---
+  const handleCanvasClick = (e) => {
+    if (!canvasRef.current || mode !== "gastro" || !restaurants.length) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+
+    const canvasX = (e.clientX - rect.left) * scaleX;
+    const canvasY = (e.clientY - rect.top) * scaleY;
+
+    // Координаты на карте
+    const mapX = (canvasX - offsetRef.current.x) / zoomRef.current;
+    const mapY = (canvasY - offsetRef.current.y) / zoomRef.current;
+
+    const HIT_RADIUS = 30;
+
+    restaurants.forEach((restaurant) => {
+      const dx = mapX - restaurant.location.x;
+      const dy = mapY - restaurant.location.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < HIT_RADIUS) {
+        onMarkerClick(restaurant.id);
+      }
+    });
+  };
 
   // --- touch drag + pinch ---
   useEffect(() => {
@@ -1784,35 +1884,11 @@ export default forwardRef(function MapCanvasBlock(
       onMouseUp={onMouseUp}
       onMouseLeave={onMouseLeave}
     >
-      <button className="back-step-button" onClick={onBack}>
-        ←
-      </button>
-
-      <button
-        className="map-follow-btn"
-        onClick={() => {
-          if (!routeNodes || routeNodes.length === 0 || !userGPS) return;
-
-          if (followMode === "user") {
-            const lastNodeId = routeNodes[routeNodes.length - 1];
-            const node = nodes.find((n) => n.id === lastNodeId);
-            if (!node) return;
-            setFollowUser(false);
-            centerOnPixel({ x: node.x, y: node.y }, 2.2);
-            setFollowMode("end");
-          } else {
-            const px = gpsToPixel(userGPS.lat, userGPS.lon);
-            if (!px) return;
-            setFollowUser(true);
-            centerOnPixel(px, 2.2);
-            setFollowMode("user");
-          }
-        }}
-      >
-        {followMode === "user" ? "🚶" : "🏁"}
-      </button>
-
-      <canvas ref={canvasRef} className="map-canvas" />
+      <canvas
+        ref={canvasRef}
+        className="map-canvas"
+        onClick={handleCanvasClick}
+      />
 
       <ProgressModal
         isOpen={showProgressModal}
@@ -1820,38 +1896,67 @@ export default forwardRef(function MapCanvasBlock(
         currentStep={getStepNumberFromMode(mode)}
       />
 
-      {mode !== "step2" && (
-        <div className="map-continue-container">
-          <button
-            className="map-continue-button"
-            onClick={() => {
-              // Маппинг режимов на номера шагов
-              const stepMap = {
-                step4: 4,
-                step6: 6,
-                step8: 8,
-                step10: 10,
-                step12: 12,
-                step14: 14,
-                step16: 16,
-                step18: 18,
-                step20: 20,
-                step22: 22,
-                step24: 24,
-                step26: 26,
-                step28: 28,
-                step30: 30,
-              };
+      {/* Кнопки ТОЛЬКО для режима квеста */}
+      {mode && mode.startsWith("step") && (
+        <>
+          <button className="back-step-button" onClick={onBack}>
+            ←
+          </button>
 
-              const stepNumber = stepMap[mode];
-              if (stepNumber) {
-                onQuestPointReached?.(stepNumber);
+          <button
+            className="map-follow-btn"
+            onClick={() => {
+              if (!routeNodes || routeNodes.length === 0 || !userGPS) return;
+
+              if (followMode === "user") {
+                const lastNodeId = routeNodes[routeNodes.length - 1];
+                const node = nodes.find((n) => n.id === lastNodeId);
+                if (!node) return;
+                setFollowUser(false);
+                centerOnPixel({ x: node.x, y: node.y }, 2.2);
+                setFollowMode("end");
+              } else {
+                const px = gpsToPixel(userGPS.lat, userGPS.lon);
+                if (!px) return;
+                setFollowUser(true);
+                centerOnPixel(px, 2.2);
+                setFollowMode("user");
               }
             }}
           >
-            Продолжить
+            {followMode === "user" ? "🚶" : "🏁"}
           </button>
-        </div>
+
+          {mode !== "step2" && (
+            <div className="map-continue-container">
+              <button
+                className="map-continue-button"
+                onClick={() => {
+                  const stepMap = {
+                    step4: 4,
+                    step6: 6,
+                    step8: 8,
+                    step10: 10,
+                    step12: 12,
+                    step14: 14,
+                    step16: 16,
+                    step18: 18,
+                    step20: 20,
+                    step22: 22,
+                    step24: 24,
+                    step26: 26,
+                    step28: 28,
+                    step30: 30,
+                  };
+                  const stepNumber = stepMap[mode];
+                  if (stepNumber) onQuestPointReached?.(stepNumber);
+                }}
+              >
+                Продолжить
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
