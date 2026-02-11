@@ -10,6 +10,7 @@ import "./GastroTour.css";
 import rest1Outside from "../assets/restaurants/restaurant-1/outside.jpg";
 import rest1Inside1 from "../assets/restaurants/restaurant-1/inside1.jpg";
 import rest1Inside2 from "../assets/restaurants/restaurant-1/inside2.jpg";
+import rest1Inside3 from "../assets/restaurants/restaurant-1/inside3.jpg";
 import menu11 from "../assets/restaurants/restaurant-1/menu.svg";
 import menu12 from "../assets/restaurants/restaurant-1/menu1.svg";
 import menu13 from "../assets/restaurants/restaurant-1/menu2.svg";
@@ -43,12 +44,12 @@ const RESTAURANTS = [
     name: "Семейный Ресторан «Сыровар»",
     description:
       "Сыровар — это уникальное место в центре Костромы, объединяющее ресторан, сыроварню и сырную лавку. В ресторане подают блюда с собственным сыром, а в лавке можно приобрести сыры ручной работы.",
-    location: { x: 500, y: 300 },
+    location: { x: 503, y: 370 },
     type: "restaurant",
     logo: "logo1.svg",
     address: "Сыровар просп. Мира, 4, Кострома",
     coordinates: { lat: 57.768, lon: 40.926 },
-    photos: [rest1Outside, rest1Inside1, rest1Inside2],
+    photos: [rest1Outside, rest1Inside1, rest1Inside2, rest1Inside3],
     menu: [
       { image: menu11, price: 350 },
       { image: menu12, price: 450 },
