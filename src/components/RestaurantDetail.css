@@ -291,10 +291,21 @@
   font-weight: 500;
 }
 
-/* ===== ЭКСКЛЮЗИВНЫЕ БЛЮДА - ФОТО ВО ВСЮ ШИРИНУ ===== */
+/* ===== ЭКСКЛЮЗИВНЫЕ БЛЮДА ===== */
 .exclusive-dishes-section {
   width: 100%;
   margin-bottom: 32px;
+}
+
+/* ЗАГОЛОВОК  */
+.section-title {
+  color: #ffe9e7;
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  width: 100%;
+  letter-spacing: 1px;
 }
 
 .exclusive-dishes-grid {
@@ -304,12 +315,26 @@
   width: 100%;
 }
 
+/* Если 2 эксклюзивных блюда */
+.exclusive-dishes-grid:has(.exclusive-dish-item:nth-child(2)) {
+  grid-template-columns: repeat(2, 1fr);
+}
+
 .exclusive-dish-item {
+  width: 100%;
+  transition: transform 0.2s ease;
+}
+
+.exclusive-dish-item:hover {
+  transform: translateY(-4px);
+}
+
+/* Контейнер для картинки */
+.exclusive-dish-image-container {
   width: 100%;
   height: 180px;
   border-radius: 16px;
   overflow: hidden;
-  position: relative;
   background: linear-gradient(135deg, #7a2e1e 0%, #5a1e14 100%);
   border: 2px solid rgba(255, 233, 231, 0.15);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -326,20 +351,43 @@
   transform: scale(1.05);
 }
 
+/* Плейсхолдер если нет картинки */
 .exclusive-dish-placeholder {
   width: 100%;
-  height: 100%;
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 233, 231, 0.08);
+  border: 2px solid rgba(255, 233, 231, 0.15);
+  border-radius: 16px;
   color: #ffe9e7;
   font-size: 18px;
 }
 
-/* Если 2 эксклюзивных блюда */
-.exclusive-dishes-grid:has(.exclusive-dish-item:nth-child(2)) {
-  grid-template-columns: repeat(2, 1fr);
+.exclusive-dish-label {
+  color: rgba(255, 233, 231, 0.7);
+  font-size: 16px;
+  text-align: center;
+  padding: 0 12px;
+}
+
+/* Общий текст под картинками */
+.exclusive-dishes-description {
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px 20px;
+  text-align: center;
+  color: #ffe9e7;
+  border-radius: 16px;
+  line-height: 1.6;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.exclusive-dishes-description p {
+  margin: 0;
+  color: rgba(255, 233, 231, 0.9);
 }
 
 /* ===== КАРТА И АДРЕС ===== */
@@ -418,7 +466,7 @@
 
 .fullscreen-close-btn {
   position: absolute;
-  top: 20px;
+  top: 50px;
   right: 20px;
   background: rgba(255, 255, 255, 0.15);
   color: white;

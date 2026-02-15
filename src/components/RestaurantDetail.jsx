@@ -152,23 +152,33 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
 
         <div className="exclusive-dishes-section">
           <h3 className="section-title">Сделано в Костроме</h3>
+
           <div className="exclusive-dishes-grid">
             {restaurant.localDishes.map((dish, index) => (
               <div key={index} className="exclusive-dish-item">
                 {dish.image ? (
-                  <img
-                    src={dish.image}
-                    alt={`Эксклюзив ${index + 1}`}
-                    className="exclusive-dish-image"
-                  />
+                  <div className="exclusive-dish-image-container">
+                    <img
+                      src={dish.image}
+                      alt={`Блюдо ${index + 1}`}
+                      className="exclusive-dish-image"
+                    />
+                  </div>
                 ) : (
                   <div className="exclusive-dish-placeholder">
-                    <span className="exclusive-dish-label">Продукт</span>
+                    <span className="exclusive-dish-label">Блюдо</span>
                   </div>
                 )}
               </div>
             ))}
           </div>
+
+          {/* ✅ ОБЩИЙ ТЕКСТ, РАЗНЫЙ ДЛЯ КАЖДОГО РЕСТОРАНА */}
+          {restaurant.exclusiveDescription && (
+            <div className="exclusive-dishes-description">
+              <p>{restaurant.exclusiveDescription}</p>
+            </div>
+          )}
         </div>
 
         {/* Карта и адрес */}

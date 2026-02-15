@@ -26,9 +26,9 @@ import rabbitThirteen from "../assets/rabbitThirteen.svg";
 import rabbitFourteen from "../assets/rabbitFourteen.svg";
 import ProgressModal from "./ProgressModal.jsx";
 // Иконки для ресторанов (гастро-тур)
-import restaurantIcon from "../assets/restaurant-icon.svg"; // нужно создать/добавить
-import cafeIcon from "../assets/cafe-icon.svg"; // нужно создать/добавить
-import pubIcon from "../assets/pub-icon.svg"; // нужно создать/добавить
+import restaurantIcon from "../assets/restaurant-icon.svg";
+import cafeIcon from "../assets/cafe-icon.svg";
+import pubIcon from "../assets/pub-icon.svg";
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS

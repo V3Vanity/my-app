@@ -17,25 +17,28 @@ import menu13 from "../assets/restaurants/restaurant-1/menu2.svg";
 import plate11 from "../assets/restaurants/restaurant-1/plate1.jpg";
 import plate12 from "../assets/restaurants/restaurant-1/plate2.jpg";
 
-// // Ресторан 2
-// import cafeOutside from "../assets/restaurants/restaurant-2/outside.jpg";
-// import cafeInside1 from "../assets/restaurants/restaurant-2/inside1.jpg";
-// import cafeInside2 from "../assets/restaurants/restaurant-2/inside2.jpg";
-// import menu21 from "../assets/restaurants/restaurant-2/menu1.jpg";
-// import menu22 from "../assets/restaurants/restaurant-2/menu2.jpg";
-// import menu23 from "../assets/restaurants/restaurant-2/menu3.jpg";
-// import plate21 from "../assets/restaurants/restaurant-2/plate1.jpg";
-// import plate22 from "../assets/restaurants/restaurant-2/plate2.jpg";
+// Ресторан 2
+import rest2Outside from "../assets/restaurants/restaurant-2/outside.jpg";
+import rest2Inside1 from "../assets/restaurants/restaurant-2/inside1.jpg";
+import rest2Inside2 from "../assets/restaurants/restaurant-2/inside2.jpg";
+import rest2Inside3 from "../assets/restaurants/restaurant-2/inside3.jpg";
 
-// Ресторан 3
-// import pubOutside from "../assets/restaurants/restaurant-3/outside.jpg";
-// import pubInside1 from "../assets/restaurants/restaurant-3/inside1.jpg";
-// import pubInside2 from "../assets/restaurants/restaurant-3/inside2.jpg";
-// import fishChipsImg from "../assets/restaurants/restaurant-3/menu1.jpg";
-// import burgerImg from "../assets/restaurants/restaurant-3/menu2.jpg";
-// import beerImg from "../assets/restaurants/restaurant-3/menu3.jpg";
-// import kvasImg from "../assets/restaurants/restaurant-3/plate1.jpg";
-// import picklesImg from "../assets/restaurants/restaurant-3/plate2.jpg";
+import menu21 from "../assets/restaurants/restaurant-2/menu.svg";
+import menu22 from "../assets/restaurants/restaurant-2/menu1.svg";
+import menu23 from "../assets/restaurants/restaurant-2/menu2.svg";
+import menu24 from "../assets/restaurants/restaurant-2/menu3.svg";
+import menu25 from "../assets/restaurants/restaurant-2/menu4.svg";
+import menu26 from "../assets/restaurants/restaurant-2/menu5.svg";
+import menu27 from "../assets/restaurants/restaurant-2/menu6.svg";
+import menu28 from "../assets/restaurants/restaurant-2/menu7.svg";
+import menu29 from "../assets/restaurants/restaurant-2/menu8.svg";
+import menu210 from "../assets/restaurants/restaurant-2/menu9.svg";
+import menu211 from "../assets/restaurants/restaurant-2/menu10.svg";
+import menu212 from "../assets/restaurants/restaurant-2/menu11.svg";
+import menu213 from "../assets/restaurants/restaurant-2/menu12.svg";
+import menu214 from "../assets/restaurants/restaurant-2/menu13.svg";
+import menu215 from "../assets/restaurants/restaurant-2/menu14.svg";
+import plate21 from "../assets/restaurants/restaurant-2/plate1.jpg";
 
 // Тестовые данные ресторанов с реальными импортами
 const RESTAURANTS = [
@@ -50,12 +53,10 @@ const RESTAURANTS = [
     address: "Сыровар просп. Мира, 4, Кострома",
     coordinates: { lat: 57.768, lon: 40.926 },
     photos: [rest1Outside, rest1Inside1, rest1Inside2, rest1Inside3],
-    menu: [
-      { image: menu11, price: 350 },
-      { image: menu12, price: 450 },
-      { image: menu13, price: 250 },
-    ],
+    menu: [{ image: menu11 }, { image: menu12 }, { image: menu13 }],
     localDishes: [{ image: plate11 }, { image: plate12 }],
+    exclusiveDescription:
+      "Попробуйте легендарный «Костромской» сыр — вкус, доведённый до совершенства!  Каждый кусочек хранит традиции старинных рецептов. В ресторане представлена целая серия фирменных коктейлей, названных в честь мозайских зайцев — среди них и знаменитая «Гимназистка», а также другие напитки, вдохновлённые городскими персонажами.",
     averageCheck: 1600,
 
     mapOid: "186779297895", // Сыровар
@@ -63,87 +64,44 @@ const RESTAURANTS = [
     mapLon: "40.933710",
     mapName: "Сыровар",
   },
-  // {
-  //   id: 2,
-  //   name: "Кафе 'Уют'",
-  //   description: "Кофе и десерты в центре города",
-  //   location: { x: 650, y: 400 },
-  //   type: "cafe",
-  //   logo: "logo2.svg",
-  //   address: "пр-т Мира, 12",
-  //   coordinates: { lat: 57.766, lon: 40.928 },
-  //   photos: [cafeOutside, cafeInside1, cafeInside2],
-  //   menu: [
-  //     {
-  //       name: "Капучино",
-  //       price: 200,
-  //       image: cappuccinoImg,
-  //       description: "Классический капучино с плотной молочной пеной",
-  //     },
-  //     {
-  //       name: "Торт 'Наполеон'",
-  //       price: 350,
-  //       image: tortImg,
-  //       description: "Домашний торт с заварным кремом и хрустящими коржами",
-  //     },
-  //     {
-  //       name: "Чай с травами",
-  //       price: 150,
-  //       image: teaImg,
-  //       description: "Ароматный сбор из костромских трав",
-  //     },
-  //   ],
-  //   localDishes: [
-  //     {
-  //       name: "Костромской мёд",
-  //       image: honeyImg,
-  //       description: "Натуральный мед с пасек Костромской области",
-  //     },
-  //   ],
-  // },
-  // {
-  //   id: 3,
-  //   name: "Паб 'У камина'",
-  //   description: "Английская кухня и крафтовое пиво",
-  //   location: { x: 350, y: 450 },
-  //   type: "pub",
-  //   logo: "logo3.svg",
-  //   address: "ул. Чайковского, 8",
-  //   coordinates: { lat: 57.77, lon: 40.924 },
-  //   photos: [pubOutside, pubInside1, pubInside2],
-  //   menu: [
-  //     {
-  //       name: "Фиш энд чипс",
-  //       price: 550,
-  //       image: fishChipsImg,
-  //       description: "Треска в хрустящем пивном кляре с картофелем фри",
-  //     },
-  //     {
-  //       name: "Бургер",
-  //       price: 450,
-  //       image: burgerImg,
-  //       description: "Говяжья котлета, сыр чеддер, карамелизованный лук",
-  //     },
-  //     {
-  //       name: "Крафтовое пиво",
-  //       price: 300,
-  //       image: beerImg,
-  //       description: "Домашнее пиво по английским рецептам",
-  //     },
-  //   ],
-  //   localDishes: [
-  //     {
-  //       name: "Костромской квас",
-  //       image: kvasImg,
-  //       description: "Живой квас двойного брожения",
-  //     },
-  //     {
-  //       name: "Домашние соленья",
-  //       image: picklesImg,
-  //       description: "Квашеная капуста, соленые огурцы и помидоры",
-  //     },
-  //   ],
-  // },
+  {
+    id: 2,
+    name: " Ресторан «Славянский»",
+    description:
+      "В самом центре города, в здании, сохранившем дух прошлых веков, находится ресторан «Славянский» - идеальное место для любителей русской кухни.",
+    location: { x: 518, y: 650 },
+    type: "restaurant",
+    logo: "logo1.svg",
+    address: " Славянский ул. Молочная Гора, 1, Кострома ",
+    coordinates: { lat: 40.924119, lon: 57.766257 },
+    photos: [rest2Outside, rest2Inside1, rest2Inside2, rest2Inside3],
+    menu: [
+      { image: menu21 },
+      { image: menu22 },
+      { image: menu23 },
+      { image: menu24 },
+      { image: menu25 },
+      { image: menu26 },
+      { image: menu27 },
+      { image: menu28 },
+      { image: menu29 },
+      { image: menu210 },
+      { image: menu211 },
+      { image: menu212 },
+      { image: menu213 },
+      { image: menu214 },
+      { image: menu215 },
+    ],
+    localDishes: [{ image: plate21 }],
+    exclusiveDescription:
+      "В этом блюде вечное лето. Костромские зеленые суточные щи, приготовленные по особому рецепту, бьют рекорды по популярности у туристов. Попробовать их приезжают гости из разных уголков страны. Чем отличают костромские щи от остальных? Попробуйте и узнаете!",
+    averageCheck: 1500,
+
+    mapOid: "1117087429",
+    mapLat: "57.766257",
+    mapLon: "40.924119",
+    mapName: "Славянский",
+  },
 ];
 
 export default function GastroTour() {
