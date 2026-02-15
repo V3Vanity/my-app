@@ -79,6 +79,8 @@ export default forwardRef(function MapCanvasBlock(
   const [followMode, setFollowMode] = useState("user");
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [pageMode, setPageMode] = useState("home");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModeChanging, setIsModeChanging] = useState(false);
 
   const lastInteractionRef = useRef(0);
   const lastRouteNodeRef = useRef(null);
@@ -870,12 +872,27 @@ export default forwardRef(function MapCanvasBlock(
   useEffect(() => {
     if (!initialized || !affineRef.current) return;
     if (!mode) return;
+
     console.log(`Mode changed via props: ${mode}`);
+
+    // Показываем загрузку только при смене режима, не при закрытии модалки
+    if (mode !== currentMapMode) {
+      setIsModeChanging(true);
+      setIsLoading(true);
+    }
 
     if (mode === "step2" && userGPS) {
       rebuildRouteFromUser();
     }
-  }, [mode, initialized, userGPS, rebuildRouteFromUser]);
+
+    // Даем время на применение нового режима
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      setIsModeChanging(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [mode, initialized, userGPS, rebuildRouteFromUser, currentMapMode]);
 
   // ========== ФУНКЦИЯ ВЫБОРА ИКОНКИ ==========
   const getQuestPointIcon = useCallback(
@@ -1310,6 +1327,10 @@ export default forwardRef(function MapCanvasBlock(
         .then(() => {
           computeAffineFromNodes();
           setInitialized(true);
+          // После полной инициализации убираем загрузку
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 500);
         });
     };
   }, [computeAffineFromNodes, restaurants]);
@@ -1612,10 +1633,22 @@ export default forwardRef(function MapCanvasBlock(
     }
   }, [mode]);
 
+  // Обработчик закрытия модалки прогресса
+  const handleCloseProgressModal = useCallback(() => {
+    setShowProgressModal(false);
+    // Не меняем isLoading при закрытии модалки
+  }, []);
+
   useImperativeHandle(ref, () => ({
     startQuest: (newMode) => {
       setCurrentMapMode(newMode);
       setPageMode("quest");
+
+      // Показываем загрузку только при реальной смене режима
+      if (newMode !== currentMapMode) {
+        setIsModeChanging(true);
+        setIsLoading(true);
+      }
 
       setRouteNodes(null);
       lastRouteNodeRef.current = null;
@@ -1727,6 +1760,12 @@ export default forwardRef(function MapCanvasBlock(
           console.warn(`Режим ${newMode} не обработан`);
           break;
       }
+
+      // Убираем загрузку через небольшую задержку
+      setTimeout(() => {
+        setIsLoading(false);
+        setIsModeChanging(false);
+      }, 800);
     },
 
     buildRouteToStart: () => {
@@ -1806,15 +1845,26 @@ export default forwardRef(function MapCanvasBlock(
         ref={canvasRef}
         className="map-canvas"
         onClick={handleCanvasClick}
+        style={{
+          opacity: isLoading ? 0.5 : 1,
+          transition: "opacity 0.3s ease",
+        }}
       />
+
+      {isLoading && (
+        <div className="map-loading-overlay">
+          <div className="map-loading-spinner"></div>
+          <div className="map-loading-text">Загружаем карту...</div>
+        </div>
+      )}
 
       <ProgressModal
         isOpen={showProgressModal}
-        onClose={() => setShowProgressModal(false)}
+        onClose={handleCloseProgressModal}
         currentStep={getStepNumberFromMode(mode)}
       />
 
-      {mode && mode.startsWith("step") && (
+      {mode && mode.startsWith("step") && !isLoading && !isModeChanging && (
         <>
           <button className="back-step-button" onClick={onBack}>
             ←
