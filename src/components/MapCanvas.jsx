@@ -486,11 +486,12 @@ export default forwardRef(function MapCanvasBlock(
     return () => clearTimeout(timer);
   }, [mode, initialized, userGPS, rebuildRouteFromUser, currentMapMode]);
 
-  // ========== ОПТИМИЗИРОВАННАЯ ФУНКЦИЯ ВЫБОРА ИКОНКИ ==========
+  // ========== ОПТИМИЗИРОВАННАЯ ФУНКЦИЯ ВЫБОРА ИКОНКИ (ОБЪЯВЛЯЕМ ПЕРВОЙ) ==========
   const getQuestPointIcon = useCallback(
     (order) => {
+      // Если иконка еще не загрузилась, возвращаем null (не будет отрисовываться)
       if (mode === "step2") {
-        return order === 1 ? rabbitIconsRef.current["rabbitIcon"] : null;
+        return rabbitIconsRef.current["rabbitIcon"] || null;
       }
 
       const stepMap = {
@@ -670,124 +671,21 @@ export default forwardRef(function MapCanvasBlock(
       if (stepConfig) {
         const iconIndex = order - 1;
         if (iconIndex >= 0 && iconIndex < stepConfig.icons.length) {
-          return rabbitIconsRef.current[stepConfig.icons[iconIndex]];
+          return rabbitIconsRef.current[stepConfig.icons[iconIndex]] || null;
         }
         return null;
       }
 
-      return foundQuestPoints.includes(order)
-        ? rabbitIconsRef.current["rabbitIcon"]
-        : rabbitIconsRef.current["rabbitOne"];
+      // Для остальных режимов
+      const iconKey = foundQuestPoints.includes(order)
+        ? "rabbitIcon"
+        : "rabbitOne";
+      return rabbitIconsRef.current[iconKey] || null;
     },
     [foundQuestPoints, mode],
   );
 
-  // ========== ОПТИМИЗИРОВАННАЯ ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
-  useEffect(() => {
-    let isMounted = true;
-    let loadedCount = 0;
-    const totalImages = 1 + 14 + (restaurants?.length || 0);
-
-    const updateProgress = () => {
-      loadedCount++;
-      if (isMounted) {
-        setLoadingProgress(Math.floor((loadedCount / totalImages) * 100));
-      }
-    };
-
-    const loadImage = (src) => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => {
-          updateProgress();
-          resolve(img);
-        };
-        img.onerror = () => {
-          updateProgress();
-          resolve(null);
-        };
-        if ("decode" in img) {
-          img
-            .decode()
-            .then(() => resolve(img))
-            .catch(() => resolve(img));
-        }
-      });
-    };
-
-    loadImage(mapImage).then((img) => {
-      if (!isMounted) return;
-      imgRef.current = img;
-
-      const bgCanvas = document.createElement("canvas");
-      bgCanvas.width = img.width;
-      bgCanvas.height = img.height;
-      const bgCtx = bgCanvas.getContext("2d");
-      bgCtx.drawImage(img, 0, 0);
-      bgCanvasRef.current = bgCanvas;
-
-      const rabbitImages = [
-        { key: "rabbitIcon", src: rabbitIcon },
-        { key: "rabbitOne", src: rabbitOne },
-        { key: "rabbitTwo", src: rabbitTwo },
-        { key: "rabbitThree", src: rabbitThree },
-        { key: "rabbitFour", src: rabbitFour },
-        { key: "rabbitFive", src: rabbitFive },
-        { key: "rabbitSix", src: rabbitSix },
-        { key: "rabbitSeven", src: rabbitSeven },
-        { key: "rabbitEight", src: rabbitEight },
-        { key: "rabbitNine", src: rabbitNine },
-        { key: "rabbitTen", src: rabbitTen },
-        { key: "rabbitEleven", src: rabbitEleven },
-        { key: "rabbitTwelve", src: rabbitTwelve },
-        { key: "rabbitThirteen", src: rabbitThirteen },
-        { key: "rabbitFourteen", src: rabbitFourteen },
-      ];
-
-      Promise.all(
-        rabbitImages.map(({ key, src }) =>
-          loadImage(src).then((img) => {
-            if (img && isMounted) {
-              rabbitIconsRef.current[key] = img;
-            }
-          }),
-        ),
-      )
-        .then(() => {
-          if (restaurants && restaurants.length > 0) {
-            return Promise.all(
-              restaurants.map((restaurant) => {
-                if (restaurant.logo) {
-                  return loadImage(restaurant.logo).then((img) => {
-                    if (img && isMounted) {
-                      restaurantIconsRef.current[restaurant.id] = img;
-                    }
-                  });
-                }
-                updateProgress();
-                return Promise.resolve();
-              }),
-            );
-          }
-        })
-        .then(() => {
-          if (isMounted) {
-            computeAffineFromNodes();
-            setInitialized(true);
-            setTimeout(() => {
-              setIsLoading(false);
-            }, 200);
-          }
-        });
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [computeAffineFromNodes, restaurants]);
-
-  // ========== ФУНКЦИЯ ОТРИСОВКИ ==========
+  // ========== ФУНКЦИЯ ОТРИСОВКИ (ОБЪЯВЛЯЕМ ВТОРОЙ) ==========
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
     const bgCanvas = bgCanvasRef.current;
@@ -969,10 +867,337 @@ export default forwardRef(function MapCanvasBlock(
     gpsToPixel,
     userGPS,
     routeNodes,
-    getQuestPointIcon,
     mode,
     restaurants,
+    getQuestPointIcon, // Добавлена зависимость
   ]);
+
+  // ========== ОПТИМИЗИРОВАННАЯ ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
+  useEffect(() => {
+    let isMounted = true;
+    let loadedCount = 0;
+    // Считаем только критически важные изображения
+    const totalImages = 1 + (restaurants?.length || 0); // только карта и рестораны
+
+    const updateProgress = () => {
+      loadedCount++;
+      if (isMounted) {
+        setLoadingProgress(Math.floor((loadedCount / totalImages) * 100));
+      }
+    };
+
+    const loadImage = (src) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          updateProgress();
+          resolve(img);
+        };
+        img.onerror = () => {
+          updateProgress();
+          resolve(null);
+        };
+        if ("decode" in img) {
+          img
+            .decode()
+            .then(() => resolve(img))
+            .catch(() => resolve(img));
+        }
+      });
+    };
+
+    // Сначала загружаем только карту
+    loadImage(mapImage).then((img) => {
+      if (!isMounted) return;
+      imgRef.current = img;
+
+      const bgCanvas = document.createElement("canvas");
+      bgCanvas.width = img.width;
+      bgCanvas.height = img.height;
+      const bgCtx = bgCanvas.getContext("2d");
+      bgCtx.drawImage(img, 0, 0);
+      bgCanvasRef.current = bgCanvas;
+
+      // Вычисляем аффинное преобразование сразу после загрузки карты
+      computeAffineFromNodes();
+
+      // Инициализируем без зайцев
+      setInitialized(true);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 200);
+
+      // Загружаем рестораны если нужно
+      if (restaurants && restaurants.length > 0) {
+        Promise.all(
+          restaurants.map((restaurant) => {
+            if (restaurant.logo) {
+              return loadImage(restaurant.logo).then((img) => {
+                if (img && isMounted) {
+                  restaurantIconsRef.current[restaurant.id] = img;
+                }
+              });
+            }
+            updateProgress();
+            return Promise.resolve();
+          }),
+        );
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [computeAffineFromNodes, restaurants]);
+
+  // Добавьте новый useEffect для ленивой загрузки иконок зайцев
+  useEffect(() => {
+    if (!initialized) return;
+
+    const rabbitImages = [
+      { key: "rabbitIcon", src: rabbitIcon },
+      { key: "rabbitOne", src: rabbitOne },
+      { key: "rabbitTwo", src: rabbitTwo },
+      { key: "rabbitThree", src: rabbitThree },
+      { key: "rabbitFour", src: rabbitFour },
+      { key: "rabbitFive", src: rabbitFive },
+      { key: "rabbitSix", src: rabbitSix },
+      { key: "rabbitSeven", src: rabbitSeven },
+      { key: "rabbitEight", src: rabbitEight },
+      { key: "rabbitNine", src: rabbitNine },
+      { key: "rabbitTen", src: rabbitTen },
+      { key: "rabbitEleven", src: rabbitEleven },
+      { key: "rabbitTwelve", src: rabbitTwelve },
+      { key: "rabbitThirteen", src: rabbitThirteen },
+      { key: "rabbitFourteen", src: rabbitFourteen },
+    ];
+
+    // Загружаем иконки в фоне после отрисовки карты с низким приоритетом
+    const loadRabbitIcons = async () => {
+      // Используем requestIdleCallback для загрузки в свободное время
+      const loadInIdleTime = (callback) => {
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(callback, { timeout: 2000 });
+        } else {
+          // Fallback для браузеров без requestIdleCallback
+          setTimeout(callback, 200);
+        }
+      };
+
+      for (const { key, src } of rabbitImages) {
+        loadInIdleTime(() => {
+          const img = new Image();
+          img.src = src;
+          if ("decode" in img) {
+            img
+              .decode()
+              .then(() => {
+                rabbitIconsRef.current[key] = img;
+                drawMap(); // Перерисовываем после загрузки
+              })
+              .catch(() => {
+                // Если decode не сработал, используем onload
+                img.onload = () => {
+                  rabbitIconsRef.current[key] = img;
+                  drawMap(); // Перерисовываем после загрузки
+                };
+              });
+          } else {
+            img.onload = () => {
+              rabbitIconsRef.current[key] = img;
+              drawMap(); // Перерисовываем после загрузки
+            };
+          }
+        });
+      }
+    };
+
+    loadRabbitIcons();
+  }, [initialized, drawMap]);
+
+  // Добавьте предзагрузку иконок для текущего режима
+  useEffect(() => {
+    if (!initialized || !mode) return;
+
+    // Определяем какие иконки нужны для текущего режима
+    const preloadModeIcons = () => {
+      const modeIcons = {
+        step2: ["rabbitIcon"],
+        step4: ["rabbitOne", "rabbitIcon"],
+        step6: ["rabbitOne", "rabbitTwo", "rabbitIcon"],
+        step8: ["rabbitOne", "rabbitTwo", "rabbitThree", "rabbitIcon"],
+        step10: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitIcon",
+        ],
+        step12: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitIcon",
+        ],
+        step14: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitIcon",
+        ],
+        step16: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitIcon",
+        ],
+        step18: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitEight",
+          "rabbitIcon",
+        ],
+        step20: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitEight",
+          "rabbitNine",
+          "rabbitIcon",
+        ],
+        step22: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitEight",
+          "rabbitNine",
+          "rabbitTen",
+          "rabbitIcon",
+        ],
+        step24: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitEight",
+          "rabbitNine",
+          "rabbitTen",
+          "rabbitEleven",
+          "rabbitIcon",
+        ],
+        step26: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitEight",
+          "rabbitNine",
+          "rabbitTen",
+          "rabbitEleven",
+          "rabbitTwelve",
+          "rabbitIcon",
+        ],
+        step28: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitEight",
+          "rabbitNine",
+          "rabbitTen",
+          "rabbitEleven",
+          "rabbitTwelve",
+          "rabbitThirteen",
+          "rabbitIcon",
+        ],
+        step30: [
+          "rabbitOne",
+          "rabbitTwo",
+          "rabbitThree",
+          "rabbitFour",
+          "rabbitFive",
+          "rabbitSix",
+          "rabbitSeven",
+          "rabbitEight",
+          "rabbitNine",
+          "rabbitTen",
+          "rabbitEleven",
+          "rabbitTwelve",
+          "rabbitThirteen",
+          "rabbitFourteen",
+        ],
+      };
+
+      const neededIcons = modeIcons[mode] || [];
+
+      // Загружаем иконки для текущего режима с высоким приоритетом
+      neededIcons.forEach((key) => {
+        if (!rabbitIconsRef.current[key]) {
+          const src = {
+            rabbitIcon,
+            rabbitOne,
+            rabbitTwo,
+            rabbitThree,
+            rabbitFour,
+            rabbitFive,
+            rabbitSix,
+            rabbitSeven,
+            rabbitEight,
+            rabbitNine,
+            rabbitTen,
+            rabbitEleven,
+            rabbitTwelve,
+            rabbitThirteen,
+            rabbitFourteen,
+          }[key];
+
+          if (src) {
+            const img = new Image();
+            img.src = src;
+            img.onload = () => {
+              rabbitIconsRef.current[key] = img;
+              // Перерисовываем карту когда иконка загрузилась
+              drawMap();
+            };
+          }
+        }
+      });
+    };
+
+    preloadModeIcons();
+  }, [mode, initialized, drawMap]);
 
   // --- main render ---
   useEffect(() => {
@@ -1522,7 +1747,7 @@ export default forwardRef(function MapCanvasBlock(
               if (!routeNodes || routeNodes.length === 0 || !userGPS) return;
 
               if (followMode === "user") {
-                const lastNodeId = routeNodes[routeNodes.length - 1];
+                const lastNodeId = routeNodes[routeNodes.length - 1].id;
                 const node = nodes.find((n) => n.id === lastNodeId);
                 if (!node) return;
                 setFollowUser(false);
