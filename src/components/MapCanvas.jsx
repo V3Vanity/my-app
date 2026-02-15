@@ -28,7 +28,7 @@ import ProgressModal from "./ProgressModal.jsx";
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
-const debugUserGPS = { lat: 57.7723, lon: 40.9349 }; // точно на START  lat: 57.7723, lon: 40.9355 };
+const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
 
 export default forwardRef(function MapCanvasBlock(
   {
@@ -46,21 +46,9 @@ export default forwardRef(function MapCanvasBlock(
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const bgCanvasRef = useRef(null);
-  const rabbitIconRef = useRef(null);
-  const rabbitOneIconRef = useRef(null);
-  const rabbitTwoIconRef = useRef(null);
-  const rabbitThreeIconRef = useRef(null);
-  const rabbitFourIconRef = useRef(null);
-  const rabbitFiveIconRef = useRef(null);
-  const rabbitSixIconRef = useRef(null);
-  const rabbitSevenIconRef = useRef(null);
-  const rabbitEightIconRef = useRef(null);
-  const rabbitNineIconRef = useRef(null);
-  const rabbitTenIconRef = useRef(null);
-  const rabbitElevenIconRef = useRef(null);
-  const rabbitTwelveIconRef = useRef(null);
-  const rabbitThirteenIconRef = useRef(null);
-  const rabbitFourteenIconRef = useRef(null);
+
+  // Храним все иконки в одном объекте
+  const rabbitIconsRef = useRef({});
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -81,6 +69,10 @@ export default forwardRef(function MapCanvasBlock(
   const [pageMode, setPageMode] = useState("home");
   const [isLoading, setIsLoading] = useState(true);
   const [isModeChanging, setIsModeChanging] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+
+  // Флаг для отслеживания, закрыта ли модалка прогресса
+  const progressModalJustClosed = useRef(false);
 
   const lastInteractionRef = useRef(0);
   const lastRouteNodeRef = useRef(null);
@@ -137,8 +129,9 @@ export default forwardRef(function MapCanvasBlock(
     };
   }, []);
 
-  // --- Resize контейнера ---
+  // --- Resize контейнера с debounce ---
   useEffect(() => {
+    let timeoutId;
     const updateSize = () => {
       if (!containerRef.current) return;
       setCanvasSize({
@@ -147,9 +140,18 @@ export default forwardRef(function MapCanvasBlock(
         devicePixelRatio: window.devicePixelRatio,
       });
     };
+
+    const debouncedUpdate = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(updateSize, 100);
+    };
+
     updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
+    window.addEventListener("resize", debouncedUpdate);
+    return () => {
+      window.removeEventListener("resize", debouncedUpdate);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   // --- Solve linear system ---
@@ -325,9 +327,6 @@ export default forwardRef(function MapCanvasBlock(
   // --- построение маршрута из GPS пользователя ---
   const rebuildRouteFromUser = useCallback(() => {
     if (mode !== "step2") {
-      console.log(
-        `⚠️ rebuildRouteFromUser вызван для mode=${mode}, но должен быть только для step2`,
-      );
       return;
     }
 
@@ -381,11 +380,10 @@ export default forwardRef(function MapCanvasBlock(
     mode,
   ]);
 
-  // ---  Обновление маршрута при движении пользователя (только для step2) ---
+  // ---  Обновление маршрута при движении пользователя ---
   useEffect(() => {
     if (mode !== "step2") return;
     if (currentMapMode && currentMapMode !== "step2") return;
-
     if (!userGPS) return;
 
     const now = Date.now();
@@ -417,465 +415,60 @@ export default forwardRef(function MapCanvasBlock(
     currentMapMode,
   ]);
 
-  // Все функции построения маршрутов...
-  const buildRouteFromStartToSecondPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 1);
-    const targetQP = questPoints.find((qp) => qp.order === 2);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromSecondToThirdPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 2);
-    const targetQP = questPoints.find((qp) => qp.order === 3);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({
-      id: startQP.id,
-      x: startQP.x,
-      y: startQP.y,
-    });
-    route.push({
-      id: targetQP.id,
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromThirdToFourthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 3);
-    const targetQP = questPoints.find((qp) => qp.order === 4);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromFourthToFifthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 4);
-    const targetQP = questPoints.find((qp) => qp.order === 5);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromFifthToSixthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 5);
-    const targetQP = questPoints.find((qp) => qp.order === 6);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromSixthToSeventhPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 6);
-    const targetQP = questPoints.find((qp) => qp.order === 7);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromSeventhToEighthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 7);
-    const targetQP = questPoints.find((qp) => qp.order === 8);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromEighthToNinthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 8);
-    const targetQP = questPoints.find((qp) => qp.order === 9);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromNinthToTenthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 9);
-    const targetQP = questPoints.find((qp) => qp.order === 10);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromTenthToEleventhPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 10);
-    const targetQP = questPoints.find((qp) => qp.order === 11);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromEleventhToTwelfthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 11);
-    const targetQP = questPoints.find((qp) => qp.order === 12);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromTwelfthToThirteenthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 12);
-    const targetQP = questPoints.find((qp) => qp.order === 13);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
-
-  const buildRouteFromThirteenthToFourteenthPoint = useCallback(() => {
-    const startQP = questPoints.find((qp) => qp.order === 13);
-    const targetQP = questPoints.find((qp) => qp.order === 14);
-
-    if (!startQP || !targetQP) {
-      return;
-    }
-
-    const nearestNodeToStart = findNearestNode({ x: startQP.x, y: startQP.y });
-    const nearestNodeToTarget = findNearestNode({
-      x: targetQP.x,
-      y: targetQP.y,
-    });
-
-    if (!nearestNodeToStart || !nearestNodeToTarget) {
-      return;
-    }
-
-    const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
-
-    if (!path) {
-      return;
-    }
-
-    const route = path
-      .map((id) => nodes.find((n) => n.id === id))
-      .filter(Boolean);
-
-    route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-    route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
-
-    setRouteNodes(route);
-  }, [buildRoute, findNearestNode]);
+  // Объединенная функция построения маршрутов
+  const buildRouteBetweenPoints = useCallback(
+    (startOrder, targetOrder) => {
+      const startQP = questPoints.find((qp) => qp.order === startOrder);
+      const targetQP = questPoints.find((qp) => qp.order === targetOrder);
+
+      if (!startQP || !targetQP) {
+        return;
+      }
+
+      const nearestNodeToStart = findNearestNode({
+        x: startQP.x,
+        y: startQP.y,
+      });
+      const nearestNodeToTarget = findNearestNode({
+        x: targetQP.x,
+        y: targetQP.y,
+      });
+
+      if (!nearestNodeToStart || !nearestNodeToTarget) {
+        return;
+      }
+
+      const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+
+      if (!path) {
+        return;
+      }
+
+      const route = path
+        .map((id) => nodes.find((n) => n.id === id))
+        .filter(Boolean);
+
+      route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
+      route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
+
+      setRouteNodes(route);
+    },
+    [buildRoute, findNearestNode],
+  );
 
   // --- Обработка изменения режима из пропсов ---
   useEffect(() => {
     if (!initialized || !affineRef.current) return;
     if (!mode) return;
 
+    // Не показываем загрузку, если только что закрыли модалку прогресса
+    if (progressModalJustClosed.current) {
+      progressModalJustClosed.current = false;
+      return;
+    }
+
     console.log(`Mode changed via props: ${mode}`);
 
-    // Показываем загрузку только при смене режима, не при закрытии модалки
     if (mode !== currentMapMode) {
       setIsModeChanging(true);
       setIsLoading(true);
@@ -885,196 +478,320 @@ export default forwardRef(function MapCanvasBlock(
       rebuildRouteFromUser();
     }
 
-    // Даем время на применение нового режима
     const timer = setTimeout(() => {
       setIsLoading(false);
       setIsModeChanging(false);
-    }, 800);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [mode, initialized, userGPS, rebuildRouteFromUser, currentMapMode]);
 
-  // ========== ФУНКЦИЯ ВЫБОРА ИКОНКИ ==========
+  // ========== ОПТИМИЗИРОВАННАЯ ФУНКЦИЯ ВЫБОРА ИКОНКИ ==========
   const getQuestPointIcon = useCallback(
     (order) => {
       if (mode === "step2") {
-        if (order === 1) return rabbitIconRef.current;
-        return null;
+        return order === 1 ? rabbitIconsRef.current["rabbitIcon"] : null;
       }
-      if (mode === "step4") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step6") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step8") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step10") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step12") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step14") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step16") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step18") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitEightIconRef.current;
-        if (order === 9) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step20") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitEightIconRef.current;
-        if (order === 9) return rabbitNineIconRef.current;
-        if (order === 10) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step22") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitEightIconRef.current;
-        if (order === 9) return rabbitNineIconRef.current;
-        if (order === 10) return rabbitTenIconRef.current;
-        if (order === 11) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step24") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitEightIconRef.current;
-        if (order === 9) return rabbitNineIconRef.current;
-        if (order === 10) return rabbitTenIconRef.current;
-        if (order === 11) return rabbitElevenIconRef.current;
-        if (order === 12) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step26") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitEightIconRef.current;
-        if (order === 9) return rabbitNineIconRef.current;
-        if (order === 10) return rabbitTenIconRef.current;
-        if (order === 11) return rabbitElevenIconRef.current;
-        if (order === 12) return rabbitTwelveIconRef.current;
-        if (order === 13) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step28") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitEightIconRef.current;
-        if (order === 9) return rabbitNineIconRef.current;
-        if (order === 10) return rabbitTenIconRef.current;
-        if (order === 11) return rabbitElevenIconRef.current;
-        if (order === 12) return rabbitTwelveIconRef.current;
-        if (order === 13) return rabbitThirteenIconRef.current;
-        if (order === 14) return rabbitIconRef.current;
-        return null;
-      }
-      if (mode === "step30") {
-        if (order === 1) return rabbitOneIconRef.current;
-        if (order === 2) return rabbitTwoIconRef.current;
-        if (order === 3) return rabbitThreeIconRef.current;
-        if (order === 4) return rabbitFourIconRef.current;
-        if (order === 5) return rabbitFiveIconRef.current;
-        if (order === 6) return rabbitSixIconRef.current;
-        if (order === 7) return rabbitSevenIconRef.current;
-        if (order === 8) return rabbitEightIconRef.current;
-        if (order === 9) return rabbitNineIconRef.current;
-        if (order === 10) return rabbitTenIconRef.current;
-        if (order === 11) return rabbitElevenIconRef.current;
-        if (order === 12) return rabbitTwelveIconRef.current;
-        if (order === 13) return rabbitThirteenIconRef.current;
-        if (order === 14) return rabbitFourteenIconRef.current;
+
+      const stepMap = {
+        step4: { target: 2, icons: ["rabbitOne", "rabbitIcon"] },
+        step6: { target: 3, icons: ["rabbitOne", "rabbitTwo", "rabbitIcon"] },
+        step8: {
+          target: 4,
+          icons: ["rabbitOne", "rabbitTwo", "rabbitThree", "rabbitIcon"],
+        },
+        step10: {
+          target: 5,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitIcon",
+          ],
+        },
+        step12: {
+          target: 6,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitIcon",
+          ],
+        },
+        step14: {
+          target: 7,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitIcon",
+          ],
+        },
+        step16: {
+          target: 8,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitIcon",
+          ],
+        },
+        step18: {
+          target: 9,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitEight",
+            "rabbitIcon",
+          ],
+        },
+        step20: {
+          target: 10,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitEight",
+            "rabbitNine",
+            "rabbitIcon",
+          ],
+        },
+        step22: {
+          target: 11,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitEight",
+            "rabbitNine",
+            "rabbitTen",
+            "rabbitIcon",
+          ],
+        },
+        step24: {
+          target: 12,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitEight",
+            "rabbitNine",
+            "rabbitTen",
+            "rabbitEleven",
+            "rabbitIcon",
+          ],
+        },
+        step26: {
+          target: 13,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitEight",
+            "rabbitNine",
+            "rabbitTen",
+            "rabbitEleven",
+            "rabbitTwelve",
+            "rabbitIcon",
+          ],
+        },
+        step28: {
+          target: 14,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitEight",
+            "rabbitNine",
+            "rabbitTen",
+            "rabbitEleven",
+            "rabbitTwelve",
+            "rabbitThirteen",
+            "rabbitIcon",
+          ],
+        },
+        step30: {
+          target: 14,
+          icons: [
+            "rabbitOne",
+            "rabbitTwo",
+            "rabbitThree",
+            "rabbitFour",
+            "rabbitFive",
+            "rabbitSix",
+            "rabbitSeven",
+            "rabbitEight",
+            "rabbitNine",
+            "rabbitTen",
+            "rabbitEleven",
+            "rabbitTwelve",
+            "rabbitThirteen",
+            "rabbitFourteen",
+          ],
+        },
+      };
+
+      const stepConfig = stepMap[mode];
+      if (stepConfig) {
+        const iconIndex = order - 1;
+        if (iconIndex >= 0 && iconIndex < stepConfig.icons.length) {
+          return rabbitIconsRef.current[stepConfig.icons[iconIndex]];
+        }
         return null;
       }
 
       return foundQuestPoints.includes(order)
-        ? rabbitIconRef.current
-        : rabbitOneIconRef.current;
+        ? rabbitIconsRef.current["rabbitIcon"]
+        : rabbitIconsRef.current["rabbitOne"];
     },
     [foundQuestPoints, mode],
   );
+
+  // ========== ОПТИМИЗИРОВАННАЯ ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
+  useEffect(() => {
+    let isMounted = true;
+    let loadedCount = 0;
+    const totalImages = 1 + 14 + (restaurants?.length || 0);
+
+    const updateProgress = () => {
+      loadedCount++;
+      if (isMounted) {
+        setLoadingProgress(Math.floor((loadedCount / totalImages) * 100));
+      }
+    };
+
+    const loadImage = (src) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          updateProgress();
+          resolve(img);
+        };
+        img.onerror = () => {
+          updateProgress();
+          resolve(null);
+        };
+        if ("decode" in img) {
+          img
+            .decode()
+            .then(() => resolve(img))
+            .catch(() => resolve(img));
+        }
+      });
+    };
+
+    loadImage(mapImage).then((img) => {
+      if (!isMounted) return;
+      imgRef.current = img;
+
+      const bgCanvas = document.createElement("canvas");
+      bgCanvas.width = img.width;
+      bgCanvas.height = img.height;
+      const bgCtx = bgCanvas.getContext("2d");
+      bgCtx.drawImage(img, 0, 0);
+      bgCanvasRef.current = bgCanvas;
+
+      const rabbitImages = [
+        { key: "rabbitIcon", src: rabbitIcon },
+        { key: "rabbitOne", src: rabbitOne },
+        { key: "rabbitTwo", src: rabbitTwo },
+        { key: "rabbitThree", src: rabbitThree },
+        { key: "rabbitFour", src: rabbitFour },
+        { key: "rabbitFive", src: rabbitFive },
+        { key: "rabbitSix", src: rabbitSix },
+        { key: "rabbitSeven", src: rabbitSeven },
+        { key: "rabbitEight", src: rabbitEight },
+        { key: "rabbitNine", src: rabbitNine },
+        { key: "rabbitTen", src: rabbitTen },
+        { key: "rabbitEleven", src: rabbitEleven },
+        { key: "rabbitTwelve", src: rabbitTwelve },
+        { key: "rabbitThirteen", src: rabbitThirteen },
+        { key: "rabbitFourteen", src: rabbitFourteen },
+      ];
+
+      Promise.all(
+        rabbitImages.map(({ key, src }) =>
+          loadImage(src).then((img) => {
+            if (img && isMounted) {
+              rabbitIconsRef.current[key] = img;
+            }
+          }),
+        ),
+      )
+        .then(() => {
+          if (restaurants && restaurants.length > 0) {
+            return Promise.all(
+              restaurants.map((restaurant) => {
+                if (restaurant.logo) {
+                  return loadImage(restaurant.logo).then((img) => {
+                    if (img && isMounted) {
+                      restaurantIconsRef.current[restaurant.id] = img;
+                    }
+                  });
+                }
+                updateProgress();
+                return Promise.resolve();
+              }),
+            );
+          }
+        })
+        .then(() => {
+          if (isMounted) {
+            computeAffineFromNodes();
+            setInitialized(true);
+            setTimeout(() => {
+              setIsLoading(false);
+            }, 200);
+          }
+        });
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [computeAffineFromNodes, restaurants]);
 
   // ========== ФУНКЦИЯ ОТРИСОВКИ ==========
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
     const bgCanvas = bgCanvasRef.current;
 
-    // Проверяем наличие canvas перед отрисовкой
     if (!canvas || !bgCanvas || !imgRef.current) {
       return;
     }
@@ -1146,8 +863,8 @@ export default forwardRef(function MapCanvasBlock(
     // --- draw quest points ---
     if (
       pageMode === "quest" &&
-      rabbitIconRef.current &&
-      rabbitOneIconRef.current
+      rabbitIconsRef.current["rabbitIcon"] &&
+      rabbitIconsRef.current["rabbitOne"]
     ) {
       const iconSize = 40;
 
@@ -1257,84 +974,6 @@ export default forwardRef(function MapCanvasBlock(
     restaurants,
   ]);
 
-  // --- Load map image ---
-  useEffect(() => {
-    const img = new Image();
-    img.src = mapImage;
-    img.onload = () => {
-      imgRef.current = img;
-
-      // Создаем фоновый canvas сразу после загрузки изображения
-      const bgCanvas = document.createElement("canvas");
-      bgCanvas.width = img.width;
-      bgCanvas.height = img.height;
-      const bgCtx = bgCanvas.getContext("2d");
-      bgCtx.drawImage(img, 0, 0);
-      bgCanvasRef.current = bgCanvas;
-
-      // Загружаем иконки кроликов
-      const loadIcon = (src) => {
-        return new Promise((resolve) => {
-          const image = new Image();
-          image.src = src;
-          image.onload = () => resolve(image);
-          image.onerror = () => resolve(null);
-        });
-      };
-
-      Promise.all([
-        loadIcon(rabbitIcon).then((img) => (rabbitIconRef.current = img)),
-        loadIcon(rabbitOne).then((img) => (rabbitOneIconRef.current = img)),
-        loadIcon(rabbitTwo).then((img) => (rabbitTwoIconRef.current = img)),
-        loadIcon(rabbitThree).then((img) => (rabbitThreeIconRef.current = img)),
-        loadIcon(rabbitFour).then((img) => (rabbitFourIconRef.current = img)),
-        loadIcon(rabbitFive).then((img) => (rabbitFiveIconRef.current = img)),
-        loadIcon(rabbitSix).then((img) => (rabbitSixIconRef.current = img)),
-        loadIcon(rabbitSeven).then((img) => (rabbitSevenIconRef.current = img)),
-        loadIcon(rabbitEight).then((img) => (rabbitEightIconRef.current = img)),
-        loadIcon(rabbitNine).then((img) => (rabbitNineIconRef.current = img)),
-        loadIcon(rabbitTen).then((img) => (rabbitTenIconRef.current = img)),
-        loadIcon(rabbitEleven).then(
-          (img) => (rabbitElevenIconRef.current = img),
-        ),
-        loadIcon(rabbitTwelve).then(
-          (img) => (rabbitTwelveIconRef.current = img),
-        ),
-        loadIcon(rabbitThirteen).then(
-          (img) => (rabbitThirteenIconRef.current = img),
-        ),
-        loadIcon(rabbitFourteen).then(
-          (img) => (rabbitFourteenIconRef.current = img),
-        ),
-      ])
-        .then(() => {
-          // Загружаем иконки ресторанов
-          if (restaurants && restaurants.length > 0) {
-            const restaurantPromises = restaurants.map((restaurant) => {
-              if (restaurant.logo) {
-                return loadIcon(restaurant.logo).then((img) => {
-                  if (img) {
-                    restaurantIconsRef.current[restaurant.id] = img;
-                  }
-                });
-              }
-              return Promise.resolve();
-            });
-
-            return Promise.all(restaurantPromises);
-          }
-        })
-        .then(() => {
-          computeAffineFromNodes();
-          setInitialized(true);
-          // После полной инициализации убираем загрузку
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 500);
-        });
-    };
-  }, [computeAffineFromNodes, restaurants]);
-
   // --- main render ---
   useEffect(() => {
     if (!initialized || canvasSize.width === 0) return;
@@ -1370,7 +1009,6 @@ export default forwardRef(function MapCanvasBlock(
 
     const lerp = (start, end, factor) => start + (end - start) * factor;
     const render = () => {
-      // Пропускаем первые несколько кадров для стабилизации
       frameCount++;
       if (frameCount < 3) {
         rafId = requestAnimationFrame(render);
@@ -1389,7 +1027,6 @@ export default forwardRef(function MapCanvasBlock(
         0.2,
       );
 
-      // Рисуем только если canvas готов
       if (canvasRef.current && bgCanvasRef.current && imgRef.current) {
         drawMap();
       }
@@ -1633,10 +1270,16 @@ export default forwardRef(function MapCanvasBlock(
     }
   }, [mode]);
 
-  // Обработчик закрытия модалки прогресса
+  // ИСПРАВЛЕНИЕ: Обработчик закрытия модалки прогресса
   const handleCloseProgressModal = useCallback(() => {
+    // Устанавливаем флаг, что модалка только что закрылась
+    progressModalJustClosed.current = true;
     setShowProgressModal(false);
-    // Не меняем isLoading при закрытии модалки
+
+    // Сбрасываем флаг через небольшую задержку
+    setTimeout(() => {
+      progressModalJustClosed.current = false;
+    }, 500);
   }, []);
 
   useImperativeHandle(ref, () => ({
@@ -1644,7 +1287,6 @@ export default forwardRef(function MapCanvasBlock(
       setCurrentMapMode(newMode);
       setPageMode("quest");
 
-      // Показываем загрузку только при реальной смене режима
       if (newMode !== currentMapMode) {
         setIsModeChanging(true);
         setIsLoading(true);
@@ -1670,79 +1312,79 @@ export default forwardRef(function MapCanvasBlock(
         }
 
         case "step4": {
-          buildRouteFromStartToSecondPoint();
+          buildRouteBetweenPoints(1, 2);
           centerOnQuestPoints(1, 2, 1.8);
           break;
         }
 
         case "step6": {
-          buildRouteFromSecondToThirdPoint();
+          buildRouteBetweenPoints(2, 3);
           centerOnQuestPoints(2, 3, 1.8);
           break;
         }
 
         case "step8": {
-          buildRouteFromThirdToFourthPoint();
+          buildRouteBetweenPoints(3, 4);
           centerOnQuestPoints(3, 4, 1.8);
           break;
         }
 
         case "step10": {
-          buildRouteFromFourthToFifthPoint();
+          buildRouteBetweenPoints(4, 5);
           centerOnQuestPoints(4, 5, 1.8);
           break;
         }
 
         case "step12": {
-          buildRouteFromFifthToSixthPoint();
+          buildRouteBetweenPoints(5, 6);
           centerOnQuestPoints(5, 6, 1.8);
           break;
         }
 
         case "step14": {
-          buildRouteFromSixthToSeventhPoint();
+          buildRouteBetweenPoints(6, 7);
           centerOnQuestPoints(6, 7, 1.8);
           break;
         }
 
         case "step16": {
-          buildRouteFromSeventhToEighthPoint();
+          buildRouteBetweenPoints(7, 8);
           centerOnQuestPoints(7, 8, 1.8);
           break;
         }
 
         case "step18": {
-          buildRouteFromEighthToNinthPoint();
+          buildRouteBetweenPoints(8, 9);
           centerOnQuestPoints(8, 9, 1.8);
           break;
         }
 
         case "step20": {
-          buildRouteFromNinthToTenthPoint();
+          buildRouteBetweenPoints(9, 10);
           centerOnQuestPoints(9, 10, 1.8);
           break;
         }
 
         case "step22": {
-          buildRouteFromTenthToEleventhPoint();
+          buildRouteBetweenPoints(10, 11);
           centerOnQuestPoints(10, 11, 1.8);
           break;
         }
 
         case "step24": {
-          buildRouteFromEleventhToTwelfthPoint();
+          buildRouteBetweenPoints(11, 12);
           centerOnQuestPoints(11, 12, 1.8);
           break;
         }
 
         case "step26": {
-          buildRouteFromTwelfthToThirteenthPoint();
+          buildRouteBetweenPoints(12, 13);
           centerOnQuestPoints(12, 13, 1.8);
           break;
         }
 
         case "step28": {
-          buildRouteFromThirteenthToFourteenthPoint();
+          buildRouteBetweenPoints(13, 14);
           centerOnQuestPoints(13, 14, 1.8);
           break;
         }
@@ -1761,11 +1403,10 @@ export default forwardRef(function MapCanvasBlock(
           break;
       }
 
-      // Убираем загрузку через небольшую задержку
       setTimeout(() => {
         setIsLoading(false);
         setIsModeChanging(false);
-      }, 800);
+      }, 400);
     },
 
     buildRouteToStart: () => {
@@ -1775,21 +1416,22 @@ export default forwardRef(function MapCanvasBlock(
       setShowProgressModal(true);
     },
 
-    buildRouteFromStartToSecondPoint,
-    buildRouteFromSecondToThirdPoint,
-    buildRouteFromThirdToFourthPoint,
-    buildRouteFromFourthToFifthPoint,
-    buildRouteFromFifthToSixthPoint,
-    buildRouteFromSixthToSeventhPoint,
-    buildRouteFromSeventhToEighthPoint,
-    buildRouteFromEighthToNinthPoint,
-    buildRouteFromNinthToTenthPoint,
-    buildRouteFromTenthToEleventhPoint,
-    buildRouteFromEleventhToTwelfthPoint,
-    buildRouteFromTwelfthToThirteenthPoint,
-    buildRouteFromThirteenthToFourteenthPoint,
+    buildRouteFromStartToSecondPoint: () => buildRouteBetweenPoints(1, 2),
+    buildRouteFromSecondToThirdPoint: () => buildRouteBetweenPoints(2, 3),
+    buildRouteFromThirdToFourthPoint: () => buildRouteBetweenPoints(3, 4),
+    buildRouteFromFourthToFifthPoint: () => buildRouteBetweenPoints(4, 5),
+    buildRouteFromFifthToSixthPoint: () => buildRouteBetweenPoints(5, 6),
+    buildRouteFromSixthToSeventhPoint: () => buildRouteBetweenPoints(6, 7),
+    buildRouteFromSeventhToEighthPoint: () => buildRouteBetweenPoints(7, 8),
+    buildRouteFromEighthToNinthPoint: () => buildRouteBetweenPoints(8, 9),
+    buildRouteFromNinthToTenthPoint: () => buildRouteBetweenPoints(9, 10),
+    buildRouteFromTenthToEleventhPoint: () => buildRouteBetweenPoints(10, 11),
+    buildRouteFromEleventhToTwelfthPoint: () => buildRouteBetweenPoints(11, 12),
+    buildRouteFromTwelfthToThirteenthPoint: () =>
+      buildRouteBetweenPoints(12, 13),
+    buildRouteFromThirteenthToFourteenthPoint: () =>
+      buildRouteBetweenPoints(13, 14),
 
-    // Добавляем метод для принудительной перерисовки
     redraw: () => {
       drawMap();
     },
@@ -1854,7 +1496,11 @@ export default forwardRef(function MapCanvasBlock(
       {isLoading && (
         <div className="map-loading-overlay">
           <div className="map-loading-spinner"></div>
-          <div className="map-loading-text">Загружаем карту...</div>
+          <div className="map-loading-text">
+            {loadingProgress > 0
+              ? `Загружаем карту... ${loadingProgress}%`
+              : "Загружаем карту..."}
+          </div>
         </div>
       )}
 
