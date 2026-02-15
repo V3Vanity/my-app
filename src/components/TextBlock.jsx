@@ -16,43 +16,41 @@ const TextBlock = memo(
     const containerRef = useRef(null);
     const [showButton, setShowButton] = useState(false);
     const [showHint, setShowHint] = useState(false);
-    const [isAtBottom, setIsAtBottom] = useState(false);
 
-    // Используем useCallback для мемоизации функции
+    // Оптимизируем обработчик скролла
     const handleScroll = useCallback(() => {
       const el = containerRef.current;
       if (!el) return;
 
-      const bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 5;
-
-      if (bottom && !isAtBottom) {
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) {
         setShowButton(true);
-        setIsAtBottom(true);
-      } else if (!bottom && isAtBottom) {
-        setShowButton(false);
-        setIsAtBottom(false);
       }
-    }, [isAtBottom]);
+    }, []);
 
-    // Оптимизированный эффект с passive: true для улучшения производительности скролла
+    // Оптимизируем эффект с passive: true для лучшей производительности скролла
     useEffect(() => {
       const el = containerRef.current;
-      if (!el) return;
+      if (el) {
+        el.addEventListener("scroll", handleScroll, { passive: true });
 
-      el.addEventListener("scroll", handleScroll, { passive: true });
-
-      // Проверяем при монтировании, есть ли уже контент
-      setTimeout(() => {
+        // Проверяем при монтировании, если контент не скроллится
         if (el.scrollHeight <= el.clientHeight + 5) {
           setShowButton(true);
-          setIsAtBottom(true);
         }
-      }, 100);
 
-      return () => el.removeEventListener("scroll", handleScroll);
+        return () => el.removeEventListener("scroll", handleScroll);
+      }
     }, [handleScroll]);
 
-    // Оптимизированный обработчик для кнопки подсказки
+    // Мемоизируем обработчики
+    const handleBackClick = useCallback(() => {
+      onBack?.();
+    }, [onBack]);
+
+    const handleNextClick = useCallback(() => {
+      onNextStep?.();
+    }, [onNextStep]);
+
     const handleHintClick = useCallback(() => {
       setShowHint(true);
     }, []);
@@ -61,95 +59,54 @@ const TextBlock = memo(
       setShowHint(false);
     }, []);
 
-    // Оптимизированный обработчик для продолжения
-    const handleContinueClick = useCallback(() => {
-      onNextStep();
-    }, [onNextStep]);
-
-    // Оптимизированный обработчик для кнопки назад
-    const handleBackClick = useCallback(() => {
-      onBack();
-    }, [onBack]);
-
     return (
       <>
         <div className="text-block-container">
           <div className="text-block-scroll" ref={containerRef}>
             {/* Кнопка Назад сверху слева */}
             {showBackButton && (
-              <button
-                className="back-button"
-                onClick={handleBackClick}
-                aria-label="Назад"
-                title="Назад"
-              >
+              <button className="back-button" onClick={handleBackClick}>
                 ←
               </button>
             )}
 
             {/* Кнопка Подсказки сверху справа */}
             {hintImage && hintAddress && (
-              <button
-                className="hint-button"
-                onClick={handleHintClick}
-                aria-label="Подсказка"
-                title="Подсказка"
-              >
+              <button className="hint-button" onClick={handleHintClick}>
                 ?
               </button>
             )}
 
             {showTitle && <h2 className="text-title">Маршрут №44</h2>}
 
-            {/* Оптимизированное отображение контента */}
-            {children ? (
-              children
-            ) : (
-              <div className="text-content">
-                {text.split("\n").map((paragraph, index) => (
-                  <p key={index} className="text-paragraph">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            )}
+            {/* Сохраняем оригинальную логику рендера */}
+            {children ? children : <p className="text-paragraph">{text}</p>}
 
-            {/* Кнопка Продолжить с плавным появлением */}
+            {/* Кнопка Продолжить */}
             <div
-              className={`continue-button-container ${showButton ? "visible" : "hidden"}`}
-              style={{
-                transition: "opacity 0.2s ease, transform 0.2s ease",
-                opacity: showButton ? 1 : 0,
-                transform: showButton ? "translateY(0)" : "translateY(10px)",
-                pointerEvents: showButton ? "auto" : "none",
-              }}
+              className={`continue-button-container ${
+                showButton ? "visible" : "hidden"
+              }`}
             >
-              <button
-                className="continue-button"
-                onClick={handleContinueClick}
-                aria-label="Продолжить"
-              >
+              <button className="continue-button" onClick={handleNextClick}>
                 Продолжить
               </button>
             </div>
           </div>
         </div>
 
-        {/* Модальное окно с подсказкой - ленивая загрузка изображения */}
-        {showHint && (
-          <HintModal
-            isOpen={showHint}
-            onClose={handleHintClose}
-            imageSrc={hintImage}
-            address={hintAddress}
-          />
-        )}
+        {/* Модальное окно с подсказкой */}
+        <HintModal
+          isOpen={showHint}
+          onClose={handleHintClose}
+          imageSrc={hintImage}
+          address={hintAddress}
+        />
       </>
     );
   },
 );
 
-// Добавляем displayName для отладки
 TextBlock.displayName = "TextBlock";
 
 export default TextBlock;
