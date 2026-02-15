@@ -25,10 +25,6 @@ import rabbitTwelve from "../assets/rabbitTwelve.svg";
 import rabbitThirteen from "../assets/rabbitThirteen.svg";
 import rabbitFourteen from "../assets/rabbitFourteen.svg";
 import ProgressModal from "./ProgressModal.jsx";
-// Иконки для ресторанов (гастро-тур)
-import restaurantIcon from "../assets/restaurant-icon.svg";
-import cafeIcon from "../assets/cafe-icon.svg";
-import pubIcon from "../assets/pub-icon.svg";
 
 import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
 const DEBUG_USER = true; // test GPS
@@ -80,14 +76,11 @@ export default forwardRef(function MapCanvasBlock(
   const [userGPS, setUserGPS] = useState(DEBUG_USER ? debugUserGPS : null);
 
   const [followUser, setFollowUser] = useState(false);
-  const [followMode, setFollowMode] = useState("user"); // "user" или "end"
+  const [followMode, setFollowMode] = useState("user");
   const [showProgressModal, setShowProgressModal] = useState(false);
-  // режим страницы: "home" | "quest"
   const [pageMode, setPageMode] = useState("home");
 
   const lastInteractionRef = useRef(0);
-  // тестовая позиция (например, около D5)
-
   const lastRouteNodeRef = useRef(null);
   const lastRebuildTimeRef = useRef(0);
 
@@ -96,11 +89,8 @@ export default forwardRef(function MapCanvasBlock(
 
   const affineRef = useRef(null);
 
-  const restaurantIconsRef = useRef({
-    restaurant: null,
-    cafe: null,
-    pub: null,
-  });
+  // Хранилище для иконок ресторанов
+  const restaurantIconsRef = useRef({});
 
   // --- Получение реального GPS пользователя ---
   useEffect(() => {
@@ -344,15 +334,13 @@ export default forwardRef(function MapCanvasBlock(
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!userPx || !imgRef.current) return;
 
-    // ИСПОЛЬЗУЕМ КООРДИНАТЫ ИЗ QUESTPOINTS ДЛЯ СТАРТА
-    const startQP = questPoints.find((qp) => qp.order === 1); // Находим стартовую точку квеста
+    const startQP = questPoints.find((qp) => qp.order === 1);
     if (!startQP) return;
 
     let nearestNode = findNearestNode(userPx);
-    const path = buildRoute(nearestNode.id, "START"); // Используем id "START"
+    const path = buildRoute(nearestNode.id, "START");
     if (!path) return;
 
-    // Создаем маршрут с правильными координатами
     const routeWithUser = [
       { id: "USER", ...userPx },
       ...path
@@ -363,8 +351,6 @@ export default forwardRef(function MapCanvasBlock(
         .filter(Boolean),
     ];
 
-    // ВАЖНО: добавляем стартовую точку квеста в конец маршрута с ее координатами
-    // Эта точка будет последней в маршруте и к ней подойдет линия
     routeWithUser.push({
       id: "START",
       x: startQP.x,
@@ -375,11 +361,10 @@ export default forwardRef(function MapCanvasBlock(
     lastRouteNodeRef.current = nearestNode.id;
     lastRebuildTimeRef.current = Date.now();
 
-    // --- ПРОВЕРКА ДОСТИЖЕНИЯ КВЕСТ-ТОЧКИ ---
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 25; // Исправьте радиус на нужное значение
+    const REACH_RADIUS = 25;
     if (dist < REACH_RADIUS) {
       if (mode === "step2") {
         onQuestPointReached?.(2);
@@ -397,7 +382,6 @@ export default forwardRef(function MapCanvasBlock(
   // ---  Обновление маршрута при движении пользователя (только для step2) ---
   useEffect(() => {
     if (mode !== "step2") return;
-    // Дополнительная проверка через currentMapMode
     if (currentMapMode && currentMapMode !== "step2") return;
 
     if (!userGPS) return;
@@ -411,7 +395,6 @@ export default forwardRef(function MapCanvasBlock(
     const nearestNode = findNearestNode(userPx);
     if (!nearestNode) return;
 
-    // Перестраиваем маршрут ТОЛЬКО для step2
     rebuildRouteFromUser();
 
     const startQP = questPoints[0];
@@ -429,13 +412,12 @@ export default forwardRef(function MapCanvasBlock(
     rebuildRouteFromUser,
     onQuestPointReached,
     mode,
-    currentMapMode, // Добавил зависимость
+    currentMapMode,
   ]);
 
+  // Все функции построения маршрутов...
   const buildRouteFromStartToSecondPoint = useCallback(() => {
-    // Старт квеста (order: 1)
     const startQP = questPoints.find((qp) => qp.order === 1);
-    // Целевая точка (order: 2)
     const targetQP = questPoints.find((qp) => qp.order === 2);
 
     if (!startQP || !targetQP) {
@@ -462,7 +444,6 @@ export default forwardRef(function MapCanvasBlock(
       .map((id) => nodes.find((n) => n.id === id))
       .filter(Boolean);
 
-    // ИСПРАВЛЕНО: Используем id из questPoints
     route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
     route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
 
@@ -470,9 +451,7 @@ export default forwardRef(function MapCanvasBlock(
   }, [buildRoute, findNearestNode]);
 
   const buildRouteFromSecondToThirdPoint = useCallback(() => {
-    // Точка 2 (уже найдена)
     const startQP = questPoints.find((qp) => qp.order === 2);
-    // Целевая точка 3
     const targetQP = questPoints.find((qp) => qp.order === 3);
 
     if (!startQP || !targetQP) {
@@ -500,12 +479,12 @@ export default forwardRef(function MapCanvasBlock(
       .filter(Boolean);
 
     route.unshift({
-      id: startQP.id, // Используем id из questPoints, а не создаем новый
+      id: startQP.id,
       x: startQP.x,
       y: startQP.y,
     });
     route.push({
-      id: targetQP.id, // Используем id из questPoints
+      id: targetQP.id,
       x: targetQP.x,
       y: targetQP.y,
     });
@@ -541,7 +520,6 @@ export default forwardRef(function MapCanvasBlock(
       .map((id) => nodes.find((n) => n.id === id))
       .filter(Boolean);
 
-    // ИСПРАВЛЕНО: Используем id из questPoints
     route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
     route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
 
@@ -576,12 +554,12 @@ export default forwardRef(function MapCanvasBlock(
       .map((id) => nodes.find((n) => n.id === id))
       .filter(Boolean);
 
-    // ИСПРАВЛЕНО: Используем id из questPoints
     route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
     route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
 
     setRouteNodes(route);
   }, [buildRoute, findNearestNode]);
+
   const buildRouteFromFifthToSixthPoint = useCallback(() => {
     const startQP = questPoints.find((qp) => qp.order === 5);
     const targetQP = questPoints.find((qp) => qp.order === 6);
@@ -890,161 +868,26 @@ export default forwardRef(function MapCanvasBlock(
 
   // --- Обработка изменения режима из пропсов ---
   useEffect(() => {
-    // Если компонент еще не инициализирован - ждем
     if (!initialized || !affineRef.current) return;
-
-    // Если mode не изменился или mode пустой - ничего не делаем
     if (!mode) return;
-
     console.log(`Mode changed via props: ${mode}`);
 
-    // Только для step2 вызываем rebuildRouteFromUser через useEffect
-    // Для остальных режимов маршрут будет строиться через startQuest
     if (mode === "step2" && userGPS) {
       rebuildRouteFromUser();
     }
   }, [mode, initialized, userGPS, rebuildRouteFromUser]);
-  // --- Load map image ---
-  useEffect(() => {
-    const img = new Image();
-    img.src = mapImage;
-    img.onload = () => {
-      imgRef.current = img;
 
-      const rabbit = new Image();
-      rabbit.src = rabbitIcon;
-      rabbit.onload = () => {
-        rabbitIconRef.current = rabbit;
-      };
-
-      const start = new Image();
-      start.src = rabbitOne;
-      start.onload = () => {
-        rabbitOneIconRef.current = start;
-      };
-
-      const rabbitTwoImg = new Image();
-      rabbitTwoImg.src = rabbitTwo; // импортировать rabbitTwo
-      rabbitTwoImg.onload = () => {
-        rabbitTwoIconRef.current = rabbitTwoImg;
-      };
-
-      const rabbitThreeImg = new Image();
-      rabbitThreeImg.src = rabbitThree;
-      rabbitThreeImg.onload = () => {
-        rabbitThreeIconRef.current = rabbitThreeImg;
-      };
-      const rabbitFourImg = new Image();
-      rabbitFourImg.src = rabbitFour;
-      rabbitFourImg.onload = () => {
-        rabbitFourIconRef.current = rabbitFourImg;
-      };
-      const rabbitFiveImg = new Image();
-      rabbitFiveImg.src = rabbitFive;
-      rabbitFiveImg.onload = () => {
-        rabbitFiveIconRef.current = rabbitFiveImg;
-      };
-      const rabbitSixImg = new Image();
-      rabbitSixImg.src = rabbitSix;
-      rabbitSixImg.onload = () => {
-        rabbitSixIconRef.current = rabbitSixImg;
-      };
-      const rabbitSevenImg = new Image();
-      rabbitSevenImg.src = rabbitSeven;
-      rabbitSevenImg.onload = () => {
-        rabbitSevenIconRef.current = rabbitSevenImg;
-      };
-      const rabbitEightImg = new Image();
-      rabbitEightImg.src = rabbitEight;
-      rabbitEightImg.onload = () => {
-        rabbitEightIconRef.current = rabbitEightImg;
-      };
-      const rabbitNineImg = new Image();
-      rabbitNineImg.src = rabbitNine;
-      rabbitNineImg.onload = () => {
-        rabbitNineIconRef.current = rabbitNineImg;
-      };
-      const rabbitTenImg = new Image();
-      rabbitTenImg.src = rabbitTen;
-      rabbitTenImg.onload = () => {
-        rabbitTenIconRef.current = rabbitTenImg;
-      };
-      const rabbitElevenImg = new Image();
-      rabbitElevenImg.src = rabbitEleven;
-      rabbitElevenImg.onload = () => {
-        rabbitElevenIconRef.current = rabbitElevenImg;
-      };
-      const rabbitTwelveImg = new Image();
-      rabbitTwelveImg.src = rabbitTwelve;
-      rabbitTwelveImg.onload = () => {
-        rabbitTwelveIconRef.current = rabbitTwelveImg;
-      };
-      const rabbitThirteenImg = new Image();
-      rabbitThirteenImg.src = rabbitThirteen;
-      rabbitThirteenImg.onload = () => {
-        rabbitThirteenIconRef.current = rabbitThirteenImg;
-      };
-      const rabbitFourteenImg = new Image();
-      rabbitFourteenImg.src = rabbitFourteen;
-      rabbitFourteenImg.onload = () => {
-        rabbitFourteenIconRef.current = rabbitFourteenImg;
-      };
-
-      // Загружаем иконки для ресторанов
-      const restIcon = new Image();
-      restIcon.src = restaurantIcon;
-      restIcon.onload = () => {
-        restaurantIconsRef.current.restaurant = restIcon;
-      };
-
-      const cafeIconImg = new Image();
-      cafeIconImg.src = cafeIcon;
-      cafeIconImg.onload = () => {
-        restaurantIconsRef.current.cafe = cafeIconImg;
-      };
-
-      const pubIconImg = new Image();
-      pubIconImg.src = pubIcon;
-      pubIconImg.onload = () => {
-        restaurantIconsRef.current.pub = pubIconImg;
-      };
-      const bgCanvas = document.createElement("canvas");
-      bgCanvas.width = img.width;
-      bgCanvas.height = img.height;
-      const bgCtx = bgCanvas.getContext("2d");
-      bgCtx.fillStyle = "#b89d6f17";
-      bgCtx.fillRect(0, 0, img.width, img.height);
-      bgCtx.drawImage(img, 0, 0);
-      bgCanvasRef.current = bgCanvas;
-
-      computeAffineFromNodes(); // вычисляем аффинное преобразование
-      setInitialized(true); // ставим флаг загрузки
-    };
-  }, [computeAffineFromNodes, userGPS, rebuildRouteFromUser]);
-
-  // --- обработчик кнопки ---
-  const handleBuildRoute = useCallback(() => {
-    if (pageMode !== "quest") return;
-    rebuildRouteFromUser();
-
-    if (!userGPS) return;
-    const px = gpsToPixel(userGPS.lat, userGPS.lon);
-    if (!px) return;
-
-    setFollowUser(true);
-    centerOnPixel(px, 2.2);
-  }, [pageMode, rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
-
+  // ========== ФУНКЦИЯ ВЫБОРА ИКОНКИ ==========
   const getQuestPointIcon = useCallback(
     (order) => {
       if (mode === "step2") {
-        if (order === 1) return rabbitIconRef.current; // только старт
-        return null; // все остальные точки скрыты
+        if (order === 1) return rabbitIconRef.current;
+        return null;
       }
       if (mode === "step4") {
-        if (order === 1) return rabbitOneIconRef.current; // новая иконка для старта
-        if (order === 2) return rabbitIconRef.current; // старая иконка для второй точки
-        return null; // все остальные точки не отображаем
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitIconRef.current;
+        return null;
       }
       if (mode === "step6") {
         if (order === 1) return rabbitOneIconRef.current;
@@ -1053,164 +896,152 @@ export default forwardRef(function MapCanvasBlock(
         return null;
       }
       if (mode === "step8") {
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitIconRef.current; // цель 4 (замочек)
-        return null; // точки 5+ не показываем
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitIconRef.current;
+        return null;
       }
-      // В getQuestPointIcon добавь:
       if (mode === "step10") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitIconRef.current; // цель 5 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step12") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitIconRef.current; // цель  (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step14") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitIconRef.current; // цель 7 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step16") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitIconRef.current; // цель 8 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step18") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitEightIconRef.current; // найден 8
-        if (order === 9) return rabbitIconRef.current; // цель 9 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitEightIconRef.current;
+        if (order === 9) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step20") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitEightIconRef.current; // найден 8
-        if (order === 9) return rabbitNineIconRef.current; // найден 9
-        if (order === 10) return rabbitIconRef.current; // цель 10 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitEightIconRef.current;
+        if (order === 9) return rabbitNineIconRef.current;
+        if (order === 10) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step22") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitEightIconRef.current; // найден 8
-        if (order === 9) return rabbitNineIconRef.current; // найден 9
-        if (order === 10) return rabbitTenIconRef.current; // найден 10
-        if (order === 11) return rabbitIconRef.current; // цель 11 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitEightIconRef.current;
+        if (order === 9) return rabbitNineIconRef.current;
+        if (order === 10) return rabbitTenIconRef.current;
+        if (order === 11) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step24") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitEightIconRef.current; // найден 8
-        if (order === 9) return rabbitNineIconRef.current; // найден 9
-        if (order === 10) return rabbitTenIconRef.current; // найден 10
-        if (order === 11) return rabbitElevenIconRef.current; // найден 11
-        if (order === 12) return rabbitIconRef.current; // цель 12 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitEightIconRef.current;
+        if (order === 9) return rabbitNineIconRef.current;
+        if (order === 10) return rabbitTenIconRef.current;
+        if (order === 11) return rabbitElevenIconRef.current;
+        if (order === 12) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step26") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitEightIconRef.current; // найден 8
-        if (order === 9) return rabbitNineIconRef.current; // найден 9
-        if (order === 10) return rabbitTenIconRef.current; // найден 10
-        if (order === 11) return rabbitElevenIconRef.current; // найден 11
-        if (order === 12) return rabbitTwelveIconRef.current; // найден 12
-        if (order === 13) return rabbitIconRef.current; // цель 13 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitEightIconRef.current;
+        if (order === 9) return rabbitNineIconRef.current;
+        if (order === 10) return rabbitTenIconRef.current;
+        if (order === 11) return rabbitElevenIconRef.current;
+        if (order === 12) return rabbitTwelveIconRef.current;
+        if (order === 13) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step28") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitEightIconRef.current; // найден 8
-        if (order === 9) return rabbitNineIconRef.current; // найден 9
-        if (order === 10) return rabbitTenIconRef.current; // найден 10
-        if (order === 11) return rabbitElevenIconRef.current; // найден 11
-        if (order === 12) return rabbitTwelveIconRef.current; // найден 12
-        if (order === 13) return rabbitThirteenIconRef.current; // найден 13
-        if (order === 14) return rabbitIconRef.current; // цель 14 (замочек)
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitEightIconRef.current;
+        if (order === 9) return rabbitNineIconRef.current;
+        if (order === 10) return rabbitTenIconRef.current;
+        if (order === 11) return rabbitElevenIconRef.current;
+        if (order === 12) return rabbitTwelveIconRef.current;
+        if (order === 13) return rabbitThirteenIconRef.current;
+        if (order === 14) return rabbitIconRef.current;
         return null;
       }
       if (mode === "step30") {
-        // Порядок: 1,2,3,4 - найдены, 5 - цель
-        if (order === 1) return rabbitOneIconRef.current; // найден 1
-        if (order === 2) return rabbitTwoIconRef.current; // найден 2
-        if (order === 3) return rabbitThreeIconRef.current; // найден 3
-        if (order === 4) return rabbitFourIconRef.current; // найден 4
-        if (order === 5) return rabbitFiveIconRef.current; // найден 5
-        if (order === 6) return rabbitSixIconRef.current; // найден 6
-        if (order === 7) return rabbitSevenIconRef.current; // найден 7
-        if (order === 8) return rabbitEightIconRef.current; // найден 8
-        if (order === 9) return rabbitNineIconRef.current; // найден 9
-        if (order === 10) return rabbitTenIconRef.current; // найден 10
-        if (order === 11) return rabbitElevenIconRef.current; // найден 11
-        if (order === 12) return rabbitTwelveIconRef.current; // найден 12
-        if (order === 13) return rabbitThirteenIconRef.current; // найден 13
-        if (order === 14) return rabbitFourteenIconRef.current; // найден 14
+        if (order === 1) return rabbitOneIconRef.current;
+        if (order === 2) return rabbitTwoIconRef.current;
+        if (order === 3) return rabbitThreeIconRef.current;
+        if (order === 4) return rabbitFourIconRef.current;
+        if (order === 5) return rabbitFiveIconRef.current;
+        if (order === 6) return rabbitSixIconRef.current;
+        if (order === 7) return rabbitSevenIconRef.current;
+        if (order === 8) return rabbitEightIconRef.current;
+        if (order === 9) return rabbitNineIconRef.current;
+        if (order === 10) return rabbitTenIconRef.current;
+        if (order === 11) return rabbitElevenIconRef.current;
+        if (order === 12) return rabbitTwelveIconRef.current;
+        if (order === 13) return rabbitThirteenIconRef.current;
+        if (order === 14) return rabbitFourteenIconRef.current;
         return null;
       }
 
@@ -1221,15 +1052,19 @@ export default forwardRef(function MapCanvasBlock(
     [foundQuestPoints, mode],
   );
 
+  // ========== ФУНКЦИЯ ОТРИСОВКИ ==========
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
     const bgCanvas = bgCanvasRef.current;
-    if (!canvas || !bgCanvas) {
-      console.log("❌ Canvas не готов");
+
+    // Проверяем наличие canvas перед отрисовкой
+    if (!canvas || !bgCanvas || !imgRef.current) {
       return;
     }
 
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // --- background ---
@@ -1277,10 +1112,8 @@ export default forwardRef(function MapCanvasBlock(
         let y = n.y;
         const iconSize = 40;
 
-        // Для ВСЕХ квестовых точек (не USER) корректируем Y-координату
         if (n.id !== "USER") {
-          // Простой вариант: центр иконки + небольшой отступ
-          y = n.y - iconSize / 2 - 2; // -2 пикселя чтобы маршрут заходил под иконку
+          y = n.y - iconSize / 2 - 2;
         }
 
         if (i === 0) {
@@ -1303,7 +1136,6 @@ export default forwardRef(function MapCanvasBlock(
 
       let pointsToDraw = questPoints;
 
-      // Определяем сколько точек показывать для каждого режима
       const showUpTo = {
         step2: 1,
         step4: 2,
@@ -1341,24 +1173,6 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
-    // // --- draw nodes ---
-    // nodes.forEach((n) => {
-    //   ctx.fillStyle = "gray";
-    //   ctx.beginPath();
-    //   ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
-    //   ctx.fill();
-
-    //   ctx.fillStyle = "blue";
-    //   ctx.beginPath();
-    //   ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
-    //   ctx.fill();
-
-    //   ctx.fillStyle = "black";
-    //   ctx.font = "16px sans-serif";
-    //   ctx.textBaseline = "middle";
-    //   ctx.fillText(n.id, n.x + 8, n.y);
-    // });
-
     // --- draw user ---
     if (userGPS) {
       const up = gpsToPixel(userGPS.lat, userGPS.lon);
@@ -1378,30 +1192,41 @@ export default forwardRef(function MapCanvasBlock(
 
     // --- ОТРИСОВКА РЕСТОРАНОВ ---
     if (mode === "gastro" && restaurants && restaurants.length > 0) {
-      const iconSize = 40;
+      const iconSize = 50;
 
       restaurants.forEach((restaurant) => {
-        // Выбираем иконку по типу
-        let icon = restaurantIconsRef.current.restaurant;
+        const icon = restaurantIconsRef.current[restaurant.id];
 
-        if (restaurant.type === "cafe" && restaurantIconsRef.current.cafe) {
-          icon = restaurantIconsRef.current.cafe;
-        } else if (
-          restaurant.type === "pub" &&
-          restaurantIconsRef.current.pub
-        ) {
-          icon = restaurantIconsRef.current.pub;
+        if (icon) {
+          ctx.drawImage(
+            icon,
+            restaurant.location.x - iconSize / 2,
+            restaurant.location.y - iconSize,
+            iconSize,
+            iconSize,
+          );
+        } else {
+          ctx.fillStyle = "#b89d6f";
+          ctx.beginPath();
+          ctx.arc(
+            restaurant.location.x,
+            restaurant.location.y - iconSize / 2,
+            15,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+
+          ctx.fillStyle = "white";
+          ctx.font = "16px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            "🍴",
+            restaurant.location.x,
+            restaurant.location.y - iconSize / 2,
+          );
         }
-
-        if (!icon) return;
-
-        ctx.drawImage(
-          icon,
-          restaurant.location.x - iconSize / 2,
-          restaurant.location.y - iconSize,
-          iconSize,
-          iconSize,
-        );
       });
     }
     ctx.restore();
@@ -1415,20 +1240,99 @@ export default forwardRef(function MapCanvasBlock(
     restaurants,
   ]);
 
+  // --- Load map image ---
+  useEffect(() => {
+    const img = new Image();
+    img.src = mapImage;
+    img.onload = () => {
+      imgRef.current = img;
+
+      // Создаем фоновый canvas сразу после загрузки изображения
+      const bgCanvas = document.createElement("canvas");
+      bgCanvas.width = img.width;
+      bgCanvas.height = img.height;
+      const bgCtx = bgCanvas.getContext("2d");
+      bgCtx.drawImage(img, 0, 0);
+      bgCanvasRef.current = bgCanvas;
+
+      // Загружаем иконки кроликов
+      const loadIcon = (src) => {
+        return new Promise((resolve) => {
+          const image = new Image();
+          image.src = src;
+          image.onload = () => resolve(image);
+          image.onerror = () => resolve(null);
+        });
+      };
+
+      Promise.all([
+        loadIcon(rabbitIcon).then((img) => (rabbitIconRef.current = img)),
+        loadIcon(rabbitOne).then((img) => (rabbitOneIconRef.current = img)),
+        loadIcon(rabbitTwo).then((img) => (rabbitTwoIconRef.current = img)),
+        loadIcon(rabbitThree).then((img) => (rabbitThreeIconRef.current = img)),
+        loadIcon(rabbitFour).then((img) => (rabbitFourIconRef.current = img)),
+        loadIcon(rabbitFive).then((img) => (rabbitFiveIconRef.current = img)),
+        loadIcon(rabbitSix).then((img) => (rabbitSixIconRef.current = img)),
+        loadIcon(rabbitSeven).then((img) => (rabbitSevenIconRef.current = img)),
+        loadIcon(rabbitEight).then((img) => (rabbitEightIconRef.current = img)),
+        loadIcon(rabbitNine).then((img) => (rabbitNineIconRef.current = img)),
+        loadIcon(rabbitTen).then((img) => (rabbitTenIconRef.current = img)),
+        loadIcon(rabbitEleven).then(
+          (img) => (rabbitElevenIconRef.current = img),
+        ),
+        loadIcon(rabbitTwelve).then(
+          (img) => (rabbitTwelveIconRef.current = img),
+        ),
+        loadIcon(rabbitThirteen).then(
+          (img) => (rabbitThirteenIconRef.current = img),
+        ),
+        loadIcon(rabbitFourteen).then(
+          (img) => (rabbitFourteenIconRef.current = img),
+        ),
+      ])
+        .then(() => {
+          // Загружаем иконки ресторанов
+          if (restaurants && restaurants.length > 0) {
+            const restaurantPromises = restaurants.map((restaurant) => {
+              if (restaurant.logo) {
+                return loadIcon(restaurant.logo).then((img) => {
+                  if (img) {
+                    restaurantIconsRef.current[restaurant.id] = img;
+                  }
+                });
+              }
+              return Promise.resolve();
+            });
+
+            return Promise.all(restaurantPromises);
+          }
+        })
+        .then(() => {
+          computeAffineFromNodes();
+          setInitialized(true);
+        });
+    };
+  }, [computeAffineFromNodes, restaurants]);
+
   // --- main render ---
   useEffect(() => {
     if (!initialized || canvasSize.width === 0) return;
+
     const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ratio = window.devicePixelRatio || 1;
     canvas.width = Math.round(canvasSize.width * ratio);
     canvas.height = Math.round(canvasSize.height * ratio);
     canvas.style.width = `${canvasSize.width}px`;
     canvas.style.height = `${canvasSize.height}px`;
+
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-    // init zoom
-    if (zoomRef.current === 1) {
+    if (zoomRef.current === 1 && imgRef.current) {
       const img = imgRef.current;
       const initZoom =
         Math.min(canvasSize.width / img.width, canvasSize.height / img.height) *
@@ -1441,8 +1345,17 @@ export default forwardRef(function MapCanvasBlock(
     }
 
     let rafId = null;
+    let frameCount = 0;
+
     const lerp = (start, end, factor) => start + (end - start) * factor;
     const render = () => {
+      // Пропускаем первые несколько кадров для стабилизации
+      frameCount++;
+      if (frameCount < 3) {
+        rafId = requestAnimationFrame(render);
+        return;
+      }
+
       zoomRef.current = lerp(zoomRef.current, targetZoomRef.current, 0.2);
       offsetRef.current.x = lerp(
         offsetRef.current.x,
@@ -1454,13 +1367,36 @@ export default forwardRef(function MapCanvasBlock(
         targetOffsetRef.current.y,
         0.2,
       );
-      drawMap();
+
+      // Рисуем только если canvas готов
+      if (canvasRef.current && bgCanvasRef.current && imgRef.current) {
+        drawMap();
+      }
+
       rafId = requestAnimationFrame(render);
     };
+
     render();
 
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [initialized, canvasSize, drawMap]);
+
+  // --- обработчик кнопки ---
+  const handleBuildRoute = useCallback(() => {
+    if (pageMode !== "quest") return;
+    rebuildRouteFromUser();
+
+    if (!userGPS) return;
+    const px = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!px) return;
+
+    setFollowUser(true);
+    centerOnPixel(px, 2.2);
+  }, [pageMode, rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
 
   useEffect(() => {
     if (!followUser || !userGPS) return;
@@ -1475,20 +1411,17 @@ export default forwardRef(function MapCanvasBlock(
   }, [userGPS, followUser, gpsToPixel, centerOnPixel]);
 
   useEffect(() => {
-    // Этот эффект больше не нужен для автоматического перестроения маршрута
-    // Оставляем только для проверки достижения точек
     if (!userGPS) return;
 
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!userPx) return;
 
-    // Только для step2 проверяем достижение стартовой точки
     if (mode === "step2") {
       const startQP = questPoints[0];
       const dx = userPx.x - startQP.x;
       const dy = userPx.y - startQP.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const REACH_RADIUS = 25; // Верни правильный радиус
+      const REACH_RADIUS = 25;
 
       if (dist < REACH_RADIUS) {
         onQuestPointReached?.(2);
@@ -1561,35 +1494,17 @@ export default forwardRef(function MapCanvasBlock(
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
 
-    // ========== 1. Учитываем devicePixelRatio ==========
     const dpr = window.devicePixelRatio || 1;
 
-    // ========== 2. Правильный пересчет ==========
     const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
     const canvasY = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-    // ========== 3. Учитываем трансформацию карты ==========
     const mapX =
       (canvasX - offsetRef.current.x * dpr) / (zoomRef.current * dpr);
     const mapY =
       (canvasY - offsetRef.current.y * dpr) / (zoomRef.current * dpr);
 
-    // ========== 4. Дебаг-визуализация ==========
-    console.log({
-      dpr,
-      canvasSize: { width: canvas.width, height: canvas.height },
-      rectSize: { width: rect.width, height: rect.height },
-      ratio: { x: canvas.width / rect.width, y: canvas.height / rect.height },
-      canvasClick: { x: canvasX, y: canvasY },
-      mapClick: { x: mapX, y: mapY },
-      marker: {
-        x: restaurants[0].location.x,
-        y: restaurants[0].location.y,
-      },
-    });
-
-    // ========== 5. Радиус ==========
-    const HIT_RADIUS = 70 / zoomRef.current; // Уменьшаем при зуме
+    const HIT_RADIUS = 70 / zoomRef.current;
 
     restaurants.forEach((restaurant) => {
       const dx = mapX - restaurant.location.x;
@@ -1688,11 +1603,10 @@ export default forwardRef(function MapCanvasBlock(
 
   // Эффект для автоматического показа прогресса
   useEffect(() => {
-    // Показываем прогресс для всех режимов кроме step2
     if (mode && mode.startsWith("step") && mode !== "step2") {
       const timer = setTimeout(() => {
         setShowProgressModal(true);
-      }, 800); // Задержка для плавности
+      }, 800);
 
       return () => clearTimeout(timer);
     }
@@ -1703,17 +1617,14 @@ export default forwardRef(function MapCanvasBlock(
       setCurrentMapMode(newMode);
       setPageMode("quest");
 
-      // Очищаем предыдущий маршрут
       setRouteNodes(null);
       lastRouteNodeRef.current = null;
       lastRebuildTimeRef.current = 0;
 
       switch (newMode) {
         case "step2": {
-          // Для step2 строим маршрут от пользователя до старта
           if (userGPS) {
             rebuildRouteFromUser();
-            // Центрируем на пользователе
             const px = gpsToPixel(userGPS.lat, userGPS.lon);
             if (px) {
               centerOnPixel(px, 2.2);
@@ -1726,101 +1637,85 @@ export default forwardRef(function MapCanvasBlock(
         }
 
         case "step4": {
-          // Шаг 4: от точки 1 к точке 2
           buildRouteFromStartToSecondPoint();
           centerOnQuestPoints(1, 2, 1.8);
           break;
         }
 
         case "step6": {
-          // Шаг 6: от точки 2 к точке 3
           buildRouteFromSecondToThirdPoint();
           centerOnQuestPoints(2, 3, 1.8);
           break;
         }
 
         case "step8": {
-          // Шаг 8: от точки 3 к точке 4
           buildRouteFromThirdToFourthPoint();
           centerOnQuestPoints(3, 4, 1.8);
           break;
         }
 
         case "step10": {
-          // Шаг 10: от точки 4 к точке 5
           buildRouteFromFourthToFifthPoint();
           centerOnQuestPoints(4, 5, 1.8);
           break;
         }
 
         case "step12": {
-          // Шаг 12: от точки 5 к точке 6
           buildRouteFromFifthToSixthPoint();
           centerOnQuestPoints(5, 6, 1.8);
           break;
         }
 
         case "step14": {
-          // Шаг 14: от точки 6 к точке 7
           buildRouteFromSixthToSeventhPoint();
           centerOnQuestPoints(6, 7, 1.8);
           break;
         }
 
         case "step16": {
-          // Шаг 16: от точки 7 к точке 8
           buildRouteFromSeventhToEighthPoint();
           centerOnQuestPoints(7, 8, 1.8);
           break;
         }
 
         case "step18": {
-          // Шаг 18: от точки 8 к точке 9
           buildRouteFromEighthToNinthPoint();
           centerOnQuestPoints(8, 9, 1.8);
           break;
         }
 
         case "step20": {
-          // Шаг 20: от точки 9 к точке 10
           buildRouteFromNinthToTenthPoint();
           centerOnQuestPoints(9, 10, 1.8);
           break;
         }
 
         case "step22": {
-          // Шаг 22: от точки 10 к точке 11
           buildRouteFromTenthToEleventhPoint();
           centerOnQuestPoints(10, 11, 1.8);
           break;
         }
 
         case "step24": {
-          // Шаг 24: от точки 11 к точке 12
           buildRouteFromEleventhToTwelfthPoint();
           centerOnQuestPoints(11, 12, 1.8);
           break;
         }
 
         case "step26": {
-          // Шаг 26: от точки 12 к точке 13
           buildRouteFromTwelfthToThirteenthPoint();
           centerOnQuestPoints(12, 13, 1.8);
           break;
         }
 
         case "step28": {
-          // Шаг 28: от точки 13 к точке 14
           buildRouteFromThirteenthToFourteenthPoint();
           centerOnQuestPoints(13, 14, 1.8);
           break;
         }
 
         case "step30": {
-          // Шаг 30: все точки найдены, финальный экран
-          // Можно показать финальный маршрут или сообщение
-          setRouteNodes([]); // очищаем маршрут
-          // Центрируем на последней точке
+          setRouteNodes([]);
           const lastPoint = questPoints.find((qp) => qp.order === 14);
           if (lastPoint) {
             centerOnPixel({ x: lastPoint.x, y: lastPoint.y }, 2.0);
@@ -1841,7 +1736,6 @@ export default forwardRef(function MapCanvasBlock(
       setShowProgressModal(true);
     },
 
-    // Экспортируем все функции построения маршрутов для внешнего использования
     buildRouteFromStartToSecondPoint,
     buildRouteFromSecondToThirdPoint,
     buildRouteFromThirdToFourthPoint,
@@ -1855,9 +1749,13 @@ export default forwardRef(function MapCanvasBlock(
     buildRouteFromEleventhToTwelfthPoint,
     buildRouteFromTwelfthToThirteenthPoint,
     buildRouteFromThirteenthToFourteenthPoint,
+
+    // Добавляем метод для принудительной перерисовки
+    redraw: () => {
+      drawMap();
+    },
   }));
 
-  // Вспомогательная функция для центрирования на двух точках
   const centerOnQuestPoints = useCallback(
     (startOrder, targetOrder, zoom = 1.8) => {
       const startQP = questPoints.find((qp) => qp.order === startOrder);
@@ -1872,7 +1770,6 @@ export default forwardRef(function MapCanvasBlock(
     [centerOnPixel],
   );
 
-  // Функция для получения номера шага из режима
   const getStepNumberFromMode = (mode) => {
     const stepMap = {
       step2: 2,
@@ -1917,7 +1814,6 @@ export default forwardRef(function MapCanvasBlock(
         currentStep={getStepNumberFromMode(mode)}
       />
 
-      {/* Кнопки ТОЛЬКО для режима квеста */}
       {mode && mode.startsWith("step") && (
         <>
           <button className="back-step-button" onClick={onBack}>

@@ -16,6 +16,7 @@ import menu12 from "../assets/restaurants/restaurant-1/menu1.svg";
 import menu13 from "../assets/restaurants/restaurant-1/menu2.svg";
 import plate11 from "../assets/restaurants/restaurant-1/plate1.jpg";
 import plate12 from "../assets/restaurants/restaurant-1/plate2.jpg";
+import logo1 from "../assets/restaurants/restaurant-1/logo.svg";
 
 // Ресторан 2
 import rest2Outside from "../assets/restaurants/restaurant-2/outside.jpg";
@@ -39,6 +40,7 @@ import menu213 from "../assets/restaurants/restaurant-2/menu12.svg";
 import menu214 from "../assets/restaurants/restaurant-2/menu13.svg";
 import menu215 from "../assets/restaurants/restaurant-2/menu14.svg";
 import plate21 from "../assets/restaurants/restaurant-2/plate1.jpg";
+import logo2 from "../assets/restaurants/restaurant-2/logo.svg";
 
 // Тестовые данные ресторанов с реальными импортами
 const RESTAURANTS = [
@@ -49,14 +51,14 @@ const RESTAURANTS = [
       "Сыровар — это уникальное место в центре Костромы, объединяющее ресторан, сыроварню и сырную лавку. В ресторане подают блюда с собственным сыром, а в лавке можно приобрести сыры ручной работы.",
     location: { x: 503, y: 370 },
     type: "restaurant",
-    logo: "logo1.svg",
+    logo: logo1,
     address: "Сыровар просп. Мира, 4, Кострома",
     coordinates: { lat: 57.768, lon: 40.926 },
     photos: [rest1Outside, rest1Inside1, rest1Inside2, rest1Inside3],
     menu: [{ image: menu11 }, { image: menu12 }, { image: menu13 }],
     localDishes: [{ image: plate11 }, { image: plate12 }],
     exclusiveDescription:
-      "Попробуйте легендарный «Костромской» сыр — вкус, доведённый до совершенства!  Каждый кусочек хранит традиции старинных рецептов. В ресторане представлена целая серия фирменных коктейлей, названных в честь мозайских зайцев — среди них и знаменитая «Гимназистка», а также другие напитки, вдохновлённые городскими персонажами.",
+      "Попробуйте легендарный «Костромской» сыр — вкус, доведённый до совершенства! Каждый кусочек хранит традиции старинных рецептов. В ресторане представлена целая серия фирменных коктейлей, названных в честь мозайских зайцев — среди них и знаменитая «Гимназистка», а также другие напитки, вдохновлённые городскими персонажами.",
     averageCheck: 1600,
 
     mapOid: "186779297895", // Сыровар
@@ -71,7 +73,7 @@ const RESTAURANTS = [
       "В самом центре города, в здании, сохранившем дух прошлых веков, находится ресторан «Славянский» - идеальное место для любителей русской кухни.",
     location: { x: 518, y: 650 },
     type: "restaurant",
-    logo: "logo1.svg",
+    logo: logo2,
     address: " Славянский ул. Молочная Гора, 1, Кострома ",
     coordinates: { lat: 40.924119, lon: 57.766257 },
     photos: [rest2Outside, rest2Inside1, rest2Inside2, rest2Inside3],
