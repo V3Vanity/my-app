@@ -113,15 +113,15 @@
 .start-journey-button {
   position: absolute;
   top: 320px;
-  left: 10%;
-  padding: 12px 24px;
+  left: 9%;
+  padding: 12px 30px;
   background-color: #862518;
   color: #d9cfb8;
   font-size: 32px;
   font-weight: bold;
   font-family: "Advent Pro", sans-serif;
   border: none;
-  border-radius: 8px;
+  border-radius: 41px;
   cursor: pointer;
   transition: all 0.3s ease;
 }

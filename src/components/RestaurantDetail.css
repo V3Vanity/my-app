@@ -188,8 +188,8 @@
 .restaurant-description {
   color: rgba(255, 233, 231, 0.9);
   margin-bottom: 24px;
-  line-height: 1.6;
-  font-size: 16px;
+  line-height: 1.2;
+  font-size: 18px;
   text-align: center;
   padding: 0 8px;
 }
@@ -377,8 +377,8 @@
   text-align: center;
   color: #ffe9e7;
   border-radius: 16px;
-  line-height: 1.6;
-  font-size: 16px;
+  line-height: 1.2;
+  font-size: 18px;
   box-sizing: border-box;
 }
 
