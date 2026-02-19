@@ -58,10 +58,7 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
       </header>
 
       <div className={`app-menu ${menuOpen ? "open" : ""}`}>
-        <div
-          className="menu-item primary"
-          onClick={() => handleMenuItemClick("quest")}
-        >
+        <div className="menu-item" onClick={() => handleMenuItemClick("quest")}>
           Квест-экскурсия мазайские зайцы
         </div>
         <div
