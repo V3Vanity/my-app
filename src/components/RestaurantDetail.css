@@ -1,5 +1,6 @@
 /* Основной контейнер - как в квесте */
 .restaurant-detail {
+  font-family: "Advent Pro", sans-serif;
   position: fixed;
   bottom: 0;
   left: 0; /* Изменено с 50% на 0 */
@@ -173,10 +174,11 @@
 
 /* Название и описание */
 .restaurant-name {
+  font-family: "TD Vo Blago Daryu", sans-serif;
   color: #ffe9e7;
   margin: 0 0 12px 0;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 64px;
+  font-weight: 400;
   line-height: 1.2;
   text-align: center;
   word-break: break-word;
@@ -224,10 +226,11 @@
 }
 
 .section-title {
+  font-family: "TD Vo Blago Daryu", sans-serif;
   color: #ffe9e7;
   margin: 0 0 20px 0;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 64px;
+  font-weight: 400;
   text-align: center;
   width: 100%;
   letter-spacing: 1px;
@@ -300,17 +303,6 @@
 .exclusive-dishes-section {
   width: 100%;
   margin-bottom: 32px;
-}
-
-/* ЗАГОЛОВОК  */
-.section-title {
-  color: #ffe9e7;
-  margin: 0 0 20px 0;
-  font-size: 24px;
-  font-weight: 600;
-  text-align: center;
-  width: 100%;
-  letter-spacing: 1px;
 }
 
 .exclusive-dishes-grid {

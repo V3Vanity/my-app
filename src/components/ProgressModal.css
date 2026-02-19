@@ -14,12 +14,13 @@
   background-color: rgba(203, 180, 0, 0.1);
 }
 
-/* Само модальное окно */
+/* Модальное окно */
 .progress-modal {
   position: relative;
   width: 90%;
   max-width: 420px; /* Увеличил максимальную ширину */
   height: auto;
+  font-family: "Advent Pro", sans-serif;
 
   /* Фон с увеличенной картинкой */
   background-image: url("../assets/progress-bgc-img.svg");

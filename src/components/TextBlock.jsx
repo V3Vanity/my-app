@@ -12,6 +12,7 @@ const TextBlock = memo(
     children,
     hintImage,
     hintAddress,
+    stepNumber, // Добавляем stepNumber
   }) => {
     const containerRef = useRef(null);
     const [showButton, setShowButton] = useState(false);
@@ -59,6 +60,9 @@ const TextBlock = memo(
       setShowHint(false);
     }, []);
 
+    // Определяем, нужно ли показывать кнопку "Продолжить"
+    const shouldShowContinueButton = stepNumber !== 32 && showButton;
+
     return (
       <>
         <div className="text-block-container">
@@ -70,38 +74,46 @@ const TextBlock = memo(
               </button>
             )}
 
-            {/* Кнопка Подсказки сверху справа */}
-            {hintImage && hintAddress && (
+            {/* Кнопка Подсказки сверху справа - не показываем на шаге 32 */}
+            {hintImage && hintAddress && stepNumber !== 32 && (
               <button className="hint-button" onClick={handleHintClick}>
                 ?
               </button>
             )}
 
-            {showTitle && <h2 className="text-title">Маршрут №44</h2>}
+            {showTitle && (
+              <h2 className="text-title">
+                Маршрут <span className="text-title-number">№</span>44
+              </h2>
+            )}
 
             {/* Сохраняем оригинальную логику рендера */}
             {children ? children : <p className="text-paragraph">{text}</p>}
 
-            {/* Кнопка Продолжить */}
-            <div
-              className={`continue-button-container ${
-                showButton ? "visible" : "hidden"
-              }`}
-            >
-              <button className="continue-button" onClick={handleNextClick}>
-                Продолжить
-              </button>
-            </div>
+            {/* Кнопка Продолжить - не показываем на шаге 32 */}
+            {stepNumber !== 32 && (
+              <div
+                className={`continue-button-container ${
+                  shouldShowContinueButton ? "visible" : "hidden"
+                }`}
+              >
+                <button className="continue-button" onClick={handleNextClick}>
+                  Продолжить
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Модальное окно с подсказкой */}
-        <HintModal
-          isOpen={showHint}
-          onClose={handleHintClose}
-          imageSrc={hintImage}
-          address={hintAddress}
-        />
+        {/* Модальное окно с подсказкой - не показываем на шаге 32 */}
+        {stepNumber !== 32 && (
+          <HintModal
+            isOpen={showHint}
+            onClose={handleHintClose}
+            imageSrc={hintImage}
+            address={hintAddress}
+          />
+        )}
       </>
     );
   },

@@ -24,15 +24,22 @@
 }
 
 .text-title {
-  font-size: 32px;
+  font-family: "TD Vo Blago Daryu", sans-serif;
+  font-size: 90px;
   color: #862518;
   text-align: center;
+  font-weight: normal;
   margin-bottom: 16px;
+  margin-top: 0;
+}
+.text-title-number {
+  font-family: "Zen Kurenaido", sans-serif;
 }
 
 .text-paragraph {
+  font-family: "Advent Pro", sans-serif;
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.6;
 }
 
@@ -50,10 +57,11 @@
 }
 
 .continue-button {
+  font-family: "Advent Pro", sans-serif;
   padding: 18px 76px;
   background-color: #862518;
   color: #d9cfb8;
-  font-size: 32px;
+  font-size: 26px;
   font-weight: bold;
   border: none;
   border-radius: 41px;

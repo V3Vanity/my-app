@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import menuImage from "../assets/menu-img.png";
+import menuImage from "../assets/menu-img.svg";
 import "./Header.css";
 
 export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {

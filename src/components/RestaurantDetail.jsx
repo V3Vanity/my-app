@@ -183,8 +183,6 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
 
         {/* Карта и адрес */}
         <div className="map-section">
-          <h3 className="section-title">Местоположение</h3>
-
           {/* Яндекс Карта - динамическая для каждого ресторана */}
           <div className="yandex-map-container">
             <div

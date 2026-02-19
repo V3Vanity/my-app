@@ -19,17 +19,15 @@
 }
 
 .text-paragraph {
-  line-height: 30px;
+  line-height: 22px;
   margin-right: 3px;
   margin-bottom: 10px;
-  font-family: sans-serif;
 }
 .text-paragraph__title {
   text-align: center;
   line-height: 30px;
   margin-right: 3px;
   margin-bottom: 10px;
-  font-family: sans-serif;
   font-weight: bold;
   font-size: 20px;
   color: #862518;
@@ -39,7 +37,6 @@
   line-height: 30px;
   margin-right: 3px;
   margin-bottom: 10px;
-  font-family: sans-serif;
 }
 
 .reward-button-container {
@@ -49,6 +46,7 @@
 }
 
 .reward-button {
+  font-family: "Advent Pro", sans-serif;
   padding: 18px 40px;
   background-color: #862518;
   color: #d9cfb8;
@@ -110,6 +108,32 @@
   width: 100%;
   white-space: nowrap;
   margin: 15px 0;
+}
+
+.start-journey-button {
+  position: absolute;
+  top: 320px;
+  left: 10%;
+  padding: 12px 24px;
+  background-color: #862518;
+  color: #d9cfb8;
+  font-size: 32px;
+  font-weight: bold;
+  font-family: "Advent Pro", sans-serif;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.start-journey-button:hover {
+  background-color: #a12f1f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(134, 37, 24, 0.3);
+}
+
+.start-journey-button:active {
+  transform: translateY(0);
 }
 
 /* Анимация бесконечного скролла */
