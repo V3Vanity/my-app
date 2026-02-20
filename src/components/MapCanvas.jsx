@@ -824,8 +824,8 @@ export default forwardRef(function MapCanvasBlock(
 
     // --- ОТРИСОВКА РЕСТОРАНОВ ---
     if (mode === "gastro" && restaurants && restaurants.length > 0) {
-      const iconWidth = 37; // ширина вашей иконки
-      const iconHeight = 44; // высота вашей иконки
+      const iconWidth = 45; // ширина вашей иконки
+      const iconHeight = 52; // высота вашей иконки
 
       restaurants.forEach((restaurant) => {
         const icon = restaurantIconsRef.current[restaurant.id];
@@ -833,8 +833,8 @@ export default forwardRef(function MapCanvasBlock(
         if (icon) {
           ctx.drawImage(
             icon,
-            restaurant.location.x - iconWidth / 2, // центрируем по горизонтали
-            restaurant.location.y - iconHeight, // иконка полностью над точкой (нижний край упирается в точку)
+            restaurant.location.x - iconWidth / 2, //
+            restaurant.location.y - iconHeight / 2, //
             iconWidth,
             iconHeight,
           );
@@ -1375,27 +1375,51 @@ export default forwardRef(function MapCanvasBlock(
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
 
-    const dpr = window.devicePixelRatio || 1;
+    // Получаем координаты клика на canvas в пикселях экрана
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
 
-    const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const canvasY = (e.clientY - rect.top) * (canvas.height / rect.height);
+    console.log("Click at screen:", clickX, clickY);
+    console.log("Current zoom:", zoomRef.current);
+    console.log("Current offset:", offsetRef.current);
 
-    const mapX =
-      (canvasX - offsetRef.current.x * dpr) / (zoomRef.current * dpr);
-    const mapY =
-      (canvasY - offsetRef.current.y * dpr) / (zoomRef.current * dpr);
+    // Переводим в координаты карты с учетом текущего зума и смещения
+    const mapX = (clickX - offsetRef.current.x) / zoomRef.current;
+    const mapY = (clickY - offsetRef.current.y) / zoomRef.current;
 
-    const HIT_RADIUS = 70 / zoomRef.current;
+    console.log("Map coordinates:", mapX, mapY);
+
+    // Размер области клика в пикселях карты (увеличиваем при маленьком зуме)
+    const baseHitRadius = 20; // базовый радиус в пикселях карты
+    // Корректируем радиус в зависимости от зума
+    const hitRadius = baseHitRadius / Math.max(0.5, zoomRef.current);
+
+    console.log("Hit radius:", hitRadius);
+
+    // Ищем ближайший ресторан
+    let closestRestaurant = null;
+    let closestDistance = Infinity;
 
     restaurants.forEach((restaurant) => {
       const dx = mapX - restaurant.location.x;
       const dy = mapY - restaurant.location.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const distance = Math.sqrt(dx * dx + dy * dy);
 
-      if (dist < HIT_RADIUS) {
-        onMarkerClick(restaurant.id);
+      if (distance < hitRadius && distance < closestDistance) {
+        closestDistance = distance;
+        closestRestaurant = restaurant;
       }
     });
+
+    if (closestRestaurant) {
+      console.log(
+        `✅ Clicked on restaurant ${closestRestaurant.id}:`,
+        closestRestaurant.name,
+      );
+      onMarkerClick(closestRestaurant.id);
+    } else {
+      console.log("❌ No restaurant clicked");
+    }
   };
 
   // --- touch drag + pinch ---
