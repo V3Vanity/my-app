@@ -39,8 +39,47 @@ import menu212 from "../assets/restaurants/restaurant-2/menu11.svg";
 import menu213 from "../assets/restaurants/restaurant-2/menu12.svg";
 import menu214 from "../assets/restaurants/restaurant-2/menu13.svg";
 import menu215 from "../assets/restaurants/restaurant-2/menu14.svg";
+
 import plate21 from "../assets/restaurants/restaurant-2/plate1.jpg";
 import logo2 from "../assets/restaurants/restaurant-2/logo.svg";
+
+// Ресторан 3
+import rest3Outside from "../assets/restaurants/restaurant-3/outside.jpg";
+import rest3Inside1 from "../assets/restaurants/restaurant-3/inside1.jpg";
+import rest3Inside2 from "../assets/restaurants/restaurant-3/inside2.jpg";
+import rest3Inside3 from "../assets/restaurants/restaurant-3/inside3.jpg";
+
+import menu31 from "../assets/restaurants/restaurant-3/menu.svg";
+import menu32 from "../assets/restaurants/restaurant-3/menu1.svg";
+
+import plate31 from "../assets/restaurants/restaurant-3/plate1.jpg";
+import logo3 from "../assets/restaurants/restaurant-3/logo.svg";
+
+// Ресторан 4
+import rest4Outside from "../assets/restaurants/restaurant-4/outside.jpg";
+import rest4Inside1 from "../assets/restaurants/restaurant-4/inside1.jpg";
+import rest4Inside2 from "../assets/restaurants/restaurant-4/inside2.jpg";
+import rest4Inside3 from "../assets/restaurants/restaurant-4/inside3.jpg";
+
+import menu41 from "../assets/restaurants/restaurant-4/menu.svg";
+import menu42 from "../assets/restaurants/restaurant-4/menu1.svg";
+import menu43 from "../assets/restaurants/restaurant-4/menu2.svg";
+
+import plate41 from "../assets/restaurants/restaurant-4/plate1.jpg";
+import logo4 from "../assets/restaurants/restaurant-4/logo.svg";
+
+// Ресторан 5
+import rest5Outside from "../assets/restaurants/restaurant-5/outside.jpg";
+import rest5Inside1 from "../assets/restaurants/restaurant-5/inside1.jpg";
+import rest5Inside2 from "../assets/restaurants/restaurant-5/inside2.jpg";
+import rest5Inside3 from "../assets/restaurants/restaurant-5/inside3.jpg";
+
+import menu51 from "../assets/restaurants/restaurant-5/menu.svg";
+import menu52 from "../assets/restaurants/restaurant-5/menu1.svg";
+import menu53 from "../assets/restaurants/restaurant-5/menu2.svg";
+
+import plate51 from "../assets/restaurants/restaurant-5/plate1.jpg";
+import logo5 from "../assets/restaurants/restaurant-5/logo.svg";
 
 // Тестовые данные ресторанов с реальными импортами
 const RESTAURANTS = [
@@ -103,6 +142,72 @@ const RESTAURANTS = [
     mapLat: "57.766257",
     mapLon: "40.924119",
     mapName: "Славянский",
+  },
+  {
+    id: 3,
+    name: "Ресторан «Старая пристань»",
+    description:
+      "Ресторан Старая Пристань — не просто ресторан, а кусочек истории на берегу Волги! Находясь в живописном месте, ресторан предлагает Вам не только насладиться созерцанием красивой  природы, но и испытать истинное наслаждение от классических блюд русской кухни.",
+    location: { x: 535, y: 1000 },
+    type: "restaurant",
+    logo: logo3,
+    address: "Старая пристань ул. 1 Мая, 9, Кострома",
+    coordinates: { lat: 40.919656, lon: 57.764284 },
+    photos: [rest3Outside, rest3Inside1, rest3Inside2, rest3Inside3],
+    menu: [{ image: menu31 }, { image: menu32 }],
+    localDishes: [{ image: plate31 }],
+    exclusiveDescription:
+      "Бифштекс из лосятины — редкое и изысканное блюдо,  насыщенный вкус дикого мяса и авторская подача делают его настоящей гастрономической изюминкой Костромы.",
+    averageCheck: 3000,
+
+    mapOid: "1136530337",
+    mapLat: "57.764284",
+    mapLon: "40.919656",
+    mapName: "Старая пристань",
+  },
+  {
+    id: 4,
+    name: "кафе «доброблин»",
+    description:
+      "Ресторан Старая Пристань — не просто ресторан, а кусочек истории на берегу Волги! Находясь в живописном месте, ресторан предлагает Вам не только насладиться созерцанием красивой  природы, но и испытать истинное наслаждение от классических блюд русской кухни.",
+    location: { x: 399, y: 618 },
+    type: "restaurant",
+    logo: logo4,
+    address: "Старая пристань ул. 1 Мая, 9, Кострома",
+    coordinates: { lat: 40.922285, lon: 57.767996 },
+    photos: [rest4Outside, rest4Inside1, rest4Inside2, rest4Inside3],
+    menu: [{ image: menu41 }, { image: menu42 }, { image: menu43 }],
+    localDishes: [{ image: plate41 }],
+    exclusiveDescription:
+      "Блин «Снегурочка» — сладкий символ кафе «Доброблин». Тонкий, румяный блин подаётся с шариком нежного мороженого и тёплой карамелью — простое, но по-настоящему волшебное угощение.",
+    averageCheck: 200,
+
+    mapOid: "4366692710",
+    mapLat: "57.767996",
+    mapLon: "40.922285",
+    mapName: "ДоброБлин",
+  },
+  {
+    id: 5,
+    name: "Ресторан «гроза»",
+    description:
+      "Ресторан Гроза славится своим изысканным меню русской современной кухни. Кухня в Грозе - это сочетание старинных традиций и современных модных тенденций. В ресторане «Гроза» бренд-шеф Антон Рубцов превращает традиционные костромские рецепты в настоящее гастрономическое искусство.",
+    location: { x: 505, y: 330 },
+    type: "restaurant",
+    logo: logo5,
+    address: "Гроза просп. Мира, 4Б ",
+    coordinates: { lat: 40.930185, lon: 57.769174 },
+    photos: [rest5Outside, rest5Inside1, rest5Inside2, rest5Inside3],
+    menu: [{ image: menu51 }, { image: menu52 }, { image: menu53 }],
+    localDishes: [{ image: plate51 }],
+    exclusiveDescription:
+      "«Гусь Кологривский» — гордость ресторана «Гроза», отражающая дух костромских традиций и северного характера. А так же именно здесь, в Костроме, родилась Снегурочка — и в ресторане «Гроза» она обрела своё сладкое воплощение: нежное, изящное и по-сказочному волшебное.",
+    averageCheck: 2500,
+
+    mapOid: "11286674593",
+    mapLat: "57.769174",
+    mapLon: "40.930185",
+    mapName: "ДоброБлин",
   },
 ];
 

@@ -824,7 +824,8 @@ export default forwardRef(function MapCanvasBlock(
 
     // --- ОТРИСОВКА РЕСТОРАНОВ ---
     if (mode === "gastro" && restaurants && restaurants.length > 0) {
-      const iconSize = 50;
+      const iconWidth = 37; // ширина вашей иконки
+      const iconHeight = 44; // высота вашей иконки
 
       restaurants.forEach((restaurant) => {
         const icon = restaurantIconsRef.current[restaurant.id];
@@ -832,32 +833,29 @@ export default forwardRef(function MapCanvasBlock(
         if (icon) {
           ctx.drawImage(
             icon,
-            restaurant.location.x - iconSize / 2,
-            restaurant.location.y - iconSize,
-            iconSize,
-            iconSize,
+            restaurant.location.x - iconWidth / 2, // центрируем по горизонтали
+            restaurant.location.y - iconHeight, // иконка полностью над точкой (нижний край упирается в точку)
+            iconWidth,
+            iconHeight,
           );
+
+          // Опционально: добавить точку в месте привязки для отладки
+          // ctx.fillStyle = "red";
+          // ctx.beginPath();
+          // ctx.arc(restaurant.location.x, restaurant.location.y, 2, 0, Math.PI * 2);
+          // ctx.fill();
         } else {
+          // Плейсхолдер если иконка не загрузилась
           ctx.fillStyle = "#b89d6f";
           ctx.beginPath();
           ctx.arc(
             restaurant.location.x,
-            restaurant.location.y - iconSize / 2,
-            15,
+            restaurant.location.y - iconHeight / 2,
+            8,
             0,
             Math.PI * 2,
           );
           ctx.fill();
-
-          ctx.fillStyle = "white";
-          ctx.font = "16px sans-serif";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(
-            "🍴",
-            restaurant.location.x,
-            restaurant.location.y - iconSize / 2,
-          );
         }
       });
     }
