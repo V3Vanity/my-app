@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import "./ReviewsPage.css";
+import "./FamilyPage.css";
 
-export default function ReviewsPage() {
+export default function FamilyPage() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
@@ -51,10 +51,10 @@ export default function ReviewsPage() {
         onMenuItemClick={handleMenuItemClick}
       />
       <div className="page-container">
-        <h1>Отзывы</h1>
+        <h1>Для семьи</h1>
         <div className="page-content">
-          <p>Страница отзывов находится в разработке</p>
-          <p>Здесь будут отзывы наших гостей</p>
+          <p>Страница для семьи находится в разработке</p>
+          <p>Здесь будут представлены места для семейного отдыха</p>
         </div>
       </div>
     </>

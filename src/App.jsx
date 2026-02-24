@@ -9,6 +9,13 @@ import "./App.css";
 import topImage from "./assets/top-image.png";
 import QuestPage from "./pages/QuestPage.jsx";
 import GastroTour from "./pages/GastroTour.jsx";
+import TemplesPage from "./pages/TemplesPage.jsx";
+import MuseumsPage from "./pages/MuseumsPage.jsx";
+import ArtPage from "./pages/ArtPage.jsx";
+import HistoryPage from "./pages/HistoryPage.jsx";
+import FamilyPage from "./pages/FamilyPage.jsx";
+import AboutPage from "./pages/AboutPage.jsx";
+import ReviewsPage from "./pages/ReviewsPage.jsx";
 import Header from "./components/Header.jsx";
 import questImage from "./assets/App-img.png";
 
@@ -26,6 +33,18 @@ function HomePage() {
         break;
       case "temples":
         navigate("/temples");
+        break;
+      case "museums":
+        navigate("/museums");
+        break;
+      case "art":
+        navigate("/art");
+        break;
+      case "history":
+        navigate("/history");
+        break;
+      case "family":
+        navigate("/family");
         break;
       case "gastro":
         navigate("/gastro");
@@ -69,15 +88,14 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/quest" element={<QuestPage />} />
-        {/* ✅ ЗАМЕНИ ЭТО: */}
-        <Route
-          path="/temples"
-          element={<div>Страница храмов (в разработке)</div>}
-        />
-        <Route path="/gastro" element={<GastroTour />} />{" "}
-        {/* ✅ ТЕПЕРЬ ТУТ ТВОЙ КОМПОНЕНТ */}
-        <Route path="/about" element={<div>О нас (в разработке)</div>} />
-        <Route path="/reviews" element={<div>Отзывы (в разработке)</div>} />
+        <Route path="/temples" element={<TemplesPage />} />
+        <Route path="/museums" element={<MuseumsPage />} />
+        <Route path="/art" element={<ArtPage />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/family" element={<FamilyPage />} />
+        <Route path="/gastro" element={<GastroTour />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
       </Routes>
     </Router>
   );

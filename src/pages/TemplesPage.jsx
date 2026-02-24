@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import "./ReviewsPage.css";
+import "./TemplesPage.css";
 
-export default function ReviewsPage() {
+export default function TemplesPage() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
@@ -51,10 +51,10 @@ export default function ReviewsPage() {
         onMenuItemClick={handleMenuItemClick}
       />
       <div className="page-container">
-        <h1>Отзывы</h1>
+        <h1>Храмы</h1>
         <div className="page-content">
-          <p>Страница отзывов находится в разработке</p>
-          <p>Здесь будут отзывы наших гостей</p>
+          <p>Страница храмов находится в разработке</p>
+          <p>Здесь будут представлены все храмы нашего региона</p>
         </div>
       </div>
     </>

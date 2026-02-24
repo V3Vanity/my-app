@@ -7,7 +7,130 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
   const [isPhotoFullscreen, setIsPhotoFullscreen] = useState(false);
   const [isMenuFullscreen, setIsMenuFullscreen] = useState(false);
 
+  // Состояния для свайпа фото
+  const [photoTouchStart, setPhotoTouchStart] = useState(null);
+  const [photoTouchEnd, setPhotoTouchEnd] = useState(null);
+
+  // Состояния для свайпа меню
+  const [menuTouchStart, setMenuTouchStart] = useState(null);
+  const [menuTouchEnd, setMenuTouchEnd] = useState(null);
+
+  // ДОБАВЛЕНО: состояния для свайпа в полноэкранном режиме
+  const [fullscreenPhotoTouchStart, setFullscreenPhotoTouchStart] =
+    useState(null);
+  const [fullscreenPhotoTouchEnd, setFullscreenPhotoTouchEnd] = useState(null);
+
+  const [fullscreenMenuTouchStart, setFullscreenMenuTouchStart] =
+    useState(null);
+  const [fullscreenMenuTouchEnd, setFullscreenMenuTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+
   if (!isOpen || !restaurant) return null;
+
+  // Обработчики свайпа для фото
+  const onPhotoTouchStart = (e) => {
+    setPhotoTouchEnd(null);
+    setPhotoTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onPhotoTouchMove = (e) => {
+    setPhotoTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onPhotoTouchEnd = () => {
+    if (!photoTouchStart || !photoTouchEnd) return;
+
+    const distance = photoTouchStart - photoTouchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNextPhoto({ stopPropagation: () => {} });
+    }
+
+    if (isRightSwipe) {
+      handlePrevPhoto({ stopPropagation: () => {} });
+    }
+  };
+
+  // Обработчики свайпа для меню
+  const onMenuTouchStart = (e) => {
+    setMenuTouchEnd(null);
+    setMenuTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onMenuTouchMove = (e) => {
+    setMenuTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onMenuTouchEnd = () => {
+    if (!menuTouchStart || !menuTouchEnd) return;
+
+    const distance = menuTouchStart - menuTouchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNextMenu({ stopPropagation: () => {} });
+    }
+
+    if (isRightSwipe) {
+      handlePrevMenu({ stopPropagation: () => {} });
+    }
+  };
+
+  // ДОБАВЛЕНО: обработчики свайпа для полноэкранного фото
+  const onFullscreenPhotoTouchStart = (e) => {
+    setFullscreenPhotoTouchEnd(null);
+    setFullscreenPhotoTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onFullscreenPhotoTouchMove = (e) => {
+    setFullscreenPhotoTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onFullscreenPhotoTouchEnd = () => {
+    if (!fullscreenPhotoTouchStart || !fullscreenPhotoTouchEnd) return;
+
+    const distance = fullscreenPhotoTouchStart - fullscreenPhotoTouchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNextPhoto({ stopPropagation: () => {} });
+    }
+
+    if (isRightSwipe) {
+      handlePrevPhoto({ stopPropagation: () => {} });
+    }
+  };
+
+  // ДОБАВЛЕНО: обработчики свайпа для полноэкранного меню
+  const onFullscreenMenuTouchStart = (e) => {
+    setFullscreenMenuTouchEnd(null);
+    setFullscreenMenuTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onFullscreenMenuTouchMove = (e) => {
+    setFullscreenMenuTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onFullscreenMenuTouchEnd = () => {
+    if (!fullscreenMenuTouchStart || !fullscreenMenuTouchEnd) return;
+
+    const distance = fullscreenMenuTouchStart - fullscreenMenuTouchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNextMenu({ stopPropagation: () => {} });
+    }
+
+    if (isRightSwipe) {
+      handlePrevMenu({ stopPropagation: () => {} });
+    }
+  };
 
   const handlePrevPhoto = (e) => {
     e.stopPropagation();
@@ -66,6 +189,9 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
           <div
             className="restaurant-photo-container"
             onClick={handlePhotoClick}
+            onTouchStart={onPhotoTouchStart}
+            onTouchMove={onPhotoTouchMove}
+            onTouchEnd={onPhotoTouchEnd}
           >
             {restaurant.photos && restaurant.photos.length > 0 ? (
               <img
@@ -98,7 +224,7 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
         <h2 className="restaurant-name">{restaurant.name}</h2>
         <p className="restaurant-description">{restaurant.description}</p>
 
-        {/* Слайдер с меню - ТОЛЬКО ФОТО, ВО ВСЮ ШИРИНУ */}
+        {/* Слайдер с меню */}
         <div className="menu-section">
           <h3 className="section-title">Меню</h3>
           <div className="menu-slider">
@@ -106,6 +232,9 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
               className="menu-item-container-fullwidth"
               onClick={handleMenuClick}
               style={{ cursor: "pointer" }}
+              onTouchStart={onMenuTouchStart}
+              onTouchMove={onMenuTouchMove}
+              onTouchEnd={onMenuTouchEnd}
             >
               {restaurant.menu && restaurant.menu.length > 0 ? (
                 <img
@@ -173,7 +302,7 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
             ))}
           </div>
 
-          {/* ✅ ОБЩИЙ ТЕКСТ, РАЗНЫЙ ДЛЯ КАЖДОГО РЕСТОРАНА */}
+          {/* ОБЩИЙ ТЕКСТ, РАЗНЫЙ ДЛЯ КАЖДОГО РЕСТОРАНА */}
           {restaurant.exclusiveDescription && (
             <div className="exclusive-dishes-description">
               <p>{restaurant.exclusiveDescription}</p>
@@ -247,12 +376,15 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
         </div>
       </div>
 
-      {/* Fullscreen модалка для фото */}
+      {/* Fullscreen модалка для фото - ИЗМЕНЕНО: добавлены свайпы */}
       {isPhotoFullscreen && (
         <div className="fullscreen-modal" onClick={handleClosePhotoFullscreen}>
           <div
             className="fullscreen-content"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={onFullscreenPhotoTouchStart}
+            onTouchMove={onFullscreenPhotoTouchMove}
+            onTouchEnd={onFullscreenPhotoTouchEnd}
           >
             <button
               className="fullscreen-close-btn"
@@ -290,12 +422,15 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
         </div>
       )}
 
-      {/* Fullscreen модалка для меню */}
+      {/* Fullscreen модалка для меню - ИЗМЕНЕНО: добавлены свайпы */}
       {isMenuFullscreen && (
         <div className="fullscreen-modal" onClick={handleCloseMenuFullscreen}>
           <div
             className="fullscreen-content"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={onFullscreenMenuTouchStart}
+            onTouchMove={onFullscreenMenuTouchMove}
+            onTouchEnd={onFullscreenMenuTouchEnd}
           >
             <button
               className="fullscreen-close-btn"
