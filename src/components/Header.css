@@ -79,6 +79,10 @@
     0.7
   ); /* Полупрозрачный красный поверх фона */
   backdrop-filter: blur(2px); /* Легкое размытие */
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+  text-align: center; /* Выравнивание текста по центру */
 }
 
 .menu-item:last-child {
@@ -92,6 +96,11 @@
   border-bottom: none;
 }
 
+/* Стиль для активного пункта меню */
+.menu-item.active {
+  color: #ffb600;
+}
+
 /* Эффект при наведении (для ПК-тестирования) */
 @media (hover: hover) {
   .menu-item:hover {
@@ -102,6 +111,31 @@
 /* Для мобильных - активное состояние */
 .menu-item:active {
   background-color: rgba(134, 37, 24, 0.95);
+}
+
+/* Подменю */
+.submenu {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(100, 28, 18, 0.9); /* Чуть темнее для отделения */
+  backdrop-filter: blur(2px);
+}
+
+.submenu .menu-item {
+  padding-left: 32px; /* Отступ для дочерних пунктов */
+  background-color: transparent;
+  backdrop-filter: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center; /* Выравнивание текста по центру */
+}
+
+.submenu .menu-item.active {
+  color: #ffb600;
+}
+
+/* Скрытие элементов */
+.menu-item.hidden {
+  display: none;
 }
 
 /* Переменные цветов (если еще нет) */
