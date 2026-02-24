@@ -579,7 +579,6 @@ export default function GastroTour() {
     }
   };
 
-  // Обработчик для меню (переход между страницами)
   const handleMenuItemClick = (page) => {
     setMenuOpen(false);
 
@@ -588,17 +587,31 @@ export default function GastroTour() {
         navigate("/quest");
         break;
       case "temples":
-        alert("Страница 'Квест-экскурсия по храмам и музеям' в разработке");
+        navigate("/temples");
+        break;
+      case "museums":
+        navigate("/museums");
+        break;
+      case "art":
+        navigate("/art");
+        break;
+      case "history":
+        navigate("/history");
+        break;
+      case "family":
+        navigate("/family");
         break;
       case "gastro":
+        navigate("/gastro");
         break;
       case "about":
-        alert("Страница 'О нас' в разработке");
+        navigate("/about");
         break;
       case "reviews":
-        alert("Страница 'Отзывы' в разработке");
+        navigate("/reviews");
         break;
       default:
+        navigate("/");
         break;
     }
   };

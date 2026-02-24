@@ -111,13 +111,27 @@ export default function QuestPage() {
     }
   }, [currentStep]);
 
-  const navigateTo = (page) => {
+  const handleMenuItemClick = (page) => {
+    setMenuOpen(false);
+
     switch (page) {
       case "quest":
         navigate("/quest");
         break;
       case "temples":
         navigate("/temples");
+        break;
+      case "museums":
+        navigate("/museums");
+        break;
+      case "art":
+        navigate("/art");
+        break;
+      case "history":
+        navigate("/history");
+        break;
+      case "family":
+        navigate("/family");
         break;
       case "gastro":
         navigate("/gastro");
@@ -129,6 +143,7 @@ export default function QuestPage() {
         navigate("/reviews");
         break;
       default:
+        navigate("/");
         break;
     }
   };
@@ -244,7 +259,7 @@ export default function QuestPage() {
       <Header
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
-        navigateTo={navigateTo}
+        navigateTo={handleMenuItemClick}
       />
 
       {currentStep === 0 ? (
