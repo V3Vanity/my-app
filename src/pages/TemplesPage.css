@@ -1,0 +1,49 @@
+.temples-page-container {
+  position: fixed;
+  top: 69px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 375px;
+  max-width: 100%;
+  height: calc(100vh - 69px);
+  background-color: #f5efe6;
+  overflow: hidden;
+}
+
+/* Обёртка для карты */
+.temple-map-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.temple-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Анимации перехода */
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 300ms ease-in;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 300ms ease-in;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 375px) {
+  .temples-page-container {
+    width: 100%;
+  }
+}

@@ -8,6 +8,7 @@ export default function Header({
   setMenuOpen,
   onMenuItemClick,
   onBack,
+  showBackButton = false, // НОВЫЙ ПРОПС (строка 9)
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -134,8 +135,12 @@ export default function Header({
   return (
     <>
       <header className={`app-header ${menuOpen ? "open" : ""}`}>
-        {/* Стрелка назад - ТОЛЬКО на странице квеста */}
-        {isQuestPage ? (
+        {/* ИЗМЕНЕННЫЙ БЛОК: Стрелка назад показывается по условию showBackButton */}
+        {showBackButton ? ( // строка 116 - изменено условие
+          <button className="back-arrow-button" onClick={onBack}>
+            ←
+          </button>
+        ) : isQuestPage ? ( // строка 120 - добавлена проверка isQuestPage
           <button className="back-arrow-button" onClick={handleBackClick}>
             ←
           </button>
