@@ -47,23 +47,6 @@
   cursor: pointer;
 }
 
-/* Кнопка "Назад" */
-.back-step-button {
-  background: #ffffff73;
-  border-radius: 50%;
-  border: none;
-  padding: 15px;
-  font-size: 30px;
-  padding: 10px;
-  font-size: 25px;
-  color: #862518;
-  font-weight: bold;
-  cursor: pointer;
-  margin: 10px;
-  align-self: flex-start;
-  z-index: 9999;
-}
-
 /* --- Кнопка "Продолжить" на step4 --- */
 .map-continue-container {
   position: absolute; /* фиксируем относительно родителя .map-container */

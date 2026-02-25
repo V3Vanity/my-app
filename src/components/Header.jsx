@@ -3,18 +3,25 @@ import { useNavigate, useLocation } from "react-router-dom";
 import menuImage from "../assets/menu-img.svg";
 import "./Header.css";
 
-export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
+export default function Header({
+  menuOpen,
+  setMenuOpen,
+  onMenuItemClick,
+  onBack,
+}) {
   const navigate = useNavigate();
-  const location = useLocation(); // Получаем текущий путь
+  const location = useLocation();
   const [activeMainItem, setActiveMainItem] = useState(null);
   const [activeSubItem, setActiveSubItem] = useState(null);
   const [isCulturalOpen, setIsCulturalOpen] = useState(false);
+
+  // Определяем, находимся ли мы на странице квеста
+  const isQuestPage = location.pathname === "/quest";
 
   // Синхронизация активного пункта с текущим маршрутом
   useEffect(() => {
     const path = location.pathname;
 
-    // Определяем активный пункт меню по пути
     if (path === "/quest") {
       setActiveMainItem("quest");
       setActiveSubItem(null);
@@ -52,25 +59,26 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
       setActiveSubItem("family");
       setIsCulturalOpen(true);
     } else {
-      // На главной или другой странице
       setActiveMainItem(null);
       setActiveSubItem(null);
       setIsCulturalOpen(false);
     }
-  }, [location.pathname]); // Зависимость от пути
+  }, [location.pathname]);
 
-  const handleTitleClick = () => {
-    navigate("/");
+  const handleBackClick = () => {
+    if (isQuestPage && onBack) {
+      onBack(); // Вызываем переданную функцию навигации в квесте
+    } else {
+      navigate("/"); // На других страницах просто на главную
+    }
     setMenuOpen(false);
-    // Состояния обновятся через useEffect
   };
 
   const handleMenuItemClick = (page, isMain = true) => {
     console.log("Клик по меню:", page);
 
-    // Логика для открытия подменю "Культурная карта"
     if (page === "cultural" && isMain) {
-      setIsCulturalOpen(!isCulturalOpen); // Открыть/закрыть подменю
+      setIsCulturalOpen(!isCulturalOpen);
       if (!isCulturalOpen) {
         setActiveMainItem("cultural");
         setActiveSubItem(null);
@@ -78,19 +86,22 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
         setActiveMainItem(null);
         setActiveSubItem(null);
       }
-      return; // Не закрываем меню и не навигируем
+      return;
     }
 
-    // Закрываем меню
     setMenuOpen(false);
 
     if (onMenuItemClick) {
       onMenuItemClick(page);
     } else {
-      // Навигация
       switch (page) {
         case "quest":
-          navigate("/quest");
+          // Если мы уже на странице квеста - переходим на главную
+          if (isQuestPage) {
+            navigate("/");
+          } else {
+            navigate("/quest");
+          }
           break;
         case "temples":
           navigate("/temples");
@@ -126,20 +137,21 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
   return (
     <>
       <header className={`app-header ${menuOpen ? "open" : ""}`}>
-        <div
-          className="page-title"
-          style={{ cursor: "pointer" }}
-          onClick={handleTitleClick}
-        >
-          Главная
-        </div>
+        {/* Стрелка назад - только на странице квеста */}
+        {isQuestPage ? (
+          <button className="back-arrow-button" onClick={handleBackClick}>
+            ←
+          </button>
+        ) : (
+          <div className="header-placeholder" />
+        )}
+
         <button className="menu-button" onClick={() => setMenuOpen((v) => !v)}>
           <img src={menuImage} alt="Меню" />
         </button>
       </header>
 
       <div className={`app-menu ${menuOpen ? "open" : ""}`}>
-        {/* Квест-экскурсия мазайские зайцы */}
         <div
           className={`menu-item ${activeMainItem === "quest" ? "active" : ""}`}
           onClick={() => handleMenuItemClick("quest")}
@@ -147,7 +159,6 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
           Квест-экскурсия мазайские зайцы
         </div>
 
-        {/* Культурная карта (открывает подменю) */}
         <div
           className={`menu-item ${activeMainItem === "cultural" ? "active" : ""}`}
           onClick={() => handleMenuItemClick("cultural", true)}
@@ -155,43 +166,41 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
           Культурная карта
         </div>
 
-        {/* Подменю (отображается, если isCulturalOpen = true) */}
         {isCulturalOpen && (
           <div className="submenu">
             <div
               className={`menu-item ${activeSubItem === "temples" ? "active" : ""}`}
-              onClick={() => handleMenuItemClick("temples", false, true)}
+              onClick={() => handleMenuItemClick("temples", false)}
             >
               Храмы
             </div>
             <div
               className={`menu-item ${activeSubItem === "museums" ? "active" : ""}`}
-              onClick={() => handleMenuItemClick("museums", false, true)}
+              onClick={() => handleMenuItemClick("museums", false)}
             >
               Музеи
             </div>
             <div
               className={`menu-item ${activeSubItem === "art" ? "active" : ""}`}
-              onClick={() => handleMenuItemClick("art", false, true)}
+              onClick={() => handleMenuItemClick("art", false)}
             >
               Искусство
             </div>
             <div
               className={`menu-item ${activeSubItem === "history" ? "active" : ""}`}
-              onClick={() => handleMenuItemClick("history", false, true)}
+              onClick={() => handleMenuItemClick("history", false)}
             >
               История
             </div>
             <div
               className={`menu-item ${activeSubItem === "family" ? "active" : ""}`}
-              onClick={() => handleMenuItemClick("family", false, true)}
+              onClick={() => handleMenuItemClick("family", false)}
             >
               Для семьи
             </div>
           </div>
         )}
 
-        {/* Гастро-тур */}
         <div
           className={`menu-item ${isCulturalOpen ? "hidden" : ""} ${activeMainItem === "gastro" ? "active" : ""}`}
           onClick={() => handleMenuItemClick("gastro")}
@@ -199,7 +208,6 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
           Гастро-тур
         </div>
 
-        {/* О нас */}
         <div
           className={`menu-item ${isCulturalOpen ? "hidden" : ""} ${activeMainItem === "about" ? "active" : ""}`}
           onClick={() => handleMenuItemClick("about")}
@@ -207,7 +215,6 @@ export default function Header({ menuOpen, setMenuOpen, onMenuItemClick }) {
           О нас
         </div>
 
-        {/* Отзывы */}
         <div
           className={`menu-item ${isCulturalOpen ? "hidden" : ""} ${activeMainItem === "reviews" ? "active" : ""}`}
           onClick={() => handleMenuItemClick("reviews")}

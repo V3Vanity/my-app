@@ -33,7 +33,6 @@ const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
 export default forwardRef(function MapCanvasBlock(
   {
     className = "",
-    onBack,
     onQuestPointReached,
     mode,
     foundQuestPoints = [],
@@ -1759,10 +1758,6 @@ export default forwardRef(function MapCanvasBlock(
 
       {mode && mode.startsWith("step") && !isLoading && !isModeChanging && (
         <>
-          <button className="back-step-button" onClick={onBack}>
-            ←
-          </button>
-
           <button
             className="map-follow-btn"
             onClick={() => {

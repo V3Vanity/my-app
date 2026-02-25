@@ -7,12 +7,10 @@ const TextBlock = memo(
     text,
     showTitle,
     onNextStep,
-    showBackButton,
-    onBack,
     children,
     hintImage,
     hintAddress,
-    stepNumber, // Добавляем stepNumber
+    stepNumber,
   }) => {
     const containerRef = useRef(null);
     const [showButton, setShowButton] = useState(false);
@@ -44,10 +42,6 @@ const TextBlock = memo(
     }, [handleScroll]);
 
     // Мемоизируем обработчики
-    const handleBackClick = useCallback(() => {
-      onBack?.();
-    }, [onBack]);
-
     const handleNextClick = useCallback(() => {
       onNextStep?.();
     }, [onNextStep]);
@@ -67,13 +61,6 @@ const TextBlock = memo(
       <>
         <div className="text-block-container">
           <div className="text-block-scroll" ref={containerRef}>
-            {/* Кнопка Назад сверху слева */}
-            {showBackButton && (
-              <button className="back-button" onClick={handleBackClick}>
-                ←
-              </button>
-            )}
-
             {/* Кнопка Подсказки сверху справа - не показываем на шаге 32 */}
             {hintImage && hintAddress && stepNumber !== 32 && (
               <button className="hint-button" onClick={handleHintClick}>

@@ -10,6 +10,7 @@
 
 .text-block-scroll {
   flex: 1;
+  margin-top: 45px;
   overflow-y: auto;
   padding: 16px;
   box-sizing: border-box;
