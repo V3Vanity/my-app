@@ -38,26 +38,18 @@ export default function Header({
       setActiveMainItem("reviews");
       setActiveSubItem(null);
       setIsCulturalOpen(false);
-    } else if (path === "/temples") {
+    } else if (
+      ["/temples", "/museums", "/art", "/history", "/family"].includes(path)
+    ) {
       setActiveMainItem("cultural");
-      setActiveSubItem("temples");
       setIsCulturalOpen(true);
-    } else if (path === "/museums") {
-      setActiveMainItem("cultural");
-      setActiveSubItem("museums");
-      setIsCulturalOpen(true);
-    } else if (path === "/art") {
-      setActiveMainItem("cultural");
-      setActiveSubItem("art");
-      setIsCulturalOpen(true);
-    } else if (path === "/history") {
-      setActiveMainItem("cultural");
-      setActiveSubItem("history");
-      setIsCulturalOpen(true);
-    } else if (path === "/family") {
-      setActiveMainItem("cultural");
-      setActiveSubItem("family");
-      setIsCulturalOpen(true);
+
+      // Устанавливаем активный подпункт
+      if (path === "/temples") setActiveSubItem("temples");
+      else if (path === "/museums") setActiveSubItem("museums");
+      else if (path === "/art") setActiveSubItem("art");
+      else if (path === "/history") setActiveSubItem("history");
+      else if (path === "/family") setActiveSubItem("family");
     } else {
       setActiveMainItem(null);
       setActiveSubItem(null);
@@ -67,16 +59,12 @@ export default function Header({
 
   const handleBackClick = () => {
     if (isQuestPage && onBack) {
-      onBack(); // Вызываем переданную функцию навигации в квесте
-    } else {
-      navigate("/"); // На других страницах просто на главную
+      onBack();
+      setMenuOpen(false);
     }
-    setMenuOpen(false);
   };
 
   const handleMenuItemClick = (page, isMain = true) => {
-    console.log("Клик по меню:", page);
-
     if (page === "cultural" && isMain) {
       setIsCulturalOpen(!isCulturalOpen);
       if (!isCulturalOpen) {
@@ -89,55 +77,64 @@ export default function Header({
       return;
     }
 
+    // Определяем путь назначения для каждого пункта меню
+    let targetPath = "";
+    switch (page) {
+      case "quest":
+        targetPath = "/quest";
+        break;
+      case "temples":
+        targetPath = "/temples";
+        break;
+      case "museums":
+        targetPath = "/museums";
+        break;
+      case "art":
+        targetPath = "/art";
+        break;
+      case "history":
+        targetPath = "/history";
+        break;
+      case "family":
+        targetPath = "/family";
+        break;
+      case "gastro":
+        targetPath = "/gastro";
+        break;
+      case "about":
+        targetPath = "/about";
+        break;
+      case "reviews":
+        targetPath = "/reviews";
+        break;
+      default:
+        targetPath = "/";
+        break;
+    }
+
+    // Закрываем меню
     setMenuOpen(false);
 
+    // Проверяем: если текущий путь совпадает с целевым - идем на главную с перезагрузкой
+    if (location.pathname === targetPath) {
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 100);
+      return;
+    }
+
+    // Если есть внешний обработчик (например, в GastroTour), вызываем его
     if (onMenuItemClick) {
       onMenuItemClick(page);
     } else {
-      switch (page) {
-        case "quest":
-          // Если мы уже на странице квеста - переходим на главную
-          if (isQuestPage) {
-            navigate("/");
-          } else {
-            navigate("/quest");
-          }
-          break;
-        case "temples":
-          navigate("/temples");
-          break;
-        case "museums":
-          navigate("/museums");
-          break;
-        case "art":
-          navigate("/art");
-          break;
-        case "history":
-          navigate("/history");
-          break;
-        case "family":
-          navigate("/family");
-          break;
-        case "gastro":
-          navigate("/gastro");
-          break;
-        case "about":
-          navigate("/about");
-          break;
-        case "reviews":
-          navigate("/reviews");
-          break;
-        default:
-          navigate("/");
-          break;
-      }
+      navigate(targetPath);
     }
   };
 
   return (
     <>
       <header className={`app-header ${menuOpen ? "open" : ""}`}>
-        {/* Стрелка назад - только на странице квеста */}
+        {/* Стрелка назад - ТОЛЬКО на странице квеста */}
         {isQuestPage ? (
           <button className="back-arrow-button" onClick={handleBackClick}>
             ←
