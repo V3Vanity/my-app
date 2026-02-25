@@ -680,10 +680,6 @@
     padding-left: max(20px, env(safe-area-inset-left, 20px));
     padding-right: max(20px, env(safe-area-inset-right, 20px));
   }
-
-  .restaurant-close-btn {
-    right: max(16px, env(safe-area-inset-right, 16px));
-  }
 }
 
 /* Добавьте в конец файла */

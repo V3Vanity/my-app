@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./RestaurantDetail.css";
 
 export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
@@ -25,6 +25,14 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
   const [fullscreenMenuTouchEnd, setFullscreenMenuTouchEnd] = useState(null);
 
   const minSwipeDistance = 50;
+
+  // ИСПРАВЛЕНО: сбрасываем индексы при смене ресторана
+  useEffect(() => {
+    if (restaurant) {
+      setCurrentPhotoIndex(0);
+      setCurrentMenuIndex(0);
+    }
+  }, [restaurant]);
 
   if (!isOpen || !restaurant) return null;
 
