@@ -24,10 +24,11 @@ import rabbitEleven from "../assets/rabbitEleven.svg";
 import rabbitTwelve from "../assets/rabbitTwelve.svg";
 import rabbitThirteen from "../assets/rabbitThirteen.svg";
 import rabbitFourteen from "../assets/rabbitFourteen.svg";
+import templeIcon from "../assets/temple-icon.svg";
 import ProgressModal from "./ProgressModal.jsx";
 
-import { nodes, questPoints, edges, gpsMap } from "./mapData.js";
-const DEBUG_USER = true; // test GPS
+import { nodes, questPoints, edges, gpsMap, templePoints } from "./mapData.js";
+const DEBUG_USER = true;
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
 
 export default forwardRef(function MapCanvasBlock(
@@ -38,6 +39,7 @@ export default forwardRef(function MapCanvasBlock(
     foundQuestPoints = [],
     restaurants = [],
     onMarkerClick = () => {},
+    selectedTemple = null,
   },
   ref,
 ) {
@@ -46,8 +48,9 @@ export default forwardRef(function MapCanvasBlock(
   const imgRef = useRef(null);
   const bgCanvasRef = useRef(null);
 
-  // Храним все иконки в одном объекте
   const rabbitIconsRef = useRef({});
+  const restaurantIconsRef = useRef({});
+  const templeIconsRef = useRef({});
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -70,9 +73,7 @@ export default forwardRef(function MapCanvasBlock(
   const [isModeChanging, setIsModeChanging] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
 
-  // Флаг для отслеживания, закрыта ли модалка прогресса
   const progressModalJustClosed = useRef(false);
-
   const lastInteractionRef = useRef(0);
   const lastRouteNodeRef = useRef(null);
   const lastRebuildTimeRef = useRef(0);
@@ -81,9 +82,6 @@ export default forwardRef(function MapCanvasBlock(
   const [currentMapMode, setCurrentMapMode] = useState(null);
 
   const affineRef = useRef(null);
-
-  // Хранилище для иконок ресторанов
-  const restaurantIconsRef = useRef({});
 
   // --- Получение реального GPS пользователя ---
   useEffect(() => {
@@ -323,7 +321,60 @@ export default forwardRef(function MapCanvasBlock(
     [clampOffset],
   );
 
-  // --- построение маршрута из GPS пользователя ---
+  // --- построение маршрута к храму ---
+  const buildRouteToTemple = useCallback(
+    (templeId) => {
+      console.log("buildRouteToTemple called with:", templeId);
+
+      const temple = templePoints.find((t) => t.id === templeId);
+      if (!temple) {
+        console.warn("Temple not found:", templeId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
+
+      const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
+
+      const nearestNodeToUser = findNearestNode(userPx);
+      const nearestNodeToTemple = findNearestNode({ x: temple.x, y: temple.y });
+
+      if (!nearestNodeToUser || !nearestNodeToTemple) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
+
+      const path = buildRoute(nearestNodeToUser.id, nearestNodeToTemple.id);
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
+
+      const route = [
+        { id: "USER", x: userPx.x, y: userPx.y },
+        ...path
+          .map((id) => {
+            const node = nodes.find((n) => n.id === id);
+            return node ? { id: node.id, x: node.x, y: node.y } : null;
+          })
+          .filter(Boolean),
+        { id: temple.id, x: temple.x, y: temple.y, isTemple: true },
+      ];
+
+      console.log("Final route:", route);
+      setRouteNodes(route);
+    },
+    [userGPS, gpsToPixel, findNearestNode, buildRoute],
+  );
+
+  // --- построение маршрута из GPS пользователя для квеста (с центрированием на иконках) ---
   const rebuildRouteFromUser = useCallback(() => {
     if (mode !== "step2") {
       return;
@@ -341,12 +392,21 @@ export default forwardRef(function MapCanvasBlock(
     const path = buildRoute(nearestNode.id, "START");
     if (!path) return;
 
+    const iconSize = 40;
+    const iconCenterOffset = iconSize / 2;
+
     const routeWithUser = [
       { id: "USER", ...userPx },
       ...path
         .map((id) => {
           const node = nodes.find((n) => n.id === id);
-          return node ? { id: node.id, x: node.x, y: node.y } : null;
+          return node
+            ? {
+                id: node.id,
+                x: node.x,
+                y: node.y - iconCenterOffset, // Смещаем к центру иконки
+              }
+            : null;
         })
         .filter(Boolean),
     ];
@@ -354,7 +414,7 @@ export default forwardRef(function MapCanvasBlock(
     routeWithUser.push({
       id: "START",
       x: startQP.x,
-      y: startQP.y,
+      y: startQP.y - iconCenterOffset, // Смещаем к центру иконки
     });
 
     setRouteNodes(routeWithUser);
@@ -379,7 +439,7 @@ export default forwardRef(function MapCanvasBlock(
     mode,
   ]);
 
-  // ---  Обновление маршрута при движении пользователя ---
+  // --- Обновление маршрута при движении пользователя ---
   useEffect(() => {
     if (mode !== "step2") return;
     if (currentMapMode && currentMapMode !== "step2") return;
@@ -400,7 +460,7 @@ export default forwardRef(function MapCanvasBlock(
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 0;
+    const REACH_RADIUS = 25;
     if (dist < REACH_RADIUS) {
       onQuestPointReached?.(2);
     }
@@ -414,7 +474,7 @@ export default forwardRef(function MapCanvasBlock(
     currentMapMode,
   ]);
 
-  // Объединенная функция построения маршрутов
+  // Объединенная функция построения маршрутов для квеста (с центрированием на иконках)
   const buildRouteBetweenPoints = useCallback(
     (startOrder, targetOrder) => {
       const startQP = questPoints.find((qp) => qp.order === startOrder);
@@ -443,12 +503,33 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
+      const iconSize = 40;
+      const iconCenterOffset = iconSize / 2;
+
       const route = path
-        .map((id) => nodes.find((n) => n.id === id))
+        .map((id) => {
+          const node = nodes.find((n) => n.id === id);
+          return node
+            ? {
+                id: node.id,
+                x: node.x,
+                y: node.y - iconCenterOffset, // Смещаем к центру иконки
+              }
+            : null;
+        })
         .filter(Boolean);
 
-      route.unshift({ id: startQP.id, x: startQP.x, y: startQP.y });
-      route.push({ id: targetQP.id, x: targetQP.x, y: targetQP.y });
+      route.unshift({
+        id: startQP.id,
+        x: startQP.x,
+        y: startQP.y - iconCenterOffset, // Смещаем к центру иконки
+      });
+
+      route.push({
+        id: targetQP.id,
+        x: targetQP.x,
+        y: targetQP.y - iconCenterOffset, // Смещаем к центру иконки
+      });
 
       setRouteNodes(route);
     },
@@ -460,7 +541,6 @@ export default forwardRef(function MapCanvasBlock(
     if (!initialized || !affineRef.current) return;
     if (!mode) return;
 
-    // Не показываем загрузку, если только что закрыли модалку прогресса
     if (progressModalJustClosed.current) {
       progressModalJustClosed.current = false;
       return;
@@ -485,10 +565,22 @@ export default forwardRef(function MapCanvasBlock(
     return () => clearTimeout(timer);
   }, [mode, initialized, userGPS, rebuildRouteFromUser, currentMapMode]);
 
-  // ========== ОПТИМИЗИРОВАННАЯ ФУНКЦИЯ ВЫБОРА ИКОНКИ (ОБЪЯВЛЯЕМ ПЕРВОЙ) ==========
+  // --- Эффект для центрирования на выбранном храме ---
+  useEffect(() => {
+    if (mode === "temple" && selectedTemple && initialized) {
+      const temple = templePoints.find((t) => t.id === selectedTemple.mapId);
+      if (temple) {
+        centerOnPixel({ x: temple.x, y: temple.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToTemple(selectedTemple.mapId);
+        }, 100);
+      }
+    }
+  }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToTemple]);
+
+  // ========== ФУНКЦИЯ ВЫБОРА ИКОНКИ ЗАЙЦА ==========
   const getQuestPointIcon = useCallback(
     (order) => {
-      // Если иконка еще не загрузилась, возвращаем null (не будет отрисовываться)
       if (mode === "step2") {
         return rabbitIconsRef.current["rabbitIcon"] || null;
       }
@@ -675,7 +767,6 @@ export default forwardRef(function MapCanvasBlock(
         return null;
       }
 
-      // Для остальных режимов
       const iconKey = foundQuestPoints.includes(order)
         ? "rabbitIcon"
         : "rabbitOne";
@@ -684,7 +775,7 @@ export default forwardRef(function MapCanvasBlock(
     [foundQuestPoints, mode],
   );
 
-  // ========== ФУНКЦИЯ ОТРИСОВКИ (ОБЪЯВЛЯЕМ ВТОРОЙ) ==========
+  // ========== ФУНКЦИЯ ОТРИСОВКИ ==========
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
     const bgCanvas = bgCanvasRef.current;
@@ -698,7 +789,6 @@ export default forwardRef(function MapCanvasBlock(
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // --- background ---
     ctx.drawImage(
       bgCanvas,
       0,
@@ -731,21 +821,23 @@ export default forwardRef(function MapCanvasBlock(
     }
 
     // --- draw route on top ---
-    if (pageMode === "quest" && routeNodes && routeNodes.length > 1) {
-      ctx.strokeStyle = "#ffffffaa";
-      ctx.lineWidth = 2;
+    if (routeNodes && routeNodes.length > 1) {
+      if (mode === "temple") {
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 4;
+      } else {
+        ctx.strokeStyle = "#ffffffaa";
+        ctx.lineWidth = 2;
+      }
+
       ctx.beginPath();
 
       routeNodes.forEach((n, i) => {
         if (!n) return;
 
+        // Используем координаты из routeNodes (уже скорректированные для квеста)
         let x = n.x;
         let y = n.y;
-        const iconSize = 40;
-
-        if (n.id !== "USER") {
-          y = n.y - iconSize / 2 - 2;
-        }
 
         if (i === 0) {
           ctx.moveTo(x, y);
@@ -757,7 +849,7 @@ export default forwardRef(function MapCanvasBlock(
       ctx.stroke();
     }
 
-    // --- draw quest points ---
+    // --- Отрисовка квестовых точек ---
     if (
       pageMode === "quest" &&
       rabbitIconsRef.current["rabbitIcon"] &&
@@ -804,7 +896,71 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
-    // --- draw user ---
+    // --- Отрисовка ресторанов ---
+    if (mode === "gastro" && restaurants && restaurants.length > 0) {
+      const iconWidth = 45;
+      const iconHeight = 52;
+
+      restaurants.forEach((restaurant) => {
+        const icon = restaurantIconsRef.current[restaurant.id];
+
+        if (icon) {
+          ctx.drawImage(
+            icon,
+            restaurant.location.x - iconWidth / 2,
+            restaurant.location.y - iconHeight / 2,
+            iconWidth,
+            iconHeight,
+          );
+        } else {
+          ctx.fillStyle = "#b89d6f";
+          ctx.beginPath();
+          ctx.arc(
+            restaurant.location.x,
+            restaurant.location.y - iconHeight / 2,
+            8,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
+      });
+    }
+
+    // --- ОТРИСОВКА ХРАМОВ ---
+    if (mode === "temple" && templePoints.length > 0) {
+      const iconSize = 45;
+      const icon = templeIconsRef.current.default;
+
+      templePoints.forEach((temple) => {
+        if (icon) {
+          ctx.drawImage(
+            icon,
+            temple.x - iconSize / 2,
+            temple.y - iconSize,
+            iconSize,
+            iconSize,
+          );
+
+          if (zoomRef.current > 1.5) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 12px 'Advent Pro', sans-serif";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(temple.name, temple.x, temple.y - iconSize - 5);
+            ctx.shadowColor = "transparent";
+          }
+        } else {
+          ctx.fillStyle = "#FFD700";
+          ctx.beginPath();
+          ctx.arc(temple.x, temple.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    // --- Отрисовка пользователя ---
     if (userGPS) {
       const up = gpsToPixel(userGPS.lat, userGPS.lon);
       if (up) {
@@ -821,43 +977,6 @@ export default forwardRef(function MapCanvasBlock(
       }
     }
 
-    // --- ОТРИСОВКА РЕСТОРАНОВ ---
-    if (mode === "gastro" && restaurants && restaurants.length > 0) {
-      const iconWidth = 45; // ширина вашей иконки
-      const iconHeight = 52; // высота вашей иконки
-
-      restaurants.forEach((restaurant) => {
-        const icon = restaurantIconsRef.current[restaurant.id];
-
-        if (icon) {
-          ctx.drawImage(
-            icon,
-            restaurant.location.x - iconWidth / 2, //
-            restaurant.location.y - iconHeight / 2, //
-            iconWidth,
-            iconHeight,
-          );
-
-          // Опционально: добавить точку в месте привязки для отладки
-          // ctx.fillStyle = "red";
-          // ctx.beginPath();
-          // ctx.arc(restaurant.location.x, restaurant.location.y, 2, 0, Math.PI * 2);
-          // ctx.fill();
-        } else {
-          // Плейсхолдер если иконка не загрузилась
-          ctx.fillStyle = "#b89d6f";
-          ctx.beginPath();
-          ctx.arc(
-            restaurant.location.x,
-            restaurant.location.y - iconHeight / 2,
-            8,
-            0,
-            Math.PI * 2,
-          );
-          ctx.fill();
-        }
-      });
-    }
     ctx.restore();
   }, [
     pageMode,
@@ -866,15 +985,14 @@ export default forwardRef(function MapCanvasBlock(
     routeNodes,
     mode,
     restaurants,
-    getQuestPointIcon, // Добавлена зависимость
+    getQuestPointIcon,
   ]);
 
-  // ========== ОПТИМИЗИРОВАННАЯ ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
+  // ========== ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
   useEffect(() => {
     let isMounted = true;
     let loadedCount = 0;
-    // Считаем только критически важные изображения
-    const totalImages = 1 + (restaurants?.length || 0); // только карта и рестораны
+    const totalImages = 1 + (restaurants?.length || 0) + 1;
 
     const updateProgress = () => {
       loadedCount++;
@@ -904,7 +1022,6 @@ export default forwardRef(function MapCanvasBlock(
       });
     };
 
-    // Сначала загружаем только карту
     loadImage(mapImage).then((img) => {
       if (!isMounted) return;
       imgRef.current = img;
@@ -916,16 +1033,19 @@ export default forwardRef(function MapCanvasBlock(
       bgCtx.drawImage(img, 0, 0);
       bgCanvasRef.current = bgCanvas;
 
-      // Вычисляем аффинное преобразование сразу после загрузки карты
       computeAffineFromNodes();
 
-      // Инициализируем без зайцев
       setInitialized(true);
       setTimeout(() => {
         setIsLoading(false);
       }, 200);
 
-      // Загружаем рестораны если нужно
+      loadImage(templeIcon).then((img) => {
+        if (img && isMounted) {
+          templeIconsRef.current.default = img;
+        }
+      });
+
       if (restaurants && restaurants.length > 0) {
         Promise.all(
           restaurants.map((restaurant) => {
@@ -948,7 +1068,7 @@ export default forwardRef(function MapCanvasBlock(
     };
   }, [computeAffineFromNodes, restaurants]);
 
-  // Добавьте новый useEffect для ленивой загрузки иконок зайцев
+  // --- Загрузка иконок зайцев ---
   useEffect(() => {
     if (!initialized) return;
 
@@ -970,231 +1090,18 @@ export default forwardRef(function MapCanvasBlock(
       { key: "rabbitFourteen", src: rabbitFourteen },
     ];
 
-    // Загружаем иконки в фоне после отрисовки карты с низким приоритетом
     const loadRabbitIcons = async () => {
-      // Используем requestIdleCallback для загрузки в свободное время
-      const loadInIdleTime = (callback) => {
-        if ("requestIdleCallback" in window) {
-          window.requestIdleCallback(callback, { timeout: 2000 });
-        } else {
-          // Fallback для браузеров без requestIdleCallback
-          setTimeout(callback, 200);
-        }
-      };
-
       for (const { key, src } of rabbitImages) {
-        loadInIdleTime(() => {
-          const img = new Image();
-          img.src = src;
-          if ("decode" in img) {
-            img
-              .decode()
-              .then(() => {
-                rabbitIconsRef.current[key] = img;
-                drawMap(); // Перерисовываем после загрузки
-              })
-              .catch(() => {
-                // Если decode не сработал, используем onload
-                img.onload = () => {
-                  rabbitIconsRef.current[key] = img;
-                  drawMap(); // Перерисовываем после загрузки
-                };
-              });
-          } else {
-            img.onload = () => {
-              rabbitIconsRef.current[key] = img;
-              drawMap(); // Перерисовываем после загрузки
-            };
-          }
-        });
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          rabbitIconsRef.current[key] = img;
+        };
       }
     };
 
     loadRabbitIcons();
-  }, [initialized, drawMap]);
-
-  // Добавьте предзагрузку иконок для текущего режима
-  useEffect(() => {
-    if (!initialized || !mode) return;
-
-    // Определяем какие иконки нужны для текущего режима
-    const preloadModeIcons = () => {
-      const modeIcons = {
-        step2: ["rabbitIcon"],
-        step4: ["rabbitOne", "rabbitIcon"],
-        step6: ["rabbitOne", "rabbitTwo", "rabbitIcon"],
-        step8: ["rabbitOne", "rabbitTwo", "rabbitThree", "rabbitIcon"],
-        step10: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitIcon",
-        ],
-        step12: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitIcon",
-        ],
-        step14: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitIcon",
-        ],
-        step16: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitIcon",
-        ],
-        step18: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitEight",
-          "rabbitIcon",
-        ],
-        step20: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitEight",
-          "rabbitNine",
-          "rabbitIcon",
-        ],
-        step22: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitEight",
-          "rabbitNine",
-          "rabbitTen",
-          "rabbitIcon",
-        ],
-        step24: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitEight",
-          "rabbitNine",
-          "rabbitTen",
-          "rabbitEleven",
-          "rabbitIcon",
-        ],
-        step26: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitEight",
-          "rabbitNine",
-          "rabbitTen",
-          "rabbitEleven",
-          "rabbitTwelve",
-          "rabbitIcon",
-        ],
-        step28: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitEight",
-          "rabbitNine",
-          "rabbitTen",
-          "rabbitEleven",
-          "rabbitTwelve",
-          "rabbitThirteen",
-          "rabbitIcon",
-        ],
-        step30: [
-          "rabbitOne",
-          "rabbitTwo",
-          "rabbitThree",
-          "rabbitFour",
-          "rabbitFive",
-          "rabbitSix",
-          "rabbitSeven",
-          "rabbitEight",
-          "rabbitNine",
-          "rabbitTen",
-          "rabbitEleven",
-          "rabbitTwelve",
-          "rabbitThirteen",
-          "rabbitFourteen",
-        ],
-      };
-
-      const neededIcons = modeIcons[mode] || [];
-
-      // Загружаем иконки для текущего режима с высоким приоритетом
-      neededIcons.forEach((key) => {
-        if (!rabbitIconsRef.current[key]) {
-          const src = {
-            rabbitIcon,
-            rabbitOne,
-            rabbitTwo,
-            rabbitThree,
-            rabbitFour,
-            rabbitFive,
-            rabbitSix,
-            rabbitSeven,
-            rabbitEight,
-            rabbitNine,
-            rabbitTen,
-            rabbitEleven,
-            rabbitTwelve,
-            rabbitThirteen,
-            rabbitFourteen,
-          }[key];
-
-          if (src) {
-            const img = new Image();
-            img.src = src;
-            img.onload = () => {
-              rabbitIconsRef.current[key] = img;
-              // Перерисовываем карту когда иконка загрузилась
-              drawMap();
-            };
-          }
-        }
-      });
-    };
-
-    preloadModeIcons();
-  }, [mode, initialized, drawMap]);
+  }, [initialized]);
 
   // --- main render ---
   useEffect(() => {
@@ -1265,50 +1172,6 @@ export default forwardRef(function MapCanvasBlock(
     };
   }, [initialized, canvasSize, drawMap]);
 
-  // --- обработчик кнопки ---
-  const handleBuildRoute = useCallback(() => {
-    if (pageMode !== "quest") return;
-    rebuildRouteFromUser();
-
-    if (!userGPS) return;
-    const px = gpsToPixel(userGPS.lat, userGPS.lon);
-    if (!px) return;
-
-    setFollowUser(true);
-    centerOnPixel(px, 2.2);
-  }, [pageMode, rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
-
-  useEffect(() => {
-    if (!followUser || !userGPS) return;
-
-    const now = Date.now();
-    if (now - lastInteractionRef.current < 3000) return;
-
-    const px = gpsToPixel(userGPS.lat, userGPS.lon);
-    if (!px) return;
-
-    centerOnPixel(px);
-  }, [userGPS, followUser, gpsToPixel, centerOnPixel]);
-
-  useEffect(() => {
-    if (!userGPS) return;
-
-    const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-    if (!userPx) return;
-
-    if (mode === "step2") {
-      const startQP = questPoints[0];
-      const dx = userPx.x - startQP.x;
-      const dy = userPx.y - startQP.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const REACH_RADIUS = 25;
-
-      if (dist < REACH_RADIUS) {
-        onQuestPointReached?.(2);
-      }
-    }
-  }, [userGPS, gpsToPixel, onQuestPointReached, mode]);
-
   // --- wheel zoom ---
   useEffect(() => {
     const el = containerRef.current;
@@ -1367,57 +1230,64 @@ export default forwardRef(function MapCanvasBlock(
   const onMouseUp = () => (draggingRef.current = false);
   const onMouseLeave = () => (draggingRef.current = false);
 
-  // --- КЛИК ПО МАРКЕРУ РЕСТОРАНА ---
+  // --- обработка кликов ---
   const handleCanvasClick = (e) => {
-    if (!canvasRef.current || mode !== "gastro" || !restaurants.length) return;
+    if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
 
-    // Получаем координаты клика на canvas в пикселях экрана
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
 
-    console.log("Click at screen:", clickX, clickY);
-    console.log("Current zoom:", zoomRef.current);
-    console.log("Current offset:", offsetRef.current);
-
-    // Переводим в координаты карты с учетом текущего зума и смещения
     const mapX = (clickX - offsetRef.current.x) / zoomRef.current;
     const mapY = (clickY - offsetRef.current.y) / zoomRef.current;
 
-    console.log("Map coordinates:", mapX, mapY);
+    const hitRadius = 20 / Math.max(0.5, zoomRef.current);
 
-    // Размер области клика в пикселях карты (увеличиваем при маленьком зуме)
-    const baseHitRadius = 20; // базовый радиус в пикселях карты
-    // Корректируем радиус в зависимости от зума
-    const hitRadius = baseHitRadius / Math.max(0.5, zoomRef.current);
+    if (mode === "gastro" && restaurants.length) {
+      let closestRestaurant = null;
+      let closestDistance = Infinity;
 
-    console.log("Hit radius:", hitRadius);
+      restaurants.forEach((restaurant) => {
+        const dx = mapX - restaurant.location.x;
+        const dy = mapY - restaurant.location.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Ищем ближайший ресторан
-    let closestRestaurant = null;
-    let closestDistance = Infinity;
+        if (distance < hitRadius && distance < closestDistance) {
+          closestDistance = distance;
+          closestRestaurant = restaurant;
+        }
+      });
 
-    restaurants.forEach((restaurant) => {
-      const dx = mapX - restaurant.location.x;
-      const dy = mapY - restaurant.location.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance < hitRadius && distance < closestDistance) {
-        closestDistance = distance;
-        closestRestaurant = restaurant;
+      if (closestRestaurant) {
+        onMarkerClick(closestRestaurant.id);
+        return;
       }
-    });
+    }
 
-    if (closestRestaurant) {
-      console.log(
-        `✅ Clicked on restaurant ${closestRestaurant.id}:`,
-        closestRestaurant.name,
-      );
-      onMarkerClick(closestRestaurant.id);
-    } else {
-      console.log("❌ No restaurant clicked");
+    if (mode === "temple" && templePoints.length) {
+      let closestTemple = null;
+      let closestDistance = Infinity;
+
+      templePoints.forEach((temple) => {
+        const dx = mapX - temple.x;
+        const dy = mapY - temple.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < hitRadius && distance < closestDistance) {
+          closestDistance = distance;
+          closestTemple = temple;
+        }
+      });
+
+      if (closestTemple) {
+        console.log(`Clicked on temple: ${closestTemple.name}`);
+        centerOnPixel({ x: closestTemple.x, y: closestTemple.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToTemple(closestTemple.id);
+        }, 100);
+      }
     }
   };
 
@@ -1516,13 +1386,10 @@ export default forwardRef(function MapCanvasBlock(
     }
   }, [mode]);
 
-  // ИСПРАВЛЕНИЕ: Обработчик закрытия модалки прогресса
   const handleCloseProgressModal = useCallback(() => {
-    // Устанавливаем флаг, что модалка только что закрылась
     progressModalJustClosed.current = true;
     setShowProgressModal(false);
 
-    // Сбрасываем флаг через небольшую задержку
     setTimeout(() => {
       progressModalJustClosed.current = false;
     }, 500);
@@ -1551,90 +1418,74 @@ export default forwardRef(function MapCanvasBlock(
               centerOnPixel(px, 2.2);
               setFollowUser(true);
             }
-          } else {
-            console.warn("User GPS not available for step2");
           }
           break;
         }
-
         case "step4": {
           buildRouteBetweenPoints(1, 2);
           centerOnQuestPoints(1, 2, 1.8);
           break;
         }
-
         case "step6": {
           buildRouteBetweenPoints(2, 3);
           centerOnQuestPoints(2, 3, 1.8);
           break;
         }
-
         case "step8": {
           buildRouteBetweenPoints(3, 4);
           centerOnQuestPoints(3, 4, 1.8);
           break;
         }
-
         case "step10": {
           buildRouteBetweenPoints(4, 5);
           centerOnQuestPoints(4, 5, 1.8);
           break;
         }
-
         case "step12": {
           buildRouteBetweenPoints(5, 6);
           centerOnQuestPoints(5, 6, 1.8);
           break;
         }
-
         case "step14": {
           buildRouteBetweenPoints(6, 7);
           centerOnQuestPoints(6, 7, 1.8);
           break;
         }
-
         case "step16": {
           buildRouteBetweenPoints(7, 8);
           centerOnQuestPoints(7, 8, 1.8);
           break;
         }
-
         case "step18": {
           buildRouteBetweenPoints(8, 9);
           centerOnQuestPoints(8, 9, 1.8);
           break;
         }
-
         case "step20": {
           buildRouteBetweenPoints(9, 10);
           centerOnQuestPoints(9, 10, 1.8);
           break;
         }
-
         case "step22": {
           buildRouteBetweenPoints(10, 11);
           centerOnQuestPoints(10, 11, 1.8);
           break;
         }
-
         case "step24": {
           buildRouteBetweenPoints(11, 12);
           centerOnQuestPoints(11, 12, 1.8);
           break;
         }
-
         case "step26": {
           buildRouteBetweenPoints(12, 13);
           centerOnQuestPoints(12, 13, 1.8);
           break;
         }
-
         case "step28": {
           buildRouteBetweenPoints(13, 14);
           centerOnQuestPoints(13, 14, 1.8);
           break;
         }
-
         case "step30": {
           setRouteNodes([]);
           const lastPoint = questPoints.find((qp) => qp.order === 14);
@@ -1643,7 +1494,6 @@ export default forwardRef(function MapCanvasBlock(
           }
           break;
         }
-
         default:
           console.warn(`Режим ${newMode} не обработан`);
           break;
@@ -1658,6 +1508,7 @@ export default forwardRef(function MapCanvasBlock(
     buildRouteToStart: () => {
       handleBuildRoute();
     },
+
     howProgress: () => {
       setShowProgressModal(true);
     },
@@ -1678,10 +1529,64 @@ export default forwardRef(function MapCanvasBlock(
     buildRouteFromThirteenthToFourteenthPoint: () =>
       buildRouteBetweenPoints(13, 14),
 
+    buildRouteToTemple: (templeId) => {
+      buildRouteToTemple(templeId);
+    },
+
+    centerOnTemple: (templeId) => {
+      const temple = templePoints.find((t) => t.id === templeId);
+      if (temple) {
+        centerOnPixel({ x: temple.x, y: temple.y }, 2.0);
+      }
+    },
+
     redraw: () => {
       drawMap();
     },
   }));
+
+  const handleBuildRoute = useCallback(() => {
+    if (pageMode !== "quest") return;
+    rebuildRouteFromUser();
+
+    if (!userGPS) return;
+    const px = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!px) return;
+
+    setFollowUser(true);
+    centerOnPixel(px, 2.2);
+  }, [pageMode, rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
+
+  useEffect(() => {
+    if (!followUser || !userGPS) return;
+
+    const now = Date.now();
+    if (now - lastInteractionRef.current < 3000) return;
+
+    const px = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!px) return;
+
+    centerOnPixel(px);
+  }, [userGPS, followUser, gpsToPixel, centerOnPixel]);
+
+  useEffect(() => {
+    if (!userGPS) return;
+
+    const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!userPx) return;
+
+    if (mode === "step2") {
+      const startQP = questPoints[0];
+      const dx = userPx.x - startQP.x;
+      const dy = userPx.y - startQP.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const REACH_RADIUS = 25;
+
+      if (dist < REACH_RADIUS) {
+        onQuestPointReached?.(2);
+      }
+    }
+  }, [userGPS, gpsToPixel, onQuestPointReached, mode]);
 
   const centerOnQuestPoints = useCallback(
     (startOrder, targetOrder, zoom = 1.8) => {
@@ -1722,8 +1627,8 @@ export default forwardRef(function MapCanvasBlock(
     <div
       ref={containerRef}
       className={`map-container ${className} ${
-        draggingRef.current ? "dragging" : ""
-      }`}
+        mode === "quest" ? "map-container-quest" : ""
+      } ${draggingRef.current ? "dragging" : ""}`}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}

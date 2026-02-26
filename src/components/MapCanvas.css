@@ -151,3 +151,13 @@
     opacity: 1;
   }
 }
+
+/* Дополнительные стили для меток храмов */
+.temple-marker-label {
+  font-family: "Advent Pro", sans-serif;
+  fill: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: bold;
+}
