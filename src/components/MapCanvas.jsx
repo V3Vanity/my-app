@@ -246,7 +246,7 @@ export default forwardRef(function MapCanvasBlock(
     return nearest;
   }, []);
 
-  // --- Функция для вычисления расстояния между узлами ---
+  // --- Функция для вычисления расстояния между узлами с приоритетами ---
   const calculateDistance = useCallback((node1Id, node2Id) => {
     const node1 = nodes.find((n) => n.id === node1Id);
     const node2 = nodes.find((n) => n.id === node2Id);
@@ -256,7 +256,84 @@ export default forwardRef(function MapCanvasBlock(
     const dx = node1.x - node2.x;
     const dy = node1.y - node2.y;
 
-    return Math.sqrt(dx * dx + dy * dy);
+    // Базовое расстояние
+    let distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Приоритетные группы узлов
+    const priorityNodes = [
+      // Все узлы, начинающиеся с Q, W, D, Y
+      ...nodes.filter((n) => n.id.startsWith("Q")).map((n) => n.id),
+      ...nodes.filter((n) => n.id.startsWith("W")).map((n) => n.id),
+      ...nodes.filter((n) => n.id.startsWith("D")).map((n) => n.id),
+      ...nodes.filter((n) => n.id.startsWith("Y")).map((n) => n.id),
+      ...nodes.filter((n) => n.id.startsWith("U")).map((n) => n.id),
+    ];
+
+    // Узлы, которые хотим избегать (можно добавить позже)
+    const avoidNodes = [
+      "M1",
+      "Q1",
+      "Q2",
+      "P1",
+      "R1",
+      "U1", // обходные узлы
+      "Z1",
+      "Z2",
+      "Z3",
+      "Z4",
+      "Z5",
+      "Z6",
+      "Z7",
+      "Z8",
+      "Z9",
+      "Z10",
+      "Z11",
+      "Z12",
+      "Z13", // окраины
+    ];
+
+    // Проверяем принадлежность узлов к приоритетным группам
+    const isNode1Priority = priorityNodes.includes(node1Id);
+    const isNode2Priority = priorityNodes.includes(node2Id);
+    const isNode1Avoid = avoidNodes.includes(node1Id);
+    const isNode2Avoid = avoidNodes.includes(node2Id);
+
+    // Приоритетные пути (оба узла из Q, W, D, Y)
+    if (isNode1Priority && isNode2Priority) {
+      // Уменьшаем вес на 70% - делаем очень привлекательными
+      distance = distance * 0.3;
+      console.log(
+        `Priority path: ${node1Id} → ${node2Id} = ${distance.toFixed(2)}`,
+      );
+    }
+    // Пути, ведущие к приоритетным узлам
+    else if (isNode1Priority || isNode2Priority) {
+      // Умеренное уменьшение веса на 40%
+      distance = distance * 0.6;
+    }
+
+    // Штрафы для нежелательных узлов
+    if (isNode1Avoid && isNode2Avoid) {
+      // Оба узла нежелательные - большой штраф
+      distance = distance * 3;
+    } else if (isNode1Avoid || isNode2Avoid) {
+      // Один узел нежелательный - средний штраф
+      distance = distance * 1.8;
+    }
+
+    // Дополнительный бонус для связок внутри одной группы
+    const sameGroup =
+      (node1Id.startsWith("Q") && node2Id.startsWith("Q")) ||
+      (node1Id.startsWith("W") && node2Id.startsWith("W")) ||
+      (node1Id.startsWith("D") && node2Id.startsWith("D")) ||
+      (node1Id.startsWith("Y") && node2Id.startsWith("Y"));
+
+    if (sameGroup) {
+      // Дополнительный бонус за перемещение внутри одной группы
+      distance = distance * 0.8;
+    }
+
+    return distance;
   }, []);
 
   // --- построение маршрута по графу с весами (Дейкстра) ---
