@@ -15,6 +15,7 @@ export const nodes = [
   { id: "D2", x: 493, y: 673 },
   { id: "D3", x: 493, y: 614 },
   { id: "D4", x: 493, y: 524 },
+  { id: "D4.5", x: 493, y: 500 },
   { id: "D5", x: 493, y: 485 },
   { id: "D6", x: 492, y: 444 },
   { id: "E", x: 520, y: 787 },
@@ -38,6 +39,7 @@ export const nodes = [
   { id: "G8", x: 795, y: 550 },
   { id: "G9", x: 730, y: 610 },
   { id: "G10", x: 750, y: 630 },
+  { id: "G11", x: 800, y: 425 },
   { id: "H", x: 979, y: 690 },
   { id: "I", x: 951, y: 560 },
   { id: "J", x: 952, y: 498 },
@@ -58,6 +60,8 @@ export const nodes = [
   { id: "T", x: 270, y: 280 },
   { id: "U", x: 239, y: 391 },
   { id: "U1", x: 429, y: 470 },
+  { id: "U2", x: 195, y: 381 },
+  { id: "U3", x: 129, y: 370 },
   { id: "V", x: 200, y: 515 },
   { id: "W", x: 161, y: 658 },
   { id: "W1", x: 370, y: 647 },
@@ -324,8 +328,9 @@ export const edges = [
   { from: "D1", to: "D2" },
   { from: "D2", to: "D3" },
   { from: "D3", to: "D4" },
-  { from: "D4", to: "D5" },
+  { from: "D4", to: "D4.5" },
   { from: "D5", to: "D6" },
+  { from: "D5", to: "D4.5" },
   { from: "D6", to: "Q" },
   { from: "E2", to: "E1" },
   { from: "E1", to: "E3" },
@@ -350,7 +355,8 @@ export const edges = [
   { from: "G5", to: "G6" },
   { from: "G6", to: "G7" },
   { from: "G3", to: "G4" },
-  { from: "G4", to: "L" },
+  { from: "G4", to: "G11" },
+  { from: "G11", to: "L" },
   { from: "H", to: "I" },
   { from: "I", to: "J" },
   { from: "J", to: "K" },
@@ -372,6 +378,8 @@ export const edges = [
   { from: "T", to: "U" },
   { from: "U", to: "V" },
   { from: "U", to: "U1" },
+  { from: "U", to: "U2" },
+  { from: "U2", to: "U3" },
   { from: "V", to: "W" },
   { from: "V", to: "W2" },
   { from: "W", to: "X" },
@@ -412,7 +420,7 @@ export const edges = [
   { from: "Z8", to: "Q2" },
   { from: "Z9", to: "R" },
   { from: "Z10", to: "T" },
-  { from: "Z11", to: "U" },
+  { from: "Z11", to: "U3" },
   { from: "Z12", to: "V" },
   { from: "Z13", to: "W" },
   // center
@@ -429,57 +437,57 @@ export const templePoints = [
   {
     id: "TEMPLE_KREMLIN",
     name: "Костромской Кремль",
-    x: 770, // Координаты узла L
-    y: 670, // Координаты узла L
-    attachTo: "L",
+    x: 770,
+    y: 670,
+    attachTo: "G11", // Узел рядом с Кремлем (x: 800, y: 425) - нужно создать или найти подходящий
     order: 1,
   },
   {
     id: "TEMPLE_SPAS",
     name: "Церковь Спаса Всемилостивого в Рядах",
-    x: 493, // Координаты узла D4
-    y: 524, // Координаты узла D4
-    attachTo: "D4",
+    x: 577,
+    y: 630,
+    attachTo: "Y9", // или G8? Нужен узел в этом районе
     order: 2,
   },
   {
     id: "TEMPLE_SMOLENSK",
     name: "Церковь Смоленской иконы Божией Матери",
-    x: 429, // Координаты узла U1
-    y: 470, // Координаты узла U1
-    attachTo: "U1",
+    x: 195,
+    y: 365,
+    attachTo: "U2", // Узел рядом (x: 195, y: 381)
     order: 3,
   },
   {
     id: "TEMPLE_BOGOYAVLEN",
     name: "Собор Богоявления Господня",
-    x: 429, // Координаты узла U1 (ближайший)
-    y: 470,
-    attachTo: "U1",
+    x: 144,
+    y: 330,
+    attachTo: "U3", // Узел рядом (x: 129, y: 370)
     order: 4,
   },
   {
     id: "TEMPLE_ILYA",
     name: "Церковь Илии Пророка на Русиной улице",
-    x: 368, // Координаты узла W2
-    y: 522, // Координаты узла W2
-    attachTo: "W2",
+    x: 810,
+    y: 442,
+    attachTo: "G2", // Узел рядом (x: 760, y: 495)
     order: 5,
   },
   {
     id: "TEMPLE_VOSKRES",
     name: "Церковь Воскресения Христова на Дебре",
-    x: 172, // Координаты узла X
-    y: 732, // Координаты узла X
-    attachTo: "X",
+    x: 172,
+    y: 732,
+    attachTo: "X", // Узел X (x: 172, y: 732) - идеально!
     order: 6,
   },
   {
     id: "TEMPLE_ZNAMENIE",
     name: "Церковь иконы Божией Матери Знамение",
-    x: 200, // Координаты узла V
-    y: 515, // Координаты узла V
-    attachTo: "V",
+    x: 200,
+    y: 515,
+    attachTo: "V", // Узел V (x: 200, y: 515) - идеально!
     order: 7,
   },
 ];

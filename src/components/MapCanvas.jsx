@@ -246,44 +246,99 @@ export default forwardRef(function MapCanvasBlock(
     return nearest;
   }, []);
 
-  // --- построение маршрута по графу ---
-  const buildRoute = useCallback((startId, endId) => {
-    const graph = {};
-    edges.forEach(({ from, to }) => {
-      if (!graph[from]) graph[from] = [];
-      if (!graph[to]) graph[to] = [];
-      graph[from].push(to);
-      graph[to].push(from);
-    });
+  // --- Функция для вычисления расстояния между узлами ---
+  const calculateDistance = useCallback((node1Id, node2Id) => {
+    const node1 = nodes.find((n) => n.id === node1Id);
+    const node2 = nodes.find((n) => n.id === node2Id);
 
-    const queue = [startId];
-    const visited = new Set([startId]);
-    const prev = {};
+    if (!node1 || !node2) return Infinity;
 
-    while (queue.length) {
-      const cur = queue.shift();
-      if (cur === endId) break;
+    const dx = node1.x - node2.x;
+    const dy = node1.y - node2.y;
 
-      for (const next of graph[cur] || []) {
-        if (!visited.has(next)) {
-          visited.add(next);
-          prev[next] = cur;
-          queue.push(next);
+    return Math.sqrt(dx * dx + dy * dy);
+  }, []);
+
+  // --- построение маршрута по графу с весами (Дейкстра) ---
+  const buildRouteDijkstra = useCallback(
+    (startId, endId) => {
+      console.log(`Building weighted route from ${startId} to ${endId}`);
+
+      // Создаем граф с весами
+      const graph = {};
+
+      // Для каждого ребра добавляем вес = расстояние между узлами
+      edges.forEach(({ from, to }) => {
+        const distance = calculateDistance(from, to);
+
+        if (!graph[from]) graph[from] = [];
+        if (!graph[to]) graph[to] = [];
+
+        graph[from].push({ node: to, weight: distance });
+        graph[to].push({ node: from, weight: distance });
+      });
+
+      // Дейкстра
+      const distances = {};
+      const previous = {};
+      const unvisited = new Set();
+
+      // Инициализация
+      nodes.forEach((node) => {
+        distances[node.id] = Infinity;
+        previous[node.id] = null;
+        unvisited.add(node.id);
+      });
+
+      distances[startId] = 0;
+
+      while (unvisited.size > 0) {
+        // Находим узел с минимальным расстоянием среди непосещённых
+        let current = null;
+        let minDistance = Infinity;
+
+        for (const nodeId of unvisited) {
+          if (distances[nodeId] < minDistance) {
+            minDistance = distances[nodeId];
+            current = nodeId;
+          }
+        }
+
+        if (current === null || current === endId) break;
+        if (distances[current] === Infinity) break; // Нет пути
+
+        unvisited.delete(current);
+
+        // Обновляем расстояния до соседей
+        for (const neighbor of graph[current] || []) {
+          if (!unvisited.has(neighbor.node)) continue;
+
+          const newDistance = distances[current] + neighbor.weight;
+          if (newDistance < distances[neighbor.node]) {
+            distances[neighbor.node] = newDistance;
+            previous[neighbor.node] = current;
+          }
         }
       }
-    }
 
-    if (!visited.has(endId)) return null;
+      // Восстанавливаем путь
+      if (distances[endId] === Infinity) {
+        console.warn("No path found");
+        return null;
+      }
 
-    const path = [];
-    let cur = endId;
-    while (cur) {
-      path.push(cur);
-      cur = prev[cur];
-    }
+      const path = [];
+      let cur = endId;
+      while (cur) {
+        path.unshift(cur);
+        cur = previous[cur];
+      }
 
-    return path.reverse();
-  }, []);
+      console.log("Path found with total distance:", distances[endId]);
+      return path;
+    },
+    [calculateDistance],
+  );
 
   const clampOffset = useCallback(() => {
     if (!imgRef.current || !containerRef.current) return;
@@ -321,7 +376,7 @@ export default forwardRef(function MapCanvasBlock(
     [clampOffset],
   );
 
-  // --- построение маршрута к храму ---
+  // --- построение маршрута к храму (используем Дейкстру) ---
   const buildRouteToTemple = useCallback(
     (templeId) => {
       console.log("buildRouteToTemple called with:", templeId);
@@ -351,7 +406,11 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      const path = buildRoute(nearestNodeToUser.id, nearestNodeToTemple.id);
+      // Используем Дейкстру вместо BFS
+      const path = buildRouteDijkstra(
+        nearestNodeToUser.id,
+        nearestNodeToTemple.id,
+      );
       if (!path) {
         console.warn("Could not build route between nodes");
         return;
@@ -371,10 +430,10 @@ export default forwardRef(function MapCanvasBlock(
       console.log("Final route:", route);
       setRouteNodes(route);
     },
-    [userGPS, gpsToPixel, findNearestNode, buildRoute],
+    [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута из GPS пользователя для квеста (с центрированием на иконках) ---
+  // --- построение маршрута из GPS пользователя для квеста (используем Дейкстру) ---
   const rebuildRouteFromUser = useCallback(() => {
     if (mode !== "step2") {
       return;
@@ -389,7 +448,8 @@ export default forwardRef(function MapCanvasBlock(
     if (!startQP) return;
 
     let nearestNode = findNearestNode(userPx);
-    const path = buildRoute(nearestNode.id, "START");
+    // Используем Дейкстру вместо BFS
+    const path = buildRouteDijkstra(nearestNode.id, "START");
     if (!path) return;
 
     const iconSize = 40;
@@ -404,7 +464,7 @@ export default forwardRef(function MapCanvasBlock(
             ? {
                 id: node.id,
                 x: node.x,
-                y: node.y - iconCenterOffset, // Смещаем к центру иконки
+                y: node.y - iconCenterOffset,
               }
             : null;
         })
@@ -414,7 +474,7 @@ export default forwardRef(function MapCanvasBlock(
     routeWithUser.push({
       id: "START",
       x: startQP.x,
-      y: startQP.y - iconCenterOffset, // Смещаем к центру иконки
+      y: startQP.y - iconCenterOffset,
     });
 
     setRouteNodes(routeWithUser);
@@ -434,7 +494,7 @@ export default forwardRef(function MapCanvasBlock(
     userGPS,
     gpsToPixel,
     findNearestNode,
-    buildRoute,
+    buildRouteDijkstra,
     onQuestPointReached,
     mode,
   ]);
@@ -474,7 +534,7 @@ export default forwardRef(function MapCanvasBlock(
     currentMapMode,
   ]);
 
-  // Объединенная функция построения маршрутов для квеста (с центрированием на иконках)
+  // Объединенная функция построения маршрутов для квеста (используем Дейкстру)
   const buildRouteBetweenPoints = useCallback(
     (startOrder, targetOrder) => {
       const startQP = questPoints.find((qp) => qp.order === startOrder);
@@ -497,7 +557,11 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      const path = buildRoute(nearestNodeToStart.id, nearestNodeToTarget.id);
+      // Используем Дейкстру вместо BFS
+      const path = buildRouteDijkstra(
+        nearestNodeToStart.id,
+        nearestNodeToTarget.id,
+      );
 
       if (!path) {
         return;
@@ -513,7 +577,7 @@ export default forwardRef(function MapCanvasBlock(
             ? {
                 id: node.id,
                 x: node.x,
-                y: node.y - iconCenterOffset, // Смещаем к центру иконки
+                y: node.y - iconCenterOffset,
               }
             : null;
         })
@@ -522,18 +586,18 @@ export default forwardRef(function MapCanvasBlock(
       route.unshift({
         id: startQP.id,
         x: startQP.x,
-        y: startQP.y - iconCenterOffset, // Смещаем к центру иконки
+        y: startQP.y - iconCenterOffset,
       });
 
       route.push({
         id: targetQP.id,
         x: targetQP.x,
-        y: targetQP.y - iconCenterOffset, // Смещаем к центру иконки
+        y: targetQP.y - iconCenterOffset,
       });
 
       setRouteNodes(route);
     },
-    [buildRoute, findNearestNode],
+    [buildRouteDijkstra, findNearestNode],
   );
 
   // --- Обработка изменения режима из пропсов ---
@@ -805,6 +869,52 @@ export default forwardRef(function MapCanvasBlock(
     ctx.translate(offsetRef.current.x, offsetRef.current.y);
     ctx.scale(zoomRef.current, zoomRef.current);
 
+    // --- ОТЛАДКА: отрисовка всех узлов графа (временная) ---
+    const SHOW_DEBUG_NODES = true; // false / true
+    if (SHOW_DEBUG_NODES) {
+      nodes.forEach((node) => {
+        // Рисуем точку узла
+        ctx.fillStyle = "#00FF00";
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Добавляем ID узла для идентификации
+        ctx.fillStyle = "black";
+        ctx.font = "bold 10px 'Advent Pro', sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(node.id, node.x, node.y - 10);
+
+        // Рисуем координаты для особо важных узлов
+        if (
+          node.id === "START" ||
+          node.id === "L" ||
+          node.id === "D4" ||
+          node.id === "U1"
+        ) {
+          ctx.fillStyle = "blue";
+          ctx.font = "8px 'Advent Pro', sans-serif";
+          ctx.fillText(`(${node.x},${node.y})`, node.x, node.y - 20);
+        }
+      });
+    }
+
+    // --- ОТЛАДКА: отрисовка всех соединений (рёбер графа) ---
+    if (SHOW_DEBUG_NODES) {
+      ctx.strokeStyle = "rgba(0, 255, 0, 0.3)";
+      ctx.lineWidth = 2;
+      edges.forEach((edge) => {
+        const from = nodes.find((n) => n.id === edge.from);
+        const to = nodes.find((n) => n.id === edge.to);
+        if (from && to) {
+          ctx.beginPath();
+          ctx.moveTo(from.x, from.y);
+          ctx.lineTo(to.x, to.y);
+          ctx.stroke();
+        }
+      });
+    }
+
     if (pageMode === "quest") {
       ctx.strokeStyle = "#b89d6f12";
       ctx.lineWidth = 6;
@@ -835,7 +945,7 @@ export default forwardRef(function MapCanvasBlock(
       routeNodes.forEach((n, i) => {
         if (!n) return;
 
-        // Используем координаты из routeNodes (уже скорректированные для квеста)
+        // Используем координаты из routeNodes
         let x = n.x;
         let y = n.y;
 
@@ -847,6 +957,17 @@ export default forwardRef(function MapCanvasBlock(
       });
 
       ctx.stroke();
+
+      // --- ОТЛАДКА: показываем точки маршрута ---
+      if (SHOW_DEBUG_NODES) {
+        routeNodes.forEach((n, i) => {
+          if (!n) return;
+          ctx.fillStyle = i === 0 ? "#FF0000" : "#FF00FF";
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
     }
 
     // --- Отрисовка квестовых точек ---
@@ -893,6 +1014,18 @@ export default forwardRef(function MapCanvasBlock(
           iconSize,
           iconSize,
         );
+
+        // --- ОТЛАДКА: показываем центр иконки и порядок ---
+        if (SHOW_DEBUG_NODES) {
+          ctx.fillStyle = "yellow";
+          ctx.beginPath();
+          ctx.arc(qp.x, qp.y - iconSize / 2, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "black";
+          ctx.font = "bold 12px 'Advent Pro', sans-serif";
+          ctx.fillText(`#${qp.order}`, qp.x + 20, qp.y - iconSize);
+        }
       });
     }
 
@@ -919,6 +1052,20 @@ export default forwardRef(function MapCanvasBlock(
             restaurant.location.x,
             restaurant.location.y - iconHeight / 2,
             8,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
+
+        // --- ОТЛАДКА: показываем координаты ресторанов ---
+        if (SHOW_DEBUG_NODES) {
+          ctx.fillStyle = "orange";
+          ctx.beginPath();
+          ctx.arc(
+            restaurant.location.x,
+            restaurant.location.y,
+            3,
             0,
             Math.PI * 2,
           );
@@ -951,6 +1098,22 @@ export default forwardRef(function MapCanvasBlock(
             ctx.fillText(temple.name, temple.x, temple.y - iconSize - 5);
             ctx.shadowColor = "transparent";
           }
+
+          // --- ОТЛАДКА: показываем центр иконки храма и attachTo ---
+          if (SHOW_DEBUG_NODES) {
+            ctx.fillStyle = "purple";
+            ctx.beginPath();
+            ctx.arc(temple.x, temple.y - iconSize / 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "white";
+            ctx.font = "10px 'Advent Pro', sans-serif";
+            ctx.fillText(
+              `attached to: ${temple.attachTo}`,
+              temple.x,
+              temple.y - iconSize - 20,
+            );
+          }
         } else {
           ctx.fillStyle = "#FFD700";
           ctx.beginPath();
@@ -974,6 +1137,17 @@ export default forwardRef(function MapCanvasBlock(
         ctx.beginPath();
         ctx.arc(up.x, up.y, 12, 0, Math.PI * 2);
         ctx.stroke();
+
+        // --- ОТЛАДКА: показываем координаты пользователя ---
+        if (SHOW_DEBUG_NODES) {
+          ctx.fillStyle = "white";
+          ctx.font = "10px 'Advent Pro', sans-serif";
+          ctx.fillText(
+            `GPS: ${userGPS.lat.toFixed(4)}, ${userGPS.lon.toFixed(4)}`,
+            up.x,
+            up.y - 20,
+          );
+        }
       }
     }
 
