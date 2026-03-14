@@ -1011,7 +1011,7 @@ export default forwardRef(function MapCanvasBlock(
     if (routeNodes && routeNodes.length > 1) {
       if (mode === "temple") {
         ctx.strokeStyle = "#FFD700";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 2;
       } else {
         ctx.strokeStyle = "#ffffffaa";
         ctx.lineWidth = 2;
