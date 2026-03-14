@@ -947,7 +947,7 @@ export default forwardRef(function MapCanvasBlock(
     ctx.scale(zoomRef.current, zoomRef.current);
 
     // --- ОТЛАДКА: отрисовка всех узлов графа (временная) ---
-    const SHOW_DEBUG_NODES = true; // false / true
+    const SHOW_DEBUG_NODES = false; // false / true
     if (SHOW_DEBUG_NODES) {
       nodes.forEach((node) => {
         // Рисуем точку узла

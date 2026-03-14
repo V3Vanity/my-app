@@ -1,9 +1,9 @@
 import React, { useState, useRef } from "react";
 import "./TemplesSlider.css";
+import { allTemples } from "./mapData.js"; // Импортируем все храмы для слайдера
 
 export default function TemplesSlider({
-  temples,
-
+  temples = allTemples,
   onNavigateToTemple,
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,10 +31,8 @@ export default function TemplesSlider({
 
     if (Math.abs(diffX) > 50) {
       if (diffX > 0 && currentIndex > 0) {
-        // Свайп вправо - предыдущий слайд
         setCurrentIndex(currentIndex - 1);
       } else if (diffX < 0 && currentIndex < temples.length - 1) {
-        // Свайп влево - следующий слайд
         setCurrentIndex(currentIndex + 1);
       }
     }
@@ -55,11 +53,23 @@ export default function TemplesSlider({
   };
 
   const handleVisit = () => {
-    if (currentTemple) {
+    if (!currentTemple) return;
+
+    // Два последних храма (по индексу) отправляем в Яндекс Карты
+    if (currentIndex === 5 || currentIndex === 6) {
+      // Ссылки для двух последних храмов
+      const yandexLinks = [
+        "https://yandex.ru/maps/-/CPBt64Ib",
+        "https://yandex.ru/maps/-/CPBt66k1",
+      ];
+
+      // Открываем соответствующую ссылку
+      window.open(yandexLinks[currentIndex - 5], "_blank");
+    } else {
+      // Для остальных храмов (первые 5) строим маршрут на карте
       onNavigateToTemple(currentTemple);
     }
   };
-
   return (
     <div className="temples-slider-container">
       {/* Индикаторы слайдов */}
@@ -96,7 +106,7 @@ export default function TemplesSlider({
           />
         </div>
 
-        {/* Подзаголовок к фото с адресом */}
+        {/* Адрес */}
         <p className="temple-address">{currentTemple.address}</p>
 
         {/* Кнопка "Хочу посетить" */}
@@ -105,7 +115,6 @@ export default function TemplesSlider({
         </button>
 
         {/* Заголовок и описание */}
-        <h2 className="temple-section-title">О храме</h2>
         <p className="temple-description">{currentTemple.description}</p>
       </div>
 
