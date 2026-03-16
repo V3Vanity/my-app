@@ -1,59 +1,112 @@
-import React, { useState, useRef } from "react";
-import "./CategorySlider.css"; // переименуем CSS позже
+import React, { useState, useRef, useEffect } from "react";
+import "./CategorySlider.css";
 
 export default function CategorySlider({
-  items = [], // массив элементов для отображения
-  onNavigateToItem, // колбэк для навигации к элементу на карте
+  items = [],
+  onNavigateToItem,
   externalLinksConfig = {
-    // конфигурация для внешних ссылок (Яндекс Карты и т.д.)
-    startIndex: 5, // с какого индекса использовать внешние ссылки
-    links: [], // массив внешних ссылок
+    startIndex: 5,
+    links: [],
   },
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [startX, setStartX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [slideDirection, setSlideDirection] = useState(null);
+
+  // Для свайпов
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
   const containerRef = useRef(null);
 
   const currentItem = items[currentIndex];
 
-  const handleTouchStart = (e) => {
-    setStartX(e.touches[0].clientX);
-    setIsDragging(true);
+  // Минимальное расстояние для свайпа
+  const minSwipeDistance = 50;
+
+  // Сбрасываем анимацию после завершения
+  useEffect(() => {
+    if (isAnimating) {
+      const timer = setTimeout(() => {
+        setIsAnimating(false);
+        setSlideDirection(null);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isAnimating]);
+
+  const onTouchStart = (e) => {
+    if (isAnimating) return;
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
   };
 
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
+  const onTouchMove = (e) => {
+    if (isAnimating || !touchStart) return;
+    setTouchEnd(e.targetTouches[0].clientX);
   };
 
-  const handleTouchEnd = (e) => {
-    if (!isDragging) return;
-
-    const endX = e.changedTouches[0].clientX;
-    const diffX = endX - startX;
-
-    if (Math.abs(diffX) > 50) {
-      if (diffX > 0 && currentIndex > 0) {
-        setCurrentIndex(currentIndex - 1);
-      } else if (diffX < 0 && currentIndex < items.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      }
+  const onTouchEnd = () => {
+    if (isAnimating || !touchStart || !touchEnd) {
+      setTouchStart(null);
+      setTouchEnd(null);
+      return;
     }
 
-    setIsDragging(false);
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentIndex < items.length - 1) {
+      // Свайп влево - следующий слайд
+      setSlideDirection("left");
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex(currentIndex + 1);
+      }, 150);
+    } else if (isRightSwipe && currentIndex > 0) {
+      // Свайп вправо - предыдущий слайд
+      setSlideDirection("right");
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex(currentIndex - 1);
+      }, 150);
+    }
+
+    setTouchStart(null);
+    setTouchEnd(null);
   };
 
   const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+    if (currentIndex > 0 && !isAnimating) {
+      setSlideDirection("right");
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex(currentIndex - 1);
+      }, 150);
     }
   };
 
   const handleNext = () => {
-    if (currentIndex < items.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+    if (currentIndex < items.length - 1 && !isAnimating) {
+      setSlideDirection("left");
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex(currentIndex + 1);
+      }, 150);
     }
+  };
+
+  const handleIndicatorClick = (index) => {
+    if (index === currentIndex || isAnimating) return;
+
+    const direction = index > currentIndex ? "left" : "right";
+    setSlideDirection(direction);
+    setIsAnimating(true);
+
+    setTimeout(() => {
+      setCurrentIndex(index);
+    }, 150);
   };
 
   const handleVisit = () => {
@@ -77,6 +130,12 @@ export default function CategorySlider({
     }
   };
 
+  // Определяем класс для анимации
+  const getAnimationClass = () => {
+    if (!isAnimating) return "";
+    return slideDirection === "left" ? "slide-out-left" : "slide-out-right";
+  };
+
   return (
     <div className="category-slider-container">
       {/* Индикаторы слайдов */}
@@ -85,7 +144,7 @@ export default function CategorySlider({
           <div
             key={index}
             className={`indicator ${index === currentIndex ? "active" : ""}`}
-            onClick={() => setCurrentIndex(index)}
+            onClick={() => handleIndicatorClick(index)}
           />
         ))}
       </div>
@@ -93,28 +152,28 @@ export default function CategorySlider({
       {/* Основной слайдер */}
       <div
         ref={containerRef}
-        className="slider-content"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className={`slider-content ${getAnimationClass()}`}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {/* Заголовок */}
-        <h1 className="item-title">{currentItem.name}</h1>
+        <h1 className="item-title">{currentItem?.name}</h1>
 
         {/* Подзаголовок с описанием */}
-        <p className="item-subtitle">{currentItem.shortDescription}</p>
+        <p className="item-subtitle">{currentItem?.shortDescription}</p>
 
         {/* Фото */}
         <div className="item-image-container">
           <img
-            src={currentItem.image}
-            alt={currentItem.name}
+            src={currentItem?.image}
+            alt={currentItem?.name}
             className="item-image"
           />
         </div>
 
         {/* Адрес */}
-        <p className="item-address">{currentItem.address}</p>
+        <p className="item-address">{currentItem?.address}</p>
 
         {/* Кнопка "Хочу посетить" */}
         <button className="visit-button" onClick={handleVisit}>
@@ -122,7 +181,7 @@ export default function CategorySlider({
         </button>
 
         {/* Заголовок и описание */}
-        <p className="item-description">{currentItem.description}</p>
+        <p className="item-description">{currentItem?.description}</p>
       </div>
 
       {/* Стрелки навигации (для десктопа) */}
@@ -131,14 +190,14 @@ export default function CategorySlider({
           <button
             className={`slider-arrow arrow-left ${currentIndex === 0 ? "disabled" : ""}`}
             onClick={handlePrev}
-            disabled={currentIndex === 0}
+            disabled={currentIndex === 0 || isAnimating}
           >
             ←
           </button>
           <button
             className={`slider-arrow arrow-right ${currentIndex === items.length - 1 ? "disabled" : ""}`}
             onClick={handleNext}
-            disabled={currentIndex === items.length - 1}
+            disabled={currentIndex === items.length - 1 || isAnimating}
           >
             →
           </button>
