@@ -25,9 +25,18 @@ import rabbitTwelve from "../assets/rabbitTwelve.svg";
 import rabbitThirteen from "../assets/rabbitThirteen.svg";
 import rabbitFourteen from "../assets/rabbitFourteen.svg";
 import templeIcon from "../assets/temple-icon.svg";
+import museumIcon from "../assets/museum-icon.svg";
+
 import ProgressModal from "./ProgressModal.jsx";
 
-import { nodes, questPoints, edges, gpsMap, templePoints } from "./mapData.js";
+import {
+  nodes,
+  questPoints,
+  edges,
+  gpsMap,
+  templePoints,
+  museumPoints,
+} from "./mapData.js";
 const DEBUG_USER = true;
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
 
@@ -51,6 +60,7 @@ export default forwardRef(function MapCanvasBlock(
   const rabbitIconsRef = useRef({});
   const restaurantIconsRef = useRef({});
   const templeIconsRef = useRef({});
+  const museumIconsRef = useRef({});
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -505,6 +515,63 @@ export default forwardRef(function MapCanvasBlock(
       ];
 
       console.log("Final route:", route);
+      setRouteNodes(route);
+    },
+    [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
+  );
+
+  // --- построение маршрута к музею (используем Дейкстру) ---
+  const buildRouteToMuseum = useCallback(
+    (museumId) => {
+      console.log("buildRouteToMuseum called with:", museumId);
+
+      const museum = museumPoints.find((m) => m.id === museumId);
+      if (!museum) {
+        console.warn("Museum not found:", museumId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
+
+      const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
+
+      const nearestNodeToUser = findNearestNode(userPx);
+      const nearestNodeToMuseum = findNearestNode({ x: museum.x, y: museum.y });
+
+      if (!nearestNodeToUser || !nearestNodeToMuseum) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
+
+      // Используем Дейкстру вместо BFS
+      const path = buildRouteDijkstra(
+        nearestNodeToUser.id,
+        nearestNodeToMuseum.id,
+      );
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
+
+      const route = [
+        { id: "USER", x: userPx.x, y: userPx.y },
+        ...path
+          .map((id) => {
+            const node = nodes.find((n) => n.id === id);
+            return node ? { id: node.id, x: node.x, y: node.y } : null;
+          })
+          .filter(Boolean),
+        { id: museum.id, x: museum.x, y: museum.y, isMuseum: true },
+      ];
+
+      console.log("Final route to museum:", route);
       setRouteNodes(route);
     },
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
@@ -1009,7 +1076,7 @@ export default forwardRef(function MapCanvasBlock(
 
     // --- draw route on top ---
     if (routeNodes && routeNodes.length > 1) {
-      if (mode === "temple") {
+      if (mode === "temple" || mode === "museum") {
         ctx.strokeStyle = "#FFD700";
         ctx.lineWidth = 2;
       } else {
@@ -1200,6 +1267,39 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
+    // --- ОТРИСОВКА МУЗЕЕВ ---
+    if (mode === "museum" && museumPoints && museumPoints.length > 0) {
+      const iconSize = 45;
+      const icon = museumIconsRef.current.default;
+
+      museumPoints.forEach((museum) => {
+        if (icon) {
+          ctx.drawImage(
+            icon,
+            museum.x - iconSize / 2,
+            museum.y - iconSize,
+            iconSize,
+            iconSize,
+          );
+
+          if (zoomRef.current > 1.5) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 12px 'Advent Pro', sans-serif";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(museum.name, museum.x, museum.y - iconSize - 5);
+            ctx.shadowColor = "transparent";
+          }
+        } else {
+          ctx.fillStyle = "#4CAF50";
+          ctx.beginPath();
+          ctx.arc(museum.x, museum.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
     // --- Отрисовка пользователя ---
     if (userGPS) {
       const up = gpsToPixel(userGPS.lat, userGPS.lon);
@@ -1243,7 +1343,7 @@ export default forwardRef(function MapCanvasBlock(
   useEffect(() => {
     let isMounted = true;
     let loadedCount = 0;
-    const totalImages = 1 + (restaurants?.length || 0) + 1;
+    const totalImages = 1 + (restaurants?.length || 0) + 2; // +2 для temple и museum
 
     const updateProgress = () => {
       loadedCount++;
@@ -1294,6 +1394,12 @@ export default forwardRef(function MapCanvasBlock(
       loadImage(templeIcon).then((img) => {
         if (img && isMounted) {
           templeIconsRef.current.default = img;
+        }
+      });
+
+      loadImage(museumIcon).then((img) => {
+        if (img && isMounted) {
+          museumIconsRef.current.default = img;
         }
       });
 
@@ -1537,6 +1643,30 @@ export default forwardRef(function MapCanvasBlock(
         centerOnPixel({ x: closestTemple.x, y: closestTemple.y }, 2.0);
         setTimeout(() => {
           buildRouteToTemple(closestTemple.id);
+        }, 100);
+      }
+    }
+
+    if (mode === "museum" && museumPoints && museumPoints.length) {
+      let closestMuseum = null;
+      let closestDistance = Infinity;
+
+      museumPoints.forEach((museum) => {
+        const dx = mapX - museum.x;
+        const dy = mapY - museum.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < hitRadius && distance < closestDistance) {
+          closestDistance = distance;
+          closestMuseum = museum;
+        }
+      });
+
+      if (closestMuseum) {
+        console.log(`Clicked on museum: ${closestMuseum.name}`);
+        centerOnPixel({ x: closestMuseum.x, y: closestMuseum.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToMuseum(closestMuseum.id);
         }, 100);
       }
     }
@@ -1788,6 +1918,17 @@ export default forwardRef(function MapCanvasBlock(
       const temple = templePoints.find((t) => t.id === templeId);
       if (temple) {
         centerOnPixel({ x: temple.x, y: temple.y }, 2.0);
+      }
+    },
+
+    buildRouteToMuseum: (museumId) => {
+      buildRouteToMuseum(museumId);
+    },
+
+    centerOnMuseum: (museumId) => {
+      const museum = museumPoints.find((m) => m.id === museumId);
+      if (museum) {
+        centerOnPixel({ x: museum.x, y: museum.y }, 2.0);
       }
     },
 

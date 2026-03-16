@@ -1,4 +1,4 @@
-.temples-slider-container {
+.category-slider-container {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
@@ -15,12 +15,12 @@
 }
 
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .temples-slider-container {
+  .category-slider-container {
     padding-bottom: calc(40px + env(safe-area-inset-bottom));
   }
 }
 
-.temples-slider-container::-webkit-scrollbar {
+.category-slider-container::-webkit-scrollbar {
   display: none;
 }
 
@@ -57,7 +57,7 @@
   flex-direction: column;
 }
 
-.temple-title {
+.item-title {
   font-family: "TD Vo Blago Daryu", sans-serif;
   font-size: 45px;
   font-weight: 400;
@@ -67,7 +67,7 @@
   line-height: 1.2;
 }
 
-.temple-subtitle {
+.item-subtitle {
   font-family: "Advent Pro", sans-serif;
   font-size: 16px;
   color: #4a3718;
@@ -78,7 +78,7 @@
   opacity: 0.9;
 }
 
-.temple-image-container {
+.item-image-container {
   width: 100%;
   height: 220px;
   border-radius: 16px;
@@ -88,28 +88,22 @@
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.temple-image {
+.item-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.temple-address {
+.item-address {
   font-family: "Advent Pro", sans-serif;
   font-size: 14px;
   color: #4a3718;
   text-align: center;
   margin: 0 0 25px 0;
   font-style: italic;
-  background: rgba(134, 37, 24, 0.1);
-  padding: 8px 12px;
-  border-radius: 20px;
   display: inline-block;
   margin-left: auto;
   margin-right: auto;
-  width: fit-content;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(74, 55, 24, 0.2);
 }
 
 .visit-button {
@@ -136,7 +130,7 @@
   box-shadow: 0 2px 8px rgba(134, 37, 24, 0.4);
 }
 
-.temple-section-title {
+.item-section-title {
   font-family: "Advent Pro", sans-serif;
   font-size: 22px;
   font-weight: 600;
@@ -146,7 +140,7 @@
   position: relative;
 }
 
-.temple-section-title::after {
+.item-section-title::after {
   content: "";
   display: block;
   width: 60px;
@@ -157,7 +151,7 @@
   opacity: 0.7;
 }
 
-.temple-description {
+.item-description {
   font-family: "Advent Pro", sans-serif;
   font-size: 16px;
   line-height: 1.6;

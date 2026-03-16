@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import MapCanvas from "../components/MapCanvas";
-import TemplesSlider from "../components/TemplesSlider";
+import CategorySlider from "../components/CategorySlider"; // новый универсальный слайдер
+import { allTemples } from "../components/mapData.js"; // ИСПРАВЛЕННЫЙ ПУТЬ
 import "./TemplesPage.css";
 
 export default function TemplesPage() {
@@ -76,11 +77,19 @@ export default function TemplesPage() {
     // Даём время на монтирование карты
     setTimeout(() => {
       if (mapRef.current && temple.mapId) {
-        // Центрируем на храме и строим маршрут
         mapRef.current.centerOnTemple(temple.mapId);
         mapRef.current.buildRouteToTemple(temple.mapId);
       }
     }, 300);
+  };
+
+  // Конфигурация для внешних ссылок (Яндекс Карты)
+  const externalLinksConfig = {
+    startIndex: 5, // последние два храма (индексы 5 и 6)
+    links: [
+      "https://yandex.ru/maps/-/CPBt64Ib",
+      "https://yandex.ru/maps/-/CPBt66k1",
+    ],
   };
 
   return (
@@ -96,9 +105,10 @@ export default function TemplesPage() {
       <div className="temples-page-container">
         {/* Слайдер с храмами */}
         {showSlider && (
-          <TemplesSlider
-            onClose={() => navigate("/")}
-            onNavigateToTemple={handleNavigateToTemple}
+          <CategorySlider
+            items={allTemples}
+            onNavigateToItem={handleNavigateToTemple}
+            externalLinksConfig={externalLinksConfig}
           />
         )}
 

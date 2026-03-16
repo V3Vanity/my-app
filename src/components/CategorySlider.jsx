@@ -1,17 +1,21 @@
 import React, { useState, useRef } from "react";
-import "./TemplesSlider.css";
-import { allTemples } from "./mapData.js"; // Импортируем все храмы для слайдера
+import "./CategorySlider.css"; // переименуем CSS позже
 
-export default function TemplesSlider({
-  temples = allTemples,
-  onNavigateToTemple,
+export default function CategorySlider({
+  items = [], // массив элементов для отображения
+  onNavigateToItem, // колбэк для навигации к элементу на карте
+  externalLinksConfig = {
+    // конфигурация для внешних ссылок (Яндекс Карты и т.д.)
+    startIndex: 5, // с какого индекса использовать внешние ссылки
+    links: [], // массив внешних ссылок
+  },
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [startX, setStartX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
 
-  const currentTemple = temples[currentIndex];
+  const currentItem = items[currentIndex];
 
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
@@ -32,7 +36,7 @@ export default function TemplesSlider({
     if (Math.abs(diffX) > 50) {
       if (diffX > 0 && currentIndex > 0) {
         setCurrentIndex(currentIndex - 1);
-      } else if (diffX < 0 && currentIndex < temples.length - 1) {
+      } else if (diffX < 0 && currentIndex < items.length - 1) {
         setCurrentIndex(currentIndex + 1);
       }
     }
@@ -47,34 +51,37 @@ export default function TemplesSlider({
   };
 
   const handleNext = () => {
-    if (currentIndex < temples.length - 1) {
+    if (currentIndex < items.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
   };
 
   const handleVisit = () => {
-    if (!currentTemple) return;
+    if (!currentItem) return;
 
-    // Два последних храма (по индексу) отправляем в Яндекс Карты
-    if (currentIndex === 5 || currentIndex === 6) {
-      // Ссылки для двух последних храмов
-      const yandexLinks = [
-        "https://yandex.ru/maps/-/CPBt64Ib",
-        "https://yandex.ru/maps/-/CPBt66k1",
-      ];
+    // Проверяем, нужно ли использовать внешнюю ссылку
+    const useExternalLink =
+      externalLinksConfig.startIndex !== undefined &&
+      currentIndex >= externalLinksConfig.startIndex &&
+      externalLinksConfig.links[currentIndex - externalLinksConfig.startIndex];
 
-      // Открываем соответствующую ссылку
-      window.open(yandexLinks[currentIndex - 5], "_blank");
+    if (useExternalLink) {
+      window.open(
+        externalLinksConfig.links[
+          currentIndex - externalLinksConfig.startIndex
+        ],
+        "_blank",
+      );
     } else {
-      // Для остальных храмов (первые 5) строим маршрут на карте
-      onNavigateToTemple(currentTemple);
+      onNavigateToItem(currentItem);
     }
   };
+
   return (
-    <div className="temples-slider-container">
+    <div className="category-slider-container">
       {/* Индикаторы слайдов */}
       <div className="slider-indicators">
-        {temples.map((_, index) => (
+        {items.map((_, index) => (
           <div
             key={index}
             className={`indicator ${index === currentIndex ? "active" : ""}`}
@@ -92,22 +99,22 @@ export default function TemplesSlider({
         onTouchEnd={handleTouchEnd}
       >
         {/* Заголовок */}
-        <h1 className="temple-title">{currentTemple.name}</h1>
+        <h1 className="item-title">{currentItem.name}</h1>
 
         {/* Подзаголовок с описанием */}
-        <p className="temple-subtitle">{currentTemple.shortDescription}</p>
+        <p className="item-subtitle">{currentItem.shortDescription}</p>
 
-        {/* Фото храма */}
-        <div className="temple-image-container">
+        {/* Фото */}
+        <div className="item-image-container">
           <img
-            src={currentTemple.image}
-            alt={currentTemple.name}
-            className="temple-image"
+            src={currentItem.image}
+            alt={currentItem.name}
+            className="item-image"
           />
         </div>
 
         {/* Адрес */}
-        <p className="temple-address">{currentTemple.address}</p>
+        <p className="item-address">{currentItem.address}</p>
 
         {/* Кнопка "Хочу посетить" */}
         <button className="visit-button" onClick={handleVisit}>
@@ -115,11 +122,11 @@ export default function TemplesSlider({
         </button>
 
         {/* Заголовок и описание */}
-        <p className="temple-description">{currentTemple.description}</p>
+        <p className="item-description">{currentItem.description}</p>
       </div>
 
       {/* Стрелки навигации (для десктопа) */}
-      {temples.length > 1 && (
+      {items.length > 1 && (
         <>
           <button
             className={`slider-arrow arrow-left ${currentIndex === 0 ? "disabled" : ""}`}
@@ -129,9 +136,9 @@ export default function TemplesSlider({
             ←
           </button>
           <button
-            className={`slider-arrow arrow-right ${currentIndex === temples.length - 1 ? "disabled" : ""}`}
+            className={`slider-arrow arrow-right ${currentIndex === items.length - 1 ? "disabled" : ""}`}
             onClick={handleNext}
-            disabled={currentIndex === temples.length - 1}
+            disabled={currentIndex === items.length - 1}
           >
             →
           </button>
