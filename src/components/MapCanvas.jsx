@@ -38,6 +38,7 @@ import {
   museumPoints,
   artPoints,
   historyPoints,
+  familyPoints,
 } from "./mapData.js";
 const DEBUG_USER = true;
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
@@ -65,6 +66,7 @@ export default forwardRef(function MapCanvasBlock(
   const museumIconsRef = useRef({});
   const artIconsRef = useRef({});
   const historyIconsRef = useRef({});
+  const familyIconsRef = useRef({});
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -698,6 +700,66 @@ export default forwardRef(function MapCanvasBlock(
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
+  // --- построение маршрута к семейным местам (используем Дейкстру) ---
+  const buildRouteToFamily = useCallback(
+    (familyId) => {
+      console.log("buildRouteToFamily called with:", familyId);
+
+      const family = familyPoints.find((f) => f.id === familyId);
+      if (!family) {
+        console.warn("Family point not found:", familyId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
+
+      const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
+
+      const nearestNodeToUser = findNearestNode(userPx);
+      const nearestNodeToFamily = findNearestNode({
+        x: family.x,
+        y: family.y,
+      });
+
+      if (!nearestNodeToUser || !nearestNodeToFamily) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
+
+      // Используем Дейкстру
+      const path = buildRouteDijkstra(
+        nearestNodeToUser.id,
+        nearestNodeToFamily.id,
+      );
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
+
+      const route = [
+        { id: "USER", x: userPx.x, y: userPx.y },
+        ...path
+          .map((id) => {
+            const node = nodes.find((n) => n.id === id);
+            return node ? { id: node.id, x: node.x, y: node.y } : null;
+          })
+          .filter(Boolean),
+        { id: family.id, x: family.x, y: family.y, isFamily: true },
+      ];
+
+      console.log("Final route to family:", route);
+      setRouteNodes(route);
+    },
+    [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
+  );
+
   // --- построение маршрута из GPS пользователя для квеста (используем Дейкстру) ---
   const rebuildRouteFromUser = useCallback(() => {
     if (mode !== "step2") {
@@ -907,6 +969,19 @@ export default forwardRef(function MapCanvasBlock(
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToTemple]);
 
+  // --- Эффект для центрирования на выбранном музее ---
+  useEffect(() => {
+    if (mode === "museum" && selectedTemple && initialized) {
+      const museum = museumPoints.find((m) => m.id === selectedTemple.mapId);
+      if (museum) {
+        centerOnPixel({ x: museum.x, y: museum.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToMuseum(selectedTemple.mapId);
+        }, 100);
+      }
+    }
+  }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToMuseum]);
+
   // --- Эффект для центрирования на выбранном искусстве ---
   useEffect(() => {
     if (mode === "art" && selectedTemple && initialized) {
@@ -932,6 +1007,19 @@ export default forwardRef(function MapCanvasBlock(
       }
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToHistory]);
+
+  // --- Эффект для центрирования на выбранном семейном месте ---
+  useEffect(() => {
+    if (mode === "family" && selectedTemple && initialized) {
+      const family = familyPoints.find((f) => f.id === selectedTemple.mapId);
+      if (family) {
+        centerOnPixel({ x: family.x, y: family.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToFamily(selectedTemple.mapId);
+        }, 100);
+      }
+    }
+  }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToFamily]);
 
   // ========== ФУНКЦИЯ ВЫБОРА ИКОНКИ ЗАЙЦА ==========
   const getQuestPointIcon = useCallback(
@@ -1161,7 +1249,7 @@ export default forwardRef(function MapCanvasBlock(
     ctx.scale(zoomRef.current, zoomRef.current);
 
     // --- ОТЛАДКА: отрисовка всех узлов графа (временная) ---
-    const SHOW_DEBUG_NODES = true; // false / true
+    const SHOW_DEBUG_NODES = false; // false / true
     if (SHOW_DEBUG_NODES) {
       nodes.forEach((node) => {
         // Рисуем точку узла
@@ -1227,7 +1315,8 @@ export default forwardRef(function MapCanvasBlock(
         mode === "temple" ||
         mode === "museum" ||
         mode === "art" ||
-        mode === "history"
+        mode === "history" ||
+        mode === "family"
       ) {
         ctx.strokeStyle = "#FFD700";
         ctx.lineWidth = 2;
@@ -1520,6 +1609,40 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
+    // --- ОТРИСОВКА СЕМЕЙНЫХ МЕСТ ---
+    if (mode === "family" && familyPoints && familyPoints.length > 0) {
+      const iconSize = 45;
+      // Используем иконку музея для семейных мест (или можно добавить свою)
+      const icon = museumIconsRef.current.default;
+
+      familyPoints.forEach((family) => {
+        if (icon) {
+          ctx.drawImage(
+            icon,
+            family.x - iconSize / 2,
+            family.y - iconSize,
+            iconSize,
+            iconSize,
+          );
+
+          if (zoomRef.current > 1.5) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 12px 'Advent Pro', sans-serif";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(family.name, family.x, family.y - iconSize - 5);
+            ctx.shadowColor = "transparent";
+          }
+        } else {
+          ctx.fillStyle = "#FFA500"; // Оранжевый цвет для семейных мест
+          ctx.beginPath();
+          ctx.arc(family.x, family.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
     // --- Отрисовка пользователя ---
     if (userGPS) {
       const up = gpsToPixel(userGPS.lat, userGPS.lon);
@@ -1563,7 +1686,7 @@ export default forwardRef(function MapCanvasBlock(
   useEffect(() => {
     let isMounted = true;
     let loadedCount = 0;
-    const totalImages = 1 + (restaurants?.length || 0) + 4; // +4 для temple, museum, art и history
+    const totalImages = 1 + (restaurants?.length || 0) + 5; // +5 для temple, museum, art, history и family
 
     const updateProgress = () => {
       loadedCount++;
@@ -1620,9 +1743,10 @@ export default forwardRef(function MapCanvasBlock(
       loadImage(museumIcon).then((img) => {
         if (img && isMounted) {
           museumIconsRef.current.default = img;
-          // Для искусства и истории используем ту же иконку (или можно загрузить отдельные)
+          // Для искусства, истории и семейных мест используем ту же иконку
           artIconsRef.current.default = img;
           historyIconsRef.current.default = img;
+          familyIconsRef.current.default = img;
         }
       });
 
@@ -1941,6 +2065,30 @@ export default forwardRef(function MapCanvasBlock(
         }, 100);
       }
     }
+
+    if (mode === "family" && familyPoints && familyPoints.length) {
+      let closestFamily = null;
+      let closestDistance = Infinity;
+
+      familyPoints.forEach((family) => {
+        const dx = mapX - family.x;
+        const dy = mapY - family.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < hitRadius && distance < closestDistance) {
+          closestDistance = distance;
+          closestFamily = family;
+        }
+      });
+
+      if (closestFamily) {
+        console.log(`Clicked on family: ${closestFamily.name}`);
+        centerOnPixel({ x: closestFamily.x, y: closestFamily.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToFamily(closestFamily.id);
+        }, 100);
+      }
+    }
   };
 
   // --- touch drag + pinch ---
@@ -2214,7 +2362,6 @@ export default forwardRef(function MapCanvasBlock(
       }
     },
 
-    // НОВЫЕ МЕТОДЫ ДЛЯ ИСТОРИИ
     buildRouteToHistory: (historyId) => {
       buildRouteToHistory(historyId);
     },
@@ -2223,6 +2370,18 @@ export default forwardRef(function MapCanvasBlock(
       const history = historyPoints.find((h) => h.id === historyId);
       if (history) {
         centerOnPixel({ x: history.x, y: history.y }, 2.0);
+      }
+    },
+
+    // НОВЫЕ МЕТОДЫ ДЛЯ СЕМЕЙНЫХ МЕСТ
+    buildRouteToFamily: (familyId) => {
+      buildRouteToFamily(familyId);
+    },
+
+    centerOnFamily: (familyId) => {
+      const family = familyPoints.find((f) => f.id === familyId);
+      if (family) {
+        centerOnPixel({ x: family.x, y: family.y }, 2.0);
       }
     },
 
