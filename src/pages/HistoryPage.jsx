@@ -78,9 +78,9 @@ export default function HistoryPage() {
     // Даём время на монтирование карты
     setTimeout(() => {
       if (mapRef.current && historyItem.mapId) {
-        // Используем методы для истории (пока что как для музеев)
-        mapRef.current.centerOnMuseum?.(historyItem.mapId);
-        mapRef.current.buildRouteToMuseum?.(historyItem.mapId);
+        // ИСПОЛЬЗУЕМ МЕТОДЫ ДЛЯ ИСТОРИИ
+        mapRef.current.centerOnHistory?.(historyItem.mapId);
+        mapRef.current.buildRouteToHistory?.(historyItem.mapId);
       }
     }, 300);
   };
@@ -139,8 +139,8 @@ export default function HistoryPage() {
           <div className="history-map-wrapper">
             <MapCanvas
               ref={mapRef}
-              mode="museum" // Используем режим музея, так как в MapCanvas пока нет режима "history"
-              selectedTemple={selectedHistory}
+              mode="history" // ВАЖНО: режим "history"
+              selectedItem={selectedHistory} // ИЗМЕНЕНО: используем selectedItem вместо selectedTemple
               className="history-map"
             />
           </div>

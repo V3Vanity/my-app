@@ -37,6 +37,7 @@ import {
   templePoints,
   museumPoints,
   artPoints,
+  historyPoints,
 } from "./mapData.js";
 const DEBUG_USER = true;
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
@@ -63,6 +64,7 @@ export default forwardRef(function MapCanvasBlock(
   const templeIconsRef = useRef({});
   const museumIconsRef = useRef({});
   const artIconsRef = useRef({});
+  const historyIconsRef = useRef({});
 
   const zoomRef = useRef(1);
   const targetZoomRef = useRef(1);
@@ -636,6 +638,66 @@ export default forwardRef(function MapCanvasBlock(
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
+  // --- построение маршрута к истории (используем Дейкстру) ---
+  const buildRouteToHistory = useCallback(
+    (historyId) => {
+      console.log("buildRouteToHistory called with:", historyId);
+
+      const history = historyPoints.find((h) => h.id === historyId);
+      if (!history) {
+        console.warn("History point not found:", historyId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
+
+      const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
+
+      const nearestNodeToUser = findNearestNode(userPx);
+      const nearestNodeToHistory = findNearestNode({
+        x: history.x,
+        y: history.y,
+      });
+
+      if (!nearestNodeToUser || !nearestNodeToHistory) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
+
+      // Используем Дейкстру
+      const path = buildRouteDijkstra(
+        nearestNodeToUser.id,
+        nearestNodeToHistory.id,
+      );
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
+
+      const route = [
+        { id: "USER", x: userPx.x, y: userPx.y },
+        ...path
+          .map((id) => {
+            const node = nodes.find((n) => n.id === id);
+            return node ? { id: node.id, x: node.x, y: node.y } : null;
+          })
+          .filter(Boolean),
+        { id: history.id, x: history.x, y: history.y, isHistory: true },
+      ];
+
+      console.log("Final route to history:", route);
+      setRouteNodes(route);
+    },
+    [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
+  );
+
   // --- построение маршрута из GPS пользователя для квеста (используем Дейкстру) ---
   const rebuildRouteFromUser = useCallback(() => {
     if (mode !== "step2") {
@@ -857,6 +919,19 @@ export default forwardRef(function MapCanvasBlock(
       }
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToArt]);
+
+  // --- Эффект для центрирования на выбранной истории ---
+  useEffect(() => {
+    if (mode === "history" && selectedTemple && initialized) {
+      const history = historyPoints.find((h) => h.id === selectedTemple.mapId);
+      if (history) {
+        centerOnPixel({ x: history.x, y: history.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToHistory(selectedTemple.mapId);
+        }, 100);
+      }
+    }
+  }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToHistory]);
 
   // ========== ФУНКЦИЯ ВЫБОРА ИКОНКИ ЗАЙЦА ==========
   const getQuestPointIcon = useCallback(
@@ -1148,7 +1223,12 @@ export default forwardRef(function MapCanvasBlock(
 
     // --- draw route on top ---
     if (routeNodes && routeNodes.length > 1) {
-      if (mode === "temple" || mode === "museum" || mode === "art") {
+      if (
+        mode === "temple" ||
+        mode === "museum" ||
+        mode === "art" ||
+        mode === "history"
+      ) {
         ctx.strokeStyle = "#FFD700";
         ctx.lineWidth = 2;
       } else {
@@ -1406,6 +1486,40 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
+    // --- ОТРИСОВКА ИСТОРИИ ---
+    if (mode === "history" && historyPoints && historyPoints.length > 0) {
+      const iconSize = 45;
+      // Используем иконку музея для истории (или можно добавить свою)
+      const icon = museumIconsRef.current.default;
+
+      historyPoints.forEach((history) => {
+        if (icon) {
+          ctx.drawImage(
+            icon,
+            history.x - iconSize / 2,
+            history.y - iconSize,
+            iconSize,
+            iconSize,
+          );
+
+          if (zoomRef.current > 1.5) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 12px 'Advent Pro', sans-serif";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(history.name, history.x, history.y - iconSize - 5);
+            ctx.shadowColor = "transparent";
+          }
+        } else {
+          ctx.fillStyle = "#8B4513"; // Коричневый цвет для истории
+          ctx.beginPath();
+          ctx.arc(history.x, history.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
     // --- Отрисовка пользователя ---
     if (userGPS) {
       const up = gpsToPixel(userGPS.lat, userGPS.lon);
@@ -1449,7 +1563,7 @@ export default forwardRef(function MapCanvasBlock(
   useEffect(() => {
     let isMounted = true;
     let loadedCount = 0;
-    const totalImages = 1 + (restaurants?.length || 0) + 3; // +3 для temple, museum и art
+    const totalImages = 1 + (restaurants?.length || 0) + 4; // +4 для temple, museum, art и history
 
     const updateProgress = () => {
       loadedCount++;
@@ -1506,8 +1620,9 @@ export default forwardRef(function MapCanvasBlock(
       loadImage(museumIcon).then((img) => {
         if (img && isMounted) {
           museumIconsRef.current.default = img;
-          // Для искусства используем ту же иконку (или можно загрузить отдельную)
+          // Для искусства и истории используем ту же иконку (или можно загрузить отдельные)
           artIconsRef.current.default = img;
+          historyIconsRef.current.default = img;
         }
       });
 
@@ -1802,6 +1917,30 @@ export default forwardRef(function MapCanvasBlock(
         }, 100);
       }
     }
+
+    if (mode === "history" && historyPoints && historyPoints.length) {
+      let closestHistory = null;
+      let closestDistance = Infinity;
+
+      historyPoints.forEach((history) => {
+        const dx = mapX - history.x;
+        const dy = mapY - history.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < hitRadius && distance < closestDistance) {
+          closestDistance = distance;
+          closestHistory = history;
+        }
+      });
+
+      if (closestHistory) {
+        console.log(`Clicked on history: ${closestHistory.name}`);
+        centerOnPixel({ x: closestHistory.x, y: closestHistory.y }, 2.0);
+        setTimeout(() => {
+          buildRouteToHistory(closestHistory.id);
+        }, 100);
+      }
+    }
   };
 
   // --- touch drag + pinch ---
@@ -2064,7 +2203,6 @@ export default forwardRef(function MapCanvasBlock(
       }
     },
 
-    // НОВЫЕ МЕТОДЫ ДЛЯ ИСКУССТВА
     buildRouteToArt: (artId) => {
       buildRouteToArt(artId);
     },
@@ -2073,6 +2211,18 @@ export default forwardRef(function MapCanvasBlock(
       const art = artPoints.find((a) => a.id === artId);
       if (art) {
         centerOnPixel({ x: art.x, y: art.y }, 2.0);
+      }
+    },
+
+    // НОВЫЕ МЕТОДЫ ДЛЯ ИСТОРИИ
+    buildRouteToHistory: (historyId) => {
+      buildRouteToHistory(historyId);
+    },
+
+    centerOnHistory: (historyId) => {
+      const history = historyPoints.find((h) => h.id === historyId);
+      if (history) {
+        centerOnPixel({ x: history.x, y: history.y }, 2.0);
       }
     },
 
