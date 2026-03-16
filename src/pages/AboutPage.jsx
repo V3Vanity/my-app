@@ -67,7 +67,7 @@ export default function AboutPage() {
       <div className="about-page-container">
         <div className="about-content">
           <p className="greeting">
-            Привет! Очень рады видеть вас здесь и познакомиться поближе 🤍
+            Привет! Очень рады видеть вас здесь и познакомиться поближе ❤️
           </p>
 
           <p>

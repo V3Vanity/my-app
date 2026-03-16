@@ -85,12 +85,10 @@ export default function HistoryPage() {
     }, 300);
   };
 
-  // Конфигурация для внешних ссылок (Яндекс Карты) для второй точки истории
+  // Конфигурация для внешних ссылок
   const externalLinksConfig = {
-    startIndex: 1, // вторая точка (индекс 1)
-    links: [
-      allHistory[1]?.externalLink || "https://yandex.ru/maps/", // ссылка для второй точки
-    ],
+    startIndex: 1,
+    links: [allHistory[1]?.externalLink || "https://yandex.ru/maps/"],
   };
 
   // Проверяем, что allHistory существует и не пустой

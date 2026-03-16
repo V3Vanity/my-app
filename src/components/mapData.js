@@ -25,6 +25,7 @@ import family2 from "../assets/family-2.jpg";
 import family3 from "../assets/family-3.jpg";
 import family4 from "../assets/family-4.jpg";
 import family5 from "../assets/family-5.jpg";
+import family6 from "../assets/family-6.jpg";
 
 export const nodes = [
   { id: "START", x: 492, y: 125 },
@@ -881,5 +882,14 @@ export const allFamily = [
     image: family5,
     address: "Советская ул., 52, п. г. т. Красное-на-Волге\nБилеты: 60-350р",
     externalLink: "https://yandex.ru/maps/-/CPF6yVko",
+  },
+  {
+    id: "FAMILY_6",
+    name: "Костромской зоопарк",
+    shortDescription:
+      "Костромской зоопарк — это место, где можно увидеть разнообразных животных, таких как верблюды, ламы, северные олени, маралы, волки, лисы, рыси, пумы, пантеры, ягуары, а также лебедей и уток.",
+    image: family6,
+    address: "ул. Ленина, 175, Кострома\nБилеты: 150-350р",
+    externalLink: "https://yandex.ru/maps/-/CPF6ZZ6T",
   },
 ];

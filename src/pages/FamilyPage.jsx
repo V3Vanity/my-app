@@ -85,13 +85,14 @@ export default function FamilyPage() {
     }, 300);
   };
 
-  // Конфигурация для внешних ссылок (Яндекс Карты) для последних 3 точек
+  // Конфигурация для внешних ссылок
   const externalLinksConfig = {
-    startIndex: 2, // начиная с третьей точки (индексы 0, 1, 2)
+    startIndex: 2,
     links: [
       allFamily[2]?.externalLink || "https://yandex.ru/maps/",
       allFamily[3]?.externalLink || "https://yandex.ru/maps/",
       allFamily[4]?.externalLink || "https://yandex.ru/maps/",
+      allFamily[5]?.externalLink || "https://yandex.ru/maps/",
     ],
   };
 
