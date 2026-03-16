@@ -173,8 +173,9 @@ export default function CategorySlider({
         </div>
 
         {/* Адрес */}
-        <p className="item-address">{currentItem?.address}</p>
-
+        <p className="item-address" style={{ whiteSpace: "pre-line" }}>
+          {currentItem?.address}
+        </p>
         {/* Кнопка "Хочу посетить" */}
         <button className="visit-button" onClick={handleVisit}>
           Хочу посетить
