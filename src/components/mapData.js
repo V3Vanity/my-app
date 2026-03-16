@@ -9,6 +9,7 @@ import temple7 from "../assets/Temple-7.jpg";
 export const nodes = [
   { id: "START", x: 492, y: 125 },
   { id: "A", x: 20, y: 865 },
+  { id: "A1", x: 95, y: 855 },
   { id: "B", x: 190, y: 845 },
   { id: "C", x: 400, y: 810 },
   { id: "C1", x: 378, y: 710 },
@@ -48,13 +49,17 @@ export const nodes = [
   { id: "G9", x: 730, y: 610 },
   { id: "G10", x: 750, y: 630 },
   { id: "G11", x: 800, y: 425 },
+  { id: "G12", x: 883, y: 645 },
+  { id: "G13", x: 895, y: 660 },
   { id: "H", x: 979, y: 690 },
   { id: "I", x: 951, y: 560 },
   { id: "J", x: 952, y: 498 },
   { id: "K", x: 933, y: 480 },
   { id: "L", x: 914, y: 367 },
+  { id: "L1", x: 1020, y: 305 },
   { id: "M", x: 811, y: 283 },
   { id: "M1", x: 547, y: 468 },
+  { id: "M2", x: 682, y: 380 },
   { id: "N", x: 701, y: 203 },
   { id: "O", x: 690, y: 180 },
   { id: "P", x: 650, y: 168 },
@@ -324,7 +329,8 @@ export const gpsMap = {
 };
 
 export const edges = [
-  { from: "A", to: "B" },
+  { from: "A", to: "A1" },
+  { from: "A1", to: "B" },
   { from: "B", to: "C" },
   { from: "C", to: "D" },
   { from: "C", to: "C1" },
@@ -356,8 +362,10 @@ export const edges = [
   { from: "E", to: "D1" },
   { from: "F", to: "G" },
   { from: "G", to: "H" },
-  { from: "G", to: "G1" },
+  { from: "G", to: "G13" },
+  { from: "G12", to: "G13" },
   { from: "G1", to: "G8" },
+  { from: "G1", to: "G12" },
   { from: "G8", to: "G2" },
   { from: "G8", to: "G9" },
   { from: "G9", to: "G10" },
@@ -374,8 +382,10 @@ export const edges = [
   { from: "J", to: "K" },
   { from: "K", to: "L" },
   { from: "L", to: "M" },
+  { from: "L", to: "L1" },
   { from: "M", to: "N" },
-  { from: "M", to: "M1" },
+  { from: "M", to: "M2" },
+  { from: "M2", to: "M1" },
   { from: "N", to: "O" },
   { from: "O", to: "P" },
   { from: "P", to: "Q1" },
@@ -428,7 +438,7 @@ export const edges = [
   // Z
   { from: "Z1", to: "H" },
   { from: "Z2", to: "I" },
-  { from: "Z3", to: "L" },
+  { from: "Z3", to: "L1" },
   { from: "Z4", to: "M" },
   { from: "Z5", to: "P" },
   { from: "Z6", to: "Q1" },
@@ -568,34 +578,50 @@ export const museumPoints = [
   {
     id: "MUSEUM_1",
     name: "Костромской государственный историко-архитектурный и художественный музей-заповедник",
-    x: 770, // Координаты на карте (нужно подобрать)
-    y: 670,
-    attachTo: "G11",
+    x: 690, // Координаты на карте (нужно подобрать)
+    y: 390,
+    attachTo: "M2",
     order: 1,
   },
   {
     id: "MUSEUM_2",
     name: "Музей деревянного зодчества 'Костромская слобода'",
-    x: 577,
-    y: 630,
+    x: 890,
+    y: 640,
     attachTo: "Y9",
     order: 2,
   },
   {
     id: "MUSEUM_3",
     name: "Музей ювелирного искусства",
-    x: 195,
-    y: 365,
+    x: 423,
+    y: 457,
     attachTo: "U2",
     order: 3,
   },
   {
     id: "MUSEUM_4",
     name: "Музей льна и бересты",
-    x: 144,
-    y: 330,
+    x: 1010,
+    y: 290,
     attachTo: "U3",
     order: 4,
+  },
+  {
+    id: "MUSEUM_5",
+    name: "Музей льна и бересты",
+    x: 905,
+    y: 650,
+    attachTo: "Y9",
+    order: 5,
+  },
+  {
+    id: "MUSEUM_6",
+    name: "Музей льна и бересты",
+    x: 95,
+    y: 835,
+    attachTo: "Y9",
+    order: 6,
   },
 ];
 
@@ -643,5 +669,27 @@ export const allMuseums = [
     description:
       "В экспозиции музея представлены предметы быта, одежда из льна, изделия из бересты, а также можно увидеть процесс обработки льна.",
     mapId: "MUSEUM_4",
+  },
+  {
+    id: "MUSEUM_5",
+    name: "Музей льна и бересты",
+    shortDescription:
+      "Музей, посвященный традиционным ремеслам Костромского края",
+    image: "https://via.placeholder.com/300x200?text=Museum+4",
+    address: "ул. Горького, 38, Кострома",
+    description:
+      "В экспозиции музея представлены предметы быта, одежда из льна, изделия из бересты, а также можно увидеть процесс обработки льна.",
+    mapId: "MUSEUM_5",
+  },
+  {
+    id: "MUSEUM_6",
+    name: "Музей льна и бересты",
+    shortDescription:
+      "Музей, посвященный традиционным ремеслам Костромского края",
+    image: "https://via.placeholder.com/300x200?text=Museum+4",
+    address: "ул. Горького, 38, Кострома",
+    description:
+      "В экспозиции музея представлены предметы быта, одежда из льна, изделия из бересты, а также можно увидеть процесс обработки льна.",
+    mapId: "MUSEUM_6",
   },
 ];
