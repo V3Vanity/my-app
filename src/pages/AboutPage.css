@@ -1,0 +1,83 @@
+.about-page-container {
+  position: fixed;
+  top: 69px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 375px;
+  max-width: 100%;
+  height: calc(100vh - 69px);
+  background-color: #c8b28d;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.about-page-container::-webkit-scrollbar {
+  display: none;
+}
+
+.about-content {
+  padding: 30px 20px 40px 20px;
+  font-family: "Advent Pro", sans-serif;
+  color: #000000;
+  line-height: 1.6;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.about-content p {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  text-align: left;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.about-content .greeting {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+.about-content .email {
+  font-weight: 600;
+  color: #862518;
+  margin-top: 10px;
+  word-break: break-all;
+}
+
+.about-content .signature {
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.about-content > * {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 375px) {
+  .about-page-container {
+    width: 100%;
+  }
+
+  .about-content {
+    padding: 20px 16px 30px 16px;
+  }
+
+  .about-content p {
+    font-size: 15px;
+  }
+}
