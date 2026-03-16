@@ -3,15 +3,15 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import MapCanvas from "../components/MapCanvas";
 import CategorySlider from "../components/CategorySlider";
-import { allMuseums } from "../components/mapData.js"; // ИСПРАВЛЕННЫЙ ПУТЬ
-import "./MuseumsPage.css";
+import { allHistory } from "../components/mapData.js";
+import "./HistoryPage.css";
 
-export default function MuseumsPage() {
+export default function HistoryPage() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSlider, setShowSlider] = useState(true);
   const [showMap, setShowMap] = useState(false);
-  const [selectedMuseum, setSelectedMuseum] = useState(null);
+  const [selectedHistory, setSelectedHistory] = useState(null);
   const mapRef = useRef(null);
 
   // Блокировка скролла body при открытом слайдере
@@ -66,21 +66,53 @@ export default function MuseumsPage() {
   const handleBackFromMap = () => {
     setShowMap(false);
     setShowSlider(true);
-    setSelectedMuseum(null);
+    setSelectedHistory(null);
   };
 
-  const handleNavigateToMuseum = (museum) => {
-    setSelectedMuseum(museum);
+  const handleNavigateToHistory = (historyItem) => {
+    console.log("Navigating to history place:", historyItem);
+    setSelectedHistory(historyItem);
     setShowSlider(false);
     setShowMap(true);
 
+    // Даём время на монтирование карты
     setTimeout(() => {
-      if (mapRef.current && museum.mapId) {
-        mapRef.current.centerOnTemple?.(museum.mapId);
-        mapRef.current.buildRouteToTemple?.(museum.mapId);
+      if (mapRef.current && historyItem.mapId) {
+        // Используем методы для истории (пока что как для музеев)
+        mapRef.current.centerOnMuseum?.(historyItem.mapId);
+        mapRef.current.buildRouteToMuseum?.(historyItem.mapId);
       }
     }, 300);
   };
+
+  // Конфигурация для внешних ссылок (Яндекс Карты) для второй точки истории
+  const externalLinksConfig = {
+    startIndex: 1, // вторая точка (индекс 1)
+    links: [
+      allHistory[1]?.externalLink || "https://yandex.ru/maps/", // ссылка для второй точки
+    ],
+  };
+
+  // Проверяем, что allHistory существует и не пустой
+  if (!allHistory || allHistory.length === 0) {
+    console.warn("allHistory is empty or undefined!");
+    return (
+      <>
+        <Header
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          onMenuItemClick={handleMenuItemClick}
+        />
+        <div className="history-page-container">
+          <div
+            style={{ padding: "20px", textAlign: "center", color: "#4a3718" }}
+          >
+            <h2>Данные об истории загружаются...</h2>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -92,23 +124,24 @@ export default function MuseumsPage() {
         showBackButton={showMap}
       />
 
-      <div className="museums-page-container">
-        {/* Слайдер с музеями */}
+      <div className="history-page-container">
+        {/* Слайдер с историческими местами */}
         {showSlider && (
           <CategorySlider
-            items={allMuseums}
-            onNavigateToItem={handleNavigateToMuseum}
+            items={allHistory}
+            onNavigateToItem={handleNavigateToHistory}
+            externalLinksConfig={externalLinksConfig}
           />
         )}
 
-        {/* Карта с маршрутом к выбранному музею */}
-        {showMap && selectedMuseum && (
-          <div className="museum-map-wrapper">
+        {/* Карта с маршрутом к выбранному месту */}
+        {showMap && selectedHistory && (
+          <div className="history-map-wrapper">
             <MapCanvas
               ref={mapRef}
-              mode="temple"
-              selectedTemple={selectedMuseum}
-              className="museum-map"
+              mode="museum" // Используем режим музея, так как в MapCanvas пока нет режима "history"
+              selectedTemple={selectedHistory}
+              className="history-map"
             />
           </div>
         )}
