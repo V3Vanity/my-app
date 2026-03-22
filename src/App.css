@@ -270,6 +270,7 @@ body {
 
 /* Описание */
 .landing-about-description {
+  max-width: 84%;
   font-size: 1rem;
   color: #fff8e9;
   line-height: 1.6;
@@ -279,13 +280,14 @@ body {
 
 /* Кнопка */
 .landing-about-btn {
+  text-transform: uppercase;
   background: #89674f;
   color: #fff8e9;
   border: none;
-  padding: 12px 32px;
+  padding: 18px 102px;
   border-radius: 30px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: inherit;
