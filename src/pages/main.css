@@ -1,0 +1,42 @@
+/* Общие стили и контейнер */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-red: #862518;
+  --color-white-gold: #d9cfb8;
+  --color-black-gold: #b89d6f;
+  --color-gold: #c8b28d;
+  --color-white: #ffffff;
+}
+
+.app-container {
+  position: relative;
+  width: 375px;
+  max-width: 100%;
+  height: 100vh;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-black-gold);
+  background-size: contain;
+  background-position: center 20%;
+  background-repeat: no-repeat;
+  font-family: sans-serif;
+}
+
+.top-image-container {
+  margin: 0;
+  padding: 0;
+}
+
+.top-image-container img {
+  margin-top: 97px;
+  width: 100%;
+  height: auto;
+}
