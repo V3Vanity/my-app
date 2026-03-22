@@ -1,16 +1,27 @@
 /* src/App.css */
 
-/* Общие стили */
+/* Общие стили - исправлено для прокрутки */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body {
-  font-family: "Montserrat", sans-serif;
+html {
+  overflow-y: auto !important;
   overflow-x: hidden;
+  height: auto !important;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  height: auto !important;
+  min-height: 100vh;
+  font-family: "Montserrat", sans-serif;
   background-color: #c8b28d;
+  position: relative;
 }
 
 /* Стили загрузки */
@@ -28,6 +39,10 @@ body {
 .landing {
   min-height: 100vh;
   background-color: #c8b28d;
+  overflow-x: hidden;
+  overflow-y: visible !important;
+  position: relative;
+  display: block;
 }
 
 /* Шапка  */
@@ -46,6 +61,7 @@ body {
   border-radius: 20px;
   z-index: 1000;
   transition: all 0.3s ease;
+  pointer-events: auto;
 }
 
 .header-container {
@@ -111,14 +127,16 @@ body {
   color: #fff;
 }
 
-/* Секции */
+/* Секции заглушки */
 .section {
-  min-height: 100vh;
+  min-height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 80px 2rem 2rem;
+  padding: 80px 2rem 4rem;
   background-color: #c8b28d;
+  position: relative;
+  clear: both;
 }
 
 .section h2 {
@@ -139,69 +157,6 @@ body {
   text-align: center;
 }
 
-/* Адаптивность */
-@media (max-width: 768px) {
-  .landing-header {
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    border-radius: 15px;
-  }
-
-  .header-container {
-    padding: 0 1rem;
-  }
-
-  .nav-menu {
-    gap: 1rem;
-  }
-
-  .nav-link {
-    font-size: 14px;
-  }
-
-  .section {
-    padding: 70px 1rem 1rem;
-  }
-
-  .section h2 {
-    font-size: 2rem;
-  }
-
-  .section p {
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .landing-header {
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    border-radius: 12px;
-  }
-
-  .header-container {
-    padding: 0 0.8rem;
-  }
-
-  .nav-menu {
-    gap: 0.8rem;
-  }
-
-  .nav-link {
-    font-size: 12px;
-  }
-
-  .section h2 {
-    font-size: 1.8rem;
-  }
-
-  .section p {
-    font-size: 0.9rem;
-  }
-}
-
 /* Анимация появления при скролле */
 @keyframes fadeInUp {
   from {
@@ -218,43 +173,19 @@ body {
   animation: fadeInUp 0.6s ease-out;
 }
 
-/* Эффект при скролле */
-.landing-header.scrolled {
-  background: linear-gradient(
-    90deg,
-    rgba(200, 178, 141, 0.9) 0%,
-    #6e2e26 30%,
-    #70180c 100%
-  );
-  backdrop-filter: blur(5px);
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
-}
-
-@media (max-width: 768px) {
-  .landing-header.scrolled {
-    top: 5px;
-    left: 5px;
-    right: 5px;
-  }
-}
-
 /* ===== Секция "О нас" Лендинга ===== */
 .landing-about-section {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 100px 2rem 2rem;
+  min-height: auto;
+  display: block;
+  padding: 160px 2rem 4rem;
   background-color: #c8b28d;
   background-image: url("./assets/about-bg.png");
   background-size: auto;
-  background-position: left center;
+  background-position: left end;
   background-repeat: no-repeat;
   position: relative;
   overflow: visible;
+  clear: both;
 }
 
 .landing-about-section::before {
@@ -277,7 +208,8 @@ body {
   justify-content: flex-end;
   position: relative;
   z-index: 1;
-  min-height: 600px;
+  min-height: auto;
+  flex-wrap: wrap;
 }
 
 /* Правая колонка - изображение */
@@ -301,14 +233,15 @@ body {
   display: block;
 }
 
-/* Левая колонка - плашка поверх изображения */
+/* Левая колонка - плашка поверх изображения - меняем на relative для нормальной прокрутки */
 .landing-about-left {
-  position: absolute;
-  left: 10%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 41.5%;
+  position: relative;
+  left: 0;
+  top: 0;
+  transform: none;
+  width: 37%;
   z-index: 3;
+  margin-right: -5%;
 }
 
 /* Карточка с текстом - эффект стекла */
@@ -369,12 +302,12 @@ body {
   padding: 0;
   display: flex;
   gap: 1rem;
-  align-items: flex-start; /* Иконка сверху */
+  align-items: flex-start;
   text-align: left;
   justify-content: center;
-  margin: 0 auto; /* Центрируем блок */
+  margin: 0 auto;
   width: 100%;
-  max-width: 51%; /* Ограничиваем ширину для лучшего центрирования */
+  max-width: 61%;
 }
 
 /* Иконка */
@@ -402,111 +335,14 @@ body {
   text-align: left;
 }
 
-/* Адаптивность */
-@media (max-width: 1024px) {
-  .landing-about-left {
-    width: 60%;
-  }
-
-  .landing-about-right {
-    max-width: 60%;
-  }
-}
-
-@media (max-width: 968px) {
-  .landing-about-content {
-    flex-direction: column;
-    justify-content: center;
-    min-height: auto;
-  }
-
-  .landing-about-left {
-    position: relative;
-    width: 100%;
-    top: 0;
-    transform: none;
-    margin-bottom: 2rem;
-  }
-
-  .landing-about-right {
-    max-width: 100%;
-    justify-content: center;
-  }
-
-  .landing-about-image {
-    max-width: 400px;
-  }
-}
-
-@media (max-width: 768px) {
-  .landing-about-section {
-    padding: 80px 1.5rem 1.5rem;
-    background-size: 200px auto;
-  }
-
-  .landing-about-card {
-    padding: 1.5rem;
-  }
-
-  .landing-about-title-svg {
-    max-width: 200px;
-  }
-
-  .landing-about-description {
-    font-size: 0.9rem;
-  }
-
-  .landing-about-info-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .landing-about-info-text {
-    font-size: 0.8rem;
-  }
-
-  .landing-about-image {
-    max-width: 350px;
-  }
-}
-
-@media (max-width: 480px) {
-  .landing-about-section {
-    padding: 70px 1rem 1rem;
-    background-size: 150px auto;
-  }
-
-  .landing-about-card {
-    padding: 1.2rem;
-  }
-
-  .landing-about-title-svg {
-    max-width: 150px;
-  }
-
-  .landing-about-btn {
-    padding: 10px 24px;
-    font-size: 14px;
-  }
-
-  .landing-about-info-icon {
-    width: 24px;
-    height: 24px;
-  }
-
-  .landing-about-image {
-    max-width: 280px;
-  }
-}
 /* ===== Секция "Что внутри?" ===== */
 .landing-features-section {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 100px 2rem 2rem;
+  min-height: auto;
+  display: block;
+  padding: 100px 2rem 4rem;
   background-color: #c8b28d;
   position: relative;
+  clear: both;
 }
 
 .landing-features-content {
@@ -515,8 +351,9 @@ body {
   margin: 0 auto;
   display: flex;
   gap: 4rem;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 /* Левая часть */
@@ -585,6 +422,7 @@ body {
   height: 95%;
   border-radius: 45px;
   z-index: 1;
+  overflow: hidden;
 }
 
 .landing-demo-video {
@@ -595,7 +433,39 @@ body {
 }
 
 /* Адаптивность */
+@media (max-width: 1024px) {
+  .landing-about-left {
+    width: 50%;
+    margin-right: -2%;
+  }
+
+  .landing-about-right {
+    max-width: 55%;
+  }
+}
+
 @media (max-width: 968px) {
+  .landing-about-content {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .landing-about-left {
+    position: relative;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 2rem;
+  }
+
+  .landing-about-right {
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  .landing-about-image {
+    max-width: 400px;
+  }
+
   .landing-features-content {
     flex-direction: column;
     gap: 3rem;
@@ -611,8 +481,57 @@ body {
 }
 
 @media (max-width: 768px) {
+  .landing-header {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    border-radius: 15px;
+  }
+
+  .header-container {
+    padding: 0 1rem;
+  }
+
+  .nav-menu {
+    gap: 1rem;
+  }
+
+  .nav-link {
+    font-size: 11px;
+  }
+
+  .landing-about-section {
+    padding: 80px 1.5rem 3rem;
+    background-size: 200px auto;
+  }
+
+  .landing-about-card {
+    padding: 1.5rem;
+  }
+
+  .landing-about-title-svg {
+    max-width: 200px;
+  }
+
+  .landing-about-description {
+    font-size: 0.9rem;
+  }
+
+  .landing-about-info-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .landing-about-info-text {
+    font-size: 0.8rem;
+  }
+
+  .landing-about-image {
+    max-width: 350px;
+  }
+
   .landing-features-section {
-    padding: 80px 1.5rem 1.5rem;
+    padding: 80px 1.5rem 3rem;
   }
 
   .landing-features-title {
@@ -630,11 +549,69 @@ body {
   .landing-features-right {
     max-width: 80%;
   }
+
+  .section {
+    padding: 70px 1rem 3rem;
+  }
+
+  .section h2 {
+    font-size: 2rem;
+  }
+
+  .section p {
+    font-size: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
+  .landing-header {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    border-radius: 12px;
+  }
+
+  .header-container {
+    padding: 0 0.8rem;
+  }
+
+  .nav-menu {
+    gap: 0.6rem;
+  }
+
+  .nav-link {
+    font-size: 9px;
+  }
+
+  .landing-about-section {
+    padding: 70px 1rem 2rem;
+    background-size: 150px auto;
+  }
+
+  .landing-about-card {
+    padding: 1.2rem;
+  }
+
+  .landing-about-title-svg {
+    max-width: 150px;
+  }
+
+  .landing-about-btn {
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+
+  .landing-about-info-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .landing-about-image {
+    max-width: 280px;
+  }
+
   .landing-features-section {
-    padding: 70px 1rem 1rem;
+    padding: 70px 1rem 2rem;
   }
 
   .landing-features-title {
@@ -655,5 +632,17 @@ body {
 
   .landing-phone-frame {
     max-width: 280px;
+  }
+
+  .section {
+    padding: 60px 1rem 2rem;
+  }
+
+  .section h2 {
+    font-size: 1.8rem;
+  }
+
+  .section p {
+    font-size: 0.9rem;
   }
 }
