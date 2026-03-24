@@ -88,3 +88,58 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* ===== Шрифт UNCAGE ===== */
+
+/* UNCAGE Regular */
+@font-face {
+  font-family: "UNCAGE";
+  src:
+    url("../assets/fonts/UNCAGE/UNCAGE-Regular.otf") format("opentype"),
+    url("../assets/fonts/UNCAGE/UNCAGE-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* UNCAGE Medium */
+@font-face {
+  font-family: "UNCAGE";
+  src:
+    url("../assets/fonts/UNCAGE/UNCAGE-Medium.otf") format("opentype"),
+    url("../assets/fonts/UNCAGE/UNCAGE-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* UNCAGE SemiBold */
+@font-face {
+  font-family: "UNCAGE";
+  src:
+    url("../assets/fonts/UNCAGE/UNCAGE-SemiBold.otf") format("opentype"),
+    url("../assets/fonts/UNCAGE/UNCAGE-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* UNCAGE Bold */
+@font-face {
+  font-family: "UNCAGE";
+  src:
+    url("../assets/fonts/UNCAGE/UNCAGE-Bold.otf") format("opentype"),
+    url("../assets/fonts/UNCAGE/UNCAGE-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* UNCAGE Variable Font (если нужно использовать переменный шрифт) */
+@font-face {
+  font-family: "UNCAGE";
+  src: url("../assets/fonts/UNCAGE/UNCAGE-VF.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

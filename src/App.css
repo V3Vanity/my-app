@@ -1,4 +1,5 @@
 /* src/App.css */
+@import url("./styles/fonts.css");
 
 /* Общие стили - исправлено для прокрутки */
 * {
@@ -365,28 +366,31 @@ body {
 }
 
 .landing-features-title {
+  font-family: "UNCAGE", sans-serif;
   font-size: 2.5rem;
   color: #752419;
   margin-bottom: 2rem;
-  font-weight: 600;
+  font-weight: 500;
   text-align: left;
 }
 
 .landing-features-item {
   margin-bottom: 2rem;
+  max-width: 501px;
 }
 
 .landing-features-item-title {
   font-size: 1.2rem;
-  color: #fff8e9;
+  color: #432f2d;
   margin-bottom: 0.2rem;
-  font-weight: 600;
+  font-weight: 500;
   text-align: left;
 }
 
 .landing-features-item-text {
+  font-family: "Inter", sans-serif;
   font-size: 0.95rem;
-  color: #fff8e9;
+  color: #432f2d;
   line-height: 1.6;
   text-align: left;
 }
@@ -646,5 +650,569 @@ body {
 
   .section p {
     font-size: 0.9rem;
+  }
+}
+/* ===== Секция "Вам тоже знакомо это чувство?" ===== */
+.landing-feeling-section {
+  padding: 100px 2rem 4rem;
+  background-color: #c8b28d;
+  position: relative;
+  clear: both;
+}
+
+.landing-feeling-container {
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.landing-feeling-title {
+  width: 100%;
+  max-width: 950px;
+  height: auto;
+  margin: 0 0 1rem;
+  display: block;
+}
+
+.landing-feeling-content {
+  display: flex;
+  gap: 4rem;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+.landing-feeling-left {
+  flex: 1;
+  max-width: 50%;
+  margin: auto;
+}
+
+.landing-feeling-left h3 {
+  font-family: "Inter", sans-serif;
+  font-size: 1.2rem;
+  color: #862518;
+  font-weight: 600;
+  text-align: left;
+}
+
+.landing-feeling-text {
+  font-family: "Inter", sans-serif;
+  font-size: 1.1rem;
+  color: #432f2d;
+  line-height: 1.6;
+  text-align: left;
+  max-width: 431px;
+}
+
+.landing-feeling-right {
+  flex: 1;
+  max-width: 45%;
+  display: flex;
+  justify-content: center;
+}
+
+.landing-feeling-image {
+  width: 100%;
+  max-width: 570px;
+  height: auto;
+  border-radius: 20px;
+}
+
+/* ===== Секция "Мы создали гид" ===== */
+.landing-guide-section {
+  margin: auto;
+  background-color: #c8b28d;
+  position: relative;
+  clear: both;
+  max-width: 1300px;
+}
+
+.landing-guide-container {
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.landing-guide-title {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  margin: 0 auto 3rem;
+  display: block;
+}
+
+.landing-guide-content {
+  display: flex;
+  gap: 12rem;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+.landing-guide-left {
+  flex: 1;
+  max-width: 45%;
+  display: flex;
+  justify-content: center;
+}
+
+.landing-guide-image {
+  width: 100%;
+  max-width: 563px;
+  height: auto;
+  border-radius: 20px;
+}
+
+.landing-guide-right {
+  flex: 1;
+  margin: auto;
+  max-width: 50%;
+}
+
+.landing-guide-right h3 {
+  font-size: 1.2rem;
+  color: #862518;
+  font-weight: 600;
+  text-align: left;
+}
+
+.landing-guide-text {
+  font-size: 1.1rem;
+  color: #432f2d;
+  line-height: 1.6;
+  text-align: left;
+  width: 465px;
+}
+
+/* ===== Секция с тремя фичами ===== */
+.landing-features-grid-section {
+  padding-top: 210px;
+  background-color: #c8b28d;
+  text-align: center;
+  max-width: 1300px;
+  margin: auto;
+}
+
+.landing-features-grid-title {
+  width: 100%;
+  max-width: 550px;
+  height: auto;
+  margin: 0 0 1rem;
+  display: block;
+}
+
+.landing-features-grid {
+  max-width: 1300px;
+  margin: 0 0;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.landing-feature-card {
+  flex: 1;
+  min-width: 250px;
+  max-width: 385px;
+  padding: 1.5rem;
+}
+
+.landing-feature-icon {
+  width: 300px;
+  height: 584px;
+  margin-bottom: 1.5rem;
+}
+
+.landing-feature-text {
+  font-family: "Inter", sans-serif;
+  text-transform: uppercase;
+  font-size: 1rem;
+  color: #432f2d;
+  line-height: 1.2;
+  text-align: left;
+  padding-left: 20px;
+  font-weight: 600;
+}
+
+/* ===== Секция "самостоятельно vs с гидом" ===== */
+.landing-comparison-section {
+  padding: 100px 2rem 4rem;
+  background-color: #c8b28d;
+  text-align: center;
+}
+
+.landing-comparison-title {
+  font-family: "UNCAGE", sans-serif;
+  font-size: 2.5rem;
+  color: #862518;
+  margin-bottom: 3rem;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.landing-comparison-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 3rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.landing-comparison-left,
+.landing-comparison-right {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  justify-content: center;
+}
+
+.landing-comparison-image {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+}
+
+.landing-about-info-text {
+  font-size: 0.9rem;
+  color: #ebdfc8;
+  line-height: 1.5;
+  margin: 0;
+  text-align: left;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .landing-feeling-content,
+  .landing-guide-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .landing-feeling-left,
+  .landing-feeling-right,
+  .landing-guide-left,
+  .landing-guide-right {
+    max-width: 100%;
+  }
+
+  .landing-feeling-left h3,
+  .landing-guide-right h3 {
+    text-align: center;
+    font-size: 1.5rem;
+  }
+
+  .landing-feeling-text,
+  .landing-guide-text {
+    text-align: center;
+  }
+
+  .landing-feeling-title,
+  .landing-guide-title {
+    max-width: 300px;
+    margin-bottom: 2rem;
+  }
+
+  .landing-comparison-title {
+    font-size: 1.8rem;
+  }
+
+  .landing-features-grid {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-feeling-section,
+  .landing-guide-section,
+  .landing-features-grid-section,
+  .landing-comparison-section {
+    padding: 60px 1rem 2rem;
+  }
+
+  .landing-feeling-left h3,
+  .landing-guide-right h3 {
+    font-size: 1.3rem;
+  }
+
+  .landing-feeling-text,
+  .landing-guide-text,
+  .landing-features-item-text,
+  .landing-about-description,
+  .landing-about-info-text {
+    font-size: 0.9rem;
+  }
+
+  .landing-feature-text {
+    font-size: 0.85rem;
+  }
+
+  .landing-feature-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .landing-comparison-title {
+    font-size: 1.5rem;
+  }
+
+  .landing-comparison-content {
+    gap: 2rem;
+  }
+}
+
+/* ===== Секция "Отзывы" ===== */
+.landing-reviews-section {
+  padding: 100px 2rem 4rem;
+  background-color: #c8b28d;
+  position: relative;
+  clear: both;
+}
+
+.landing-reviews-container {
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.landing-reviews-title {
+  font-family: "UNCAGE", sans-serif;
+  font-size: 2.5rem;
+  color: #862518;
+  margin-bottom: 3rem;
+  font-weight: 500;
+  text-align: left;
+  padding-left: 80px;
+}
+
+.landing-reviews-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.landing-reviews-row {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Карточка отзыва - эффект стекла */
+.landing-review-card {
+  flex: 1;
+  min-width: 280px;
+  max-width: 350px;
+  background: rgba(255, 248, 233, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 1rem 1rem 1rem 1rem;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 248, 233, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.landing-review-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Иконка - 50% торчит за пределами карточки */
+.landing-review-icon {
+  position: absolute;
+  top: -20px;
+  width: 60px;
+  height: 60px;
+  z-index: 2;
+}
+
+.landing-review-icon.right-icon {
+  right: -10px;
+}
+
+.landing-review-icon.left-icon {
+  left: -10px;
+}
+
+.landing-review-icon svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
+}
+
+/* Контент отзыва */
+.landing-review-content {
+  margin-top: 20px;
+}
+
+.landing-review-text {
+  font-family: "Inter", sans-serif;
+  font-size: 0.85rem;
+  color: #444444;
+  line-height: 1.2;
+  text-align: left;
+  margin: 0;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+  .landing-reviews-row {
+    gap: 2rem;
+  }
+
+  .landing-review-card {
+    min-width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-reviews-section {
+    padding: 80px 1.5rem 3rem;
+  }
+
+  .landing-reviews-title {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .landing-reviews-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .landing-review-card {
+    max-width: 400px;
+    width: 100%;
+  }
+
+  .landing-review-icon {
+    width: 50px;
+    height: 50px;
+    top: -25px;
+  }
+
+  .landing-review-icon.right-icon {
+    right: -5px;
+  }
+
+  .landing-review-icon.left-icon {
+    left: -5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-reviews-section {
+    padding: 60px 1rem 2rem;
+  }
+
+  .landing-reviews-title {
+    font-size: 1.8rem;
+  }
+
+  .landing-review-card {
+    padding: 1.5rem 1rem 1rem 1rem;
+  }
+
+  .landing-review-text {
+    font-size: 0.85rem;
+  }
+
+  .landing-review-icon {
+    width: 45px;
+    height: 45px;
+    top: -22px;
+  }
+}
+
+/* ===== Секция с видео города ===== */
+.landing-city-video-section {
+  padding: 100px 2rem 4rem;
+  background-color: #c8b28d;
+  text-align: center;
+}
+
+.landing-city-video-container {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.landing-city-video-title {
+  font-family: "UNCAGE", sans-serif;
+  max-width: 797px;
+  text-transform: uppercase;
+  font-size: 1.8rem;
+  color: #752419;
+  font-weight: 500;
+  text-align: left;
+  line-height: 1.2;
+  padding-left: 260px;
+}
+
+/* Мокап телефона */
+.landing-city-phone-frame {
+  position: relative;
+  width: 850px;
+  margin: 0 auto;
+}
+
+.landing-city-phone-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
+/* Видео внутри мокапа */
+.landing-city-video-wrapper {
+  position: absolute;
+  top: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96%;
+  height: 86%;
+  border-radius: 76px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.landing-city-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .landing-city-video-section {
+    padding: 80px 1.5rem 3rem;
+  }
+
+  .landing-city-video-title {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .landing-city-phone-frame {
+    width: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-city-video-section {
+    padding: 60px 1rem 2rem;
+  }
+
+  .landing-city-video-title {
+    font-size: 1.3rem;
+  }
+
+  .landing-city-phone-frame {
+    width: 250px;
+  }
+
+  .landing-city-video-wrapper {
+    border-radius: 35px;
   }
 }
