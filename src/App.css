@@ -46,12 +46,12 @@ body {
   display: block;
 }
 
-/* Шапка  */
+/* Шапка - плавная анимация с оптимизацией */
 .landing-header {
   position: fixed;
   top: 40px;
-  left: 250px;
   right: 20px;
+  width: calc(100% - 270px);
   height: 40px;
   background: linear-gradient(
     90deg,
@@ -61,10 +61,220 @@ body {
   );
   border-radius: 20px;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: auto;
+  overflow: hidden;
+  will-change: width;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
+/* Свернутое состояние - цвет не меняется */
+.landing-header.scrolled {
+  width: 60px;
+  background: linear-gradient(
+    90deg,
+    rgba(180, 130, 43, 0) 0%,
+    #6e2e2663 30%,
+    #70180c7e 100%
+  );
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Контейнер шапки */
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  transition:
+    padding 0.4s ease,
+    justify-content 0.4s ease;
+  will-change: padding;
+}
+
+/* Свернутое состояние контейнера */
+.landing-header.scrolled .header-container {
+  justify-content: center;
+  padding: 0;
+}
+
+/* Навигационное меню */
+.nav-menu {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  height: 100%;
+  transition:
+    gap 0.4s ease,
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+  will-change: gap, opacity;
+}
+
+/* Свернутое состояние меню */
+.landing-header.scrolled .nav-menu {
+  gap: 0;
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+}
+
+/* Иконка для свернутого состояния */
+.landing-header.scrolled::before {
+  content: "☰";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #cbb99c;
+  font-size: 20px;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+/* При наведении на свернутую шапку - разворачиваем */
+.landing-header.scrolled:hover {
+  width: calc(100% - 270px);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-header.scrolled:hover .header-container {
+  justify-content: flex-end;
+  padding: 0 2rem;
+  transition:
+    padding 0.4s ease 0.05s,
+    justify-content 0.4s ease 0.05s;
+}
+
+.landing-header.scrolled:hover .nav-menu {
+  gap: 2rem;
+  opacity: 1;
+  visibility: visible;
+  width: auto;
+  transition:
+    gap 0.4s ease 0.1s,
+    opacity 0.3s ease 0.1s,
+    visibility 0.3s ease 0.1s;
+}
+
+.landing-header.scrolled:hover::before {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+/* Шапка  */
+@media (max-width: 768px) {
+  .landing-header {
+    top: 10px;
+    right: 10px; /* Уже справа */
+    left: auto; /* Добавляем - отменяем левую позицию */
+    width: calc(100% - 20px);
+    border-radius: 15px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .landing-header.scrolled {
+    right: 10px;
+    left: auto; /* Добавляем - отменяем левую позицию */
+    width: 50px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .landing-header.scrolled:hover {
+    width: calc(100% - 20px);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Иконка для свернутого состояния - справа */
+  .landing-header.scrolled::before {
+    content: "☰";
+    position: absolute;
+    top: 50%;
+    left: auto !important;
+    right: 15px !important;
+    transform: translateY(-50%);
+    color: #cbb99c;
+    font-size: 18px;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+
+  /* При наведении на свернутую шапку на мобильных */
+  .landing-header.scrolled:hover::before {
+    opacity: 0;
+  }
+
+  .header-container {
+    padding: 0 1rem;
+  }
+
+  .nav-menu {
+    gap: 1rem;
+  }
+
+  .nav-link {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-header {
+    top: 8px;
+    right: 8px;
+    left: auto; /* Добавляем - отменяем левую позицию */
+    width: calc(100% - 16px);
+    border-radius: 12px;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .landing-header.scrolled {
+    right: 8px;
+    left: auto; /* Добавляем - отменяем левую позицию */
+    width: 45px;
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .landing-header.scrolled:hover {
+    width: calc(100% - 16px);
+    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Иконка для свернутого состояния - справа */
+  .landing-header.scrolled::before {
+    content: "☰";
+    position: absolute;
+    top: 50%;
+    left: auto !important;
+    right: 12px !important;
+    transform: translateY(-50%);
+    color: #cbb99c;
+    font-size: 16px;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+    opacity: 1;
+  }
+
+  .landing-header.scrolled:hover::before {
+    opacity: 0;
+  }
+
+  .header-container {
+    padding: 0 0.8rem;
+  }
+
+  .nav-menu {
+    gap: 0.8rem;
+  }
+
+  .nav-link {
+    font-size: 9px;
+  }
+}
 .header-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -101,6 +311,7 @@ body {
   justify-content: center;
   text-align: center;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .nav-link::after {
@@ -249,7 +460,7 @@ body {
 .landing-about-card {
   background: rgba(255, 248, 233, 0.2);
   backdrop-filter: blur(10px);
-  border-radius: 24px;
+  border-radius: 41px;
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
@@ -1214,5 +1425,316 @@ body {
 
   .landing-city-video-wrapper {
     border-radius: 35px;
+  }
+}
+
+/* ===== Секция "Купить доступ" ===== */
+.landing-pricing-section {
+  min-height: auto;
+  display: block;
+  padding: 145px 2rem 4rem;
+  background-color: #c8b28d;
+  background-image: url("./assets/about-bg.png");
+  background-size: auto;
+  background-position: left center;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: visible;
+  clear: both;
+}
+
+.landing-pricing-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(200, 178, 141, 0.3);
+  pointer-events: none;
+}
+
+.landing-pricing-content {
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 1;
+  min-height: auto;
+  flex-wrap: wrap;
+}
+
+/* Правая колонка - изображение */
+.landing-pricing-right {
+  flex: 1;
+  max-width: 55%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.landing-pricing-image {
+  width: 100%;
+  max-width: 757px;
+  height: auto;
+  border-radius: 30px;
+  object-fit: contain;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+/* Левая колонка - плашка поверх изображения */
+.landing-pricing-left {
+  position: relative;
+  left: 0;
+  top: 0;
+  transform: none;
+  width: 37%;
+  z-index: 3;
+  margin-right: -5%;
+}
+
+/* Карточка с текстом - эффект стекла */
+.landing-pricing-card {
+  background: rgba(255, 248, 233, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 41px;
+  padding: 17px 28px 17px 28px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 248, 233, 0.3);
+  text-align: left;
+}
+
+/* Заголовок в виде изображения */
+.landing-pricing-title-icon {
+  margin-bottom: 1rem;
+}
+
+.landing-pricing-title-svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  display: block;
+}
+
+/* Описание */
+.landing-pricing-description {
+  max-width: 84%;
+  font-size: 1rem;
+  color: #fff8e9;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+/* Плашка с ценой - эффект стекла */
+.landing-pricing-price-glass {
+  font-family: "UNCAGE", sans-serif;
+  display: block;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  background: rgba(255, 248, 233, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  padding: 12px 28px;
+  font-size: 75px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  margin-top: 2.5rem;
+  border: 1px solid rgba(255, 248, 233, 0.4);
+  font-family: inherit;
+  letter-spacing: 1px;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(270.06deg, #896750 0.07%, #bba580 97.32%);
+}
+
+/* Кнопка */
+.landing-pricing-btn {
+  text-transform: uppercase;
+  background: #89674f;
+  color: #fff8e9;
+  border: none;
+  padding: 20px 38px;
+  border-radius: 30px;
+  font-size: 20px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+.landing-pricing-btn:hover {
+  background: #6e4f3a;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Блок с информацией */
+.landing-pricing-info-block {
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  text-align: left;
+  justify-content: center;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 61%;
+}
+
+/* Иконка */
+.landing-pricing-info-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.landing-pricing-icon-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Текст информации */
+.landing-pricing-info-text {
+  font-size: 0.9rem;
+  color: #fff8e9;
+  line-height: 1.5;
+  margin: 0;
+  text-align: left;
+}
+
+/* Адаптивность для секции покупки */
+@media (max-width: 1024px) {
+  .landing-pricing-left {
+    width: 50%;
+    margin-right: -2%;
+  }
+
+  .landing-pricing-right {
+    max-width: 55%;
+  }
+}
+
+@media (max-width: 968px) {
+  .landing-pricing-content {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .landing-pricing-left {
+    position: relative;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 2rem;
+  }
+
+  .landing-pricing-right {
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  .landing-pricing-image {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-pricing-section {
+    padding: 80px 1.5rem 3rem;
+    background-size: 200px auto;
+  }
+
+  .landing-pricing-card {
+    padding: 1.5rem;
+  }
+
+  .landing-pricing-title-svg {
+    max-width: 200px;
+  }
+
+  .landing-pricing-description {
+    font-size: 0.9rem;
+  }
+
+  .landing-pricing-price-glass {
+    padding: 10px 24px;
+    font-size: 24px;
+  }
+
+  .landing-pricing-btn {
+    padding: 14px 80px;
+    font-size: 14px;
+  }
+
+  .landing-pricing-info-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .landing-pricing-info-text {
+    font-size: 0.8rem;
+  }
+
+  .landing-pricing-image {
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-pricing-section {
+    padding: 70px 1rem 2rem;
+    background-size: 150px auto;
+  }
+
+  .landing-pricing-card {
+    padding: 1.2rem;
+  }
+
+  .landing-pricing-title-svg {
+    max-width: 150px;
+  }
+
+  .landing-pricing-description {
+    font-size: 0.85rem;
+  }
+
+  .landing-pricing-price-glass {
+    padding: 8px 20px;
+    font-size: 20px;
+  }
+
+  .landing-pricing-btn {
+    padding: 12px 60px;
+    font-size: 14px;
+  }
+
+  .landing-pricing-info-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .landing-pricing-info-text {
+    font-size: 0.75rem;
+  }
+
+  .landing-pricing-image {
+    max-width: 280px;
   }
 }

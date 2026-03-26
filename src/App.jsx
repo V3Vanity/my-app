@@ -20,6 +20,7 @@ import comparisonRightSvg from "./assets/comparison-right.svg";
 import reviewIcon1 from "./assets/review-icon-1.svg";
 import reviewIcon2 from "./assets/review-icon-2.svg";
 import phoneCitySvg from "./assets/phone-city.svg";
+import aboutTitleSvg2 from "./assets/about-title-2.svg";
 
 function App() {
   const [hasAccess, setHasAccess] = useState(false);
@@ -46,17 +47,32 @@ function App() {
   // Лендинг с шапкой
   const LandingPage = () => {
     // Эффект при скролле
+
+    // Эффект при скролле - шапка сворачивается только между вторым и последним блоком
     useEffect(() => {
+      const header = document.querySelector(".landing-header");
+      const secondBlock = document.getElementById("features");
+      const lastBlock = document.getElementById("pricing");
+
       const handleScroll = () => {
-        const header = document.querySelector(".landing-header");
-        if (window.scrollY > 50) {
-          header.classList.add("scrolled");
-        } else {
-          header.classList.remove("scrolled");
+        if (secondBlock && lastBlock) {
+          const secondBlockTop = secondBlock.offsetTop;
+          const lastBlockTop = lastBlock.offsetTop;
+          const scrollY = window.scrollY;
+
+          // Шапка сворачивается только между вторым блоком и последним блоком
+          if (scrollY >= secondBlockTop - 100 && scrollY < lastBlockTop - 300) {
+            header.classList.add("scrolled");
+          } else {
+            header.classList.remove("scrolled");
+          }
         }
       };
 
       window.addEventListener("scroll", handleScroll);
+      // Вызываем сразу, чтобы установить правильное состояние
+      handleScroll();
+
       return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
@@ -473,11 +489,38 @@ function App() {
             </div>
           </div>
         </section>
-        {/* Секция "Купить" (заглушка) */}
-        <section id="pricing" className="section">
-          <div className="container">
-            <h2>Купить доступ</h2>
-            <p>Секция "Купить" будет добавлена позже</p>
+
+        {/* Секция "Купить доступ" */}
+        <section id="pricing" className="landing-pricing-section">
+          <div className="landing-pricing-content">
+            {/* Левая колонка с текстом */}
+            <div className="landing-pricing-left">
+              <div className="landing-pricing-card">
+                <div className="landing-pricing-title-icon">
+                  <img
+                    src={aboutTitleSvg2}
+                    alt="Изображение"
+                    className="landing-pricing-title-svg"
+                  />
+                </div>
+
+                {/* Плашка с ценой - эффект стекла */}
+                <div className="landing-pricing-price-glass">990₽</div>
+
+                <button className="landing-pricing-btn">
+                  Купить воспоминания
+                </button>
+              </div>
+            </div>
+
+            {/* Правая колонка с изображением */}
+            <div className="landing-pricing-right">
+              <img
+                src={aboutRightImage}
+                alt="Купить доступ"
+                className="landing-pricing-image"
+              />
+            </div>
           </div>
         </section>
       </div>
