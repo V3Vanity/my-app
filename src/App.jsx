@@ -9,6 +9,7 @@ import aboutIconSvg from "./assets/about-icon.svg";
 import aboutRightImage from "./assets/about-right-image.png";
 import phoneAboutSvg from "./assets/phone-about.svg";
 import feelingTitleSvg from "./assets/feeling-title.svg";
+import feelingTitleSvg2 from "./assets/feeling-title-2.svg";
 import feelingImage from "./assets/feeling-image.svg";
 import guideImage from "./assets/guide-image.svg";
 import featuresTitleSvg from "./assets/features-title.svg";
@@ -21,6 +22,10 @@ import reviewIcon1 from "./assets/review-icon-1.svg";
 import reviewIcon2 from "./assets/review-icon-2.svg";
 import phoneCitySvg from "./assets/phone-city.svg";
 import aboutTitleSvg2 from "./assets/about-title-2.svg";
+import tgQr1 from "./assets/tg-qr-1.svg";
+import vkQr1 from "./assets/vk-qr-1.svg";
+import tgQr2 from "./assets/tg-qr-2.svg";
+import vkQr2 from "./assets/vk-qr-2.svg";
 
 function App() {
   const [hasAccess, setHasAccess] = useState(false);
@@ -230,11 +235,14 @@ function App() {
         {/* Новая секция: "Вам тоже знакомо это чувство?" */}
         <section className="landing-feeling-section">
           <div className="landing-feeling-container">
-            <img
-              src={feelingTitleSvg}
-              alt="Заголовок"
-              className="landing-feeling-title"
-            />
+            <picture>
+              <source media="(max-width: 768px)" srcSet={feelingTitleSvg2} />
+              <img
+                src={feelingTitleSvg}
+                alt="Заголовок"
+                className="landing-feeling-title"
+              />
+            </picture>
             <div className="landing-feeling-content">
               <div className="landing-feeling-left">
                 <h3>Вам тоже знакомо?</h3>
@@ -322,9 +330,16 @@ function App() {
 
         {/* Секция: самостоятельно vs с гидом */}
         <section className="landing-comparison-section">
-          <h2 className="landing-comparison-title">
+          {/* Заголовок для десктопа */}
+          <h2 className="landing-comparison-title desktop-title">
             самостоятельно vs с гидом
           </h2>
+
+          {/* Заголовок для мобильных */}
+          <h2 className="landing-comparison-title mobile-title">
+            самостоятельно изучать Кострому
+          </h2>
+
           <div className="landing-comparison-content">
             <div className="landing-comparison-left">
               <img
@@ -334,6 +349,10 @@ function App() {
               />
             </div>
             <div className="landing-comparison-right">
+              {/* Добавляем заголовок над правым изображением только для мобильных */}
+              <h3 className="landing-comparison-right-title">
+                с электронным гидом
+              </h3>
               <img
                 src={comparisonRightSvg}
                 alt="С гидом"
@@ -523,6 +542,115 @@ function App() {
             </div>
           </div>
         </section>
+
+        {/* Подвал */}
+        <footer className="landing-footer">
+          <div className="landing-footer-container">
+            {/* Первая колонка - описание (слева) */}
+            <div className="landing-footer-col landing-footer-col-large">
+              <p className="landing-footer-text">
+                Привет! 👋 Меня зовут Юля, я учусь на 4 курсе по направлению
+                дизайна. Этот сайт — мой первый опыт создания веб-сайта, и я
+                сделала его для защиты дипломного проекта.
+                <br />
+                <br />
+                Мне будет очень приятно, если вы оставите свой отзыв — ваше
+                мнение поможет мне стать лучше и совершенствовать проект! 🌟
+              </p>
+            </div>
+
+            {/* Обертка для правых колонок - идут в строку друг над другом */}
+            <div className="landing-footer-right-group">
+              {/* Вторая колонка - контакты 1 */}
+              <div className="landing-footer-col">
+                <p className="landing-footer-contact-title">
+                  со мной можно связаться:
+                </p>
+                <div className="landing-footer-email">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4Z"
+                      stroke="#e0d6c7"
+                      strokeWidth="1.5"
+                      fill="none"
+                    />
+                    <path
+                      d="M22 6L12 13L2 6"
+                      stroke="#e0d6c7"
+                      strokeWidth="1.5"
+                      fill="none"
+                    />
+                  </svg>
+                  <span className="landing-footer-email-text">
+                    korobkoulia05@mail.ru
+                  </span>
+                </div>
+                <div className="landing-footer-qr-row">
+                  <div className="landing-footer-qr-item">
+                    <img
+                      src={tgQr1}
+                      alt="Telegram QR"
+                      className="landing-footer-qr-image"
+                    />
+                    <p className="landing-footer-qr-label">тг</p>
+                  </div>
+                  <div className="landing-footer-qr-item">
+                    <img
+                      src={vkQr1}
+                      alt="VK QR"
+                      className="landing-footer-qr-image"
+                    />
+                    <p className="landing-footer-qr-label">вк</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Третья колонка - контакты 2 */}
+              <div className="landing-footer-col">
+                <p className="landing-footer-contact-title">
+                  с программистом тоже:
+                </p>
+                <div className="landing-footer-email">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4Z"
+                      stroke="#e0d6c7"
+                      strokeWidth="1.5"
+                      fill="none"
+                    />
+                    <path
+                      d="M22 6L12 13L2 6"
+                      stroke="#e0d6c7"
+                      strokeWidth="1.5"
+                      fill="none"
+                    />
+                  </svg>
+                  <span className="landing-footer-email-text">
+                    jun30010kmtn.ruu@gmail.com
+                  </span>
+                </div>
+                <div className="landing-footer-qr-row">
+                  <div className="landing-footer-qr-item">
+                    <img
+                      src={tgQr2}
+                      alt="Telegram QR"
+                      className="landing-footer-qr-image"
+                    />
+                    <p className="landing-footer-qr-label">тг</p>
+                  </div>
+                  <div className="landing-footer-qr-item">
+                    <img
+                      src={vkQr2}
+                      alt="VK QR"
+                      className="landing-footer-qr-image"
+                    />
+                    <p className="landing-footer-qr-label">вк</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     );
   };
