@@ -1,34 +1,77 @@
 // src/api/client.js
-const API_URL = import.meta.env.VITE_API_URL;
+const FUNCTION_URL = import.meta.env.VITE_YANDEX_FUNCTION_URL;
 
 export const apiClient = {
-  async signup(email, password) {
-    const response = await fetch(`${API_URL}/api/auth/signup`, {
+  async request(action, options = {}) {
+    try {
+      // Используем один URL для всех запросов
+      const url = FUNCTION_URL;
+
+      // Подготавливаем тело запроса
+      let bodyData = {};
+      if (options.body) {
+        bodyData = JSON.parse(options.body);
+      }
+
+      // Добавляем action в тело запроса (ЭТО КЛЮЧЕВОЙ МОМЕНТ!)
+      bodyData.action = action;
+
+      const response = await fetch(url, {
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+        method: options.method || "POST",
+        body: JSON.stringify(bodyData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Произошла ошибка");
+      }
+
+      return data;
+    } catch (error) {
+      console.error("API Error:", error);
+      throw error;
+    }
+  },
+
+  async signup(email, password, name) {
+    return this.request("signup", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, name }),
     });
-    return response.json();
   },
 
   async login(email, password) {
-    const response = await fetch(`${API_URL}/api/auth/login`, {
+    return this.request("login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-    return response.json();
   },
 
   async activate(key, token) {
-    const response = await fetch(`${API_URL}/api/auth/activate`, {
+    return this.request("activate", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ key }),
     });
-    return response.json();
+  },
+
+  // Проверка статуса подписки
+  async checkSubscription() {
+    const token = localStorage.getItem("auth_token");
+    if (!token) throw new Error("Не авторизован");
+
+    return this.request("checkSubscription", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   },
 };

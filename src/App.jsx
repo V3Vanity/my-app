@@ -2,7 +2,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import MainApp from "./pages/main";
+import { useAuth } from "./hooks/useAuth";
 import "./App.css";
+
+// Импорт модального окна аутентификации
+import { AuthModal } from "./components/AuthModal";
 
 import aboutTitleSvg from "./assets/about-title.svg";
 import aboutIconSvg from "./assets/about-icon.svg";
@@ -31,6 +35,7 @@ function App() {
   const [hasAccess, setHasAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState("home");
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const accessToken = localStorage.getItem("app_access");
@@ -51,7 +56,8 @@ function App() {
 
   // Лендинг с шапкой
   const LandingPage = () => {
-    // Эффект при скролле
+    // Состояние для модального окна аутентификации
+    const [showAuthModal, setShowAuthModal] = useState(false);
 
     // Эффект при скролле - шапка сворачивается только между вторым и последним блоком
     useEffect(() => {
@@ -112,6 +118,24 @@ function App() {
                 Купить
               </button>
             </nav>
+            {/* Кнопки аутентификации */}
+            <div className="auth-buttons">
+              {isAuthenticated ? (
+                <button
+                  className="nav-link"
+                  onClick={() => (window.location.href = "/profile")}
+                >
+                  Профиль
+                </button>
+              ) : (
+                <button
+                  className="nav-link"
+                  onClick={() => setShowAuthModal(true)}
+                >
+                  Войти
+                </button>
+              )}
+            </div>
           </div>
         </header>
 
@@ -263,6 +287,7 @@ function App() {
             </div>
           </div>
         </section>
+
         {/* Новая секция: "Мы создали гид" */}
         <section className="landing-guide-section">
           <div className="landing-guide-content">
@@ -526,7 +551,16 @@ function App() {
                 {/* Плашка с ценой - эффект стекла */}
                 <div className="landing-pricing-price-glass">990₽</div>
 
-                <button className="landing-pricing-btn">
+                <button
+                  className="landing-pricing-btn"
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      window.location.href = "/activate";
+                    } else {
+                      setShowAuthModal(true);
+                    }
+                  }}
+                >
                   Купить воспоминания
                 </button>
               </div>
@@ -651,6 +685,16 @@ function App() {
             </div>
           </div>
         </footer>
+
+        {/* Модальное окно аутентификации */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={() => {
+            // После успешного входа перенаправляем на активацию
+            window.location.href = "/activate";
+          }}
+        />
       </div>
     );
   };
