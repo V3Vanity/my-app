@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../components/Header.jsx";
 import TextBlock from "../components/TextBlock.jsx";
 import RewardPage from "../components/RewardPage.jsx";
 import MapCanvas from "../components/MapCanvas.jsx";
@@ -34,17 +32,15 @@ import hint11Image from "../assets/hint-img-11.png";
 import hint12Image from "../assets/hint-img-12.png";
 import hint13Image from "../assets/hint-img-13.png";
 import "../styles/fonts.css";
-import "./QuestPage.css";
+import "/src/pages/QuestPage.css";
 
 export default function QuestPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(() => {
     const saved = localStorage.getItem("questStep");
     return saved ? Number(saved) : 0;
   });
   const [completedSteps, setCompletedSteps] = useState([]);
   const [foundQuestPoints, setFoundQuestPoints] = useState([]);
-  const navigate = useNavigate();
   const mapRef = useRef(null);
 
   // В useEffect где вызывается startQuest добавьте:
@@ -110,43 +106,6 @@ export default function QuestPage() {
       localStorage.setItem("questStep", currentStep);
     }
   }, [currentStep]);
-
-  const handleMenuItemClick = (page) => {
-    setMenuOpen(false);
-
-    switch (page) {
-      case "quest":
-        navigate("/quest");
-        break;
-      case "temples":
-        navigate("/temples");
-        break;
-      case "museums":
-        navigate("/museums");
-        break;
-      case "art":
-        navigate("/art");
-        break;
-      case "history":
-        navigate("/history");
-        break;
-      case "family":
-        navigate("/family");
-        break;
-      case "gastro":
-        navigate("/gastro");
-        break;
-      case "about":
-        navigate("/about");
-        break;
-      case "reviews":
-        navigate("/reviews");
-        break;
-      default:
-        navigate("/");
-        break;
-    }
-  };
 
   const handleStartJourney = () => {
     setCurrentStep(1); // начинаем квест с первого текстового шага
@@ -242,13 +201,6 @@ export default function QuestPage() {
 
   return (
     <div className="app-container">
-      <Header
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        navigateTo={handleMenuItemClick}
-        onBack={handleBack}
-      />
-
       {currentStep === 0 ? (
         // Стартовый экран квеста
         <>

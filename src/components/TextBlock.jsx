@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, memo } from "react";
-import "./TextBlock.css";
+import "/src/components/TextBlock.css";
 import HintModal from "../components/HintModal.jsx";
 
 const TextBlock = memo(

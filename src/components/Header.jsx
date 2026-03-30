@@ -1,3 +1,5 @@
+// src/components/Header.jsx - ИСПРАВЛЕННАЯ ВЕРСИЯ
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import menuImage from "../assets/menu-img.svg";
@@ -8,7 +10,7 @@ export default function Header({
   setMenuOpen,
   onMenuItemClick,
   onBack,
-  showBackButton = false, // НОВЫЙ ПРОПС (строка 9)
+  showBackButton = false,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,8 +18,17 @@ export default function Header({
   const [activeSubItem, setActiveSubItem] = useState(null);
   const [isCulturalOpen, setIsCulturalOpen] = useState(false);
 
-  // Определяем, находимся ли мы на странице квеста
-  const isQuestPage = location.pathname === "/quest";
+  const isHomePage = location.pathname === "/" || location.pathname === "/app";
+
+  // Функция возврата
+  const handleGoBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+    setMenuOpen(false);
+  };
 
   // Синхронизация активного пункта с текущим маршрутом
   useEffect(() => {
@@ -45,7 +56,6 @@ export default function Header({
       setActiveMainItem("cultural");
       setIsCulturalOpen(true);
 
-      // Устанавливаем активный подпункт
       if (path === "/temples") setActiveSubItem("temples");
       else if (path === "/museums") setActiveSubItem("museums");
       else if (path === "/art") setActiveSubItem("art");
@@ -58,27 +68,18 @@ export default function Header({
     }
   }, [location.pathname]);
 
-  const handleBackClick = () => {
-    if (isQuestPage && onBack) {
-      onBack();
-      setMenuOpen(false);
-    }
-  };
-
+  // Обработка клика по пункту меню - ИСПРАВЛЕНАЯ ВЕРСИЯ
   const handleMenuItemClick = (page, isMain = true) => {
+    // Обработка раскрытия/закрытия подменю "Культурная карта"
     if (page === "cultural" && isMain) {
       setIsCulturalOpen(!isCulturalOpen);
-      if (!isCulturalOpen) {
-        setActiveMainItem("cultural");
-        setActiveSubItem(null);
-      } else {
-        setActiveMainItem(null);
-        setActiveSubItem(null);
-      }
       return;
     }
 
-    // Определяем путь назначения для каждого пункта меню
+    // Закрываем меню
+    setMenuOpen(false);
+
+    // Определяем путь для навигации
     let targetPath = "";
     switch (page) {
       case "quest":
@@ -113,21 +114,11 @@ export default function Header({
         break;
     }
 
-    // Закрываем меню
-    setMenuOpen(false);
-
-    // Проверяем: если текущий путь совпадает с целевым - идем на главную с перезагрузкой
-    if (location.pathname === targetPath) {
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 100);
-      return;
-    }
-
-    // Если есть внешний обработчик (например, в GastroTour), вызываем его
+    // Если передан колбэк от родителя - используем его
     if (onMenuItemClick) {
       onMenuItemClick(page);
     } else {
+      // Иначе используем navigate
       navigate(targetPath);
     }
   };
@@ -135,13 +126,8 @@ export default function Header({
   return (
     <>
       <header className={`app-header ${menuOpen ? "open" : ""}`}>
-        {/* ИЗМЕНЕННЫЙ БЛОК: Стрелка назад показывается по условию showBackButton */}
-        {showBackButton ? ( // строка 116 - изменено условие
-          <button className="back-arrow-button" onClick={onBack}>
-            ←
-          </button>
-        ) : isQuestPage ? ( // строка 120 - добавлена проверка isQuestPage
-          <button className="back-arrow-button" onClick={handleBackClick}>
+        {!isHomePage || showBackButton ? (
+          <button className="back-arrow-button" onClick={handleGoBack}>
             ←
           </button>
         ) : (

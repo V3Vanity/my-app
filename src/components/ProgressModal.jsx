@@ -5,7 +5,7 @@ import React, {
   useCallback,
   Suspense,
 } from "react";
-import "./ProgressModal.css";
+import "/src/components/ProgressModal.css";
 
 // Оптимизированный импорт иконок - используем динамический импорт для ленивой загрузки
 const rabbitIconsMap = {

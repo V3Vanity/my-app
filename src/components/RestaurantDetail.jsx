@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./RestaurantDetail.css";
+import "/src/components/RestaurantDetail.css";
 
 export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);

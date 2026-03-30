@@ -1,20 +1,31 @@
+// src/pages/TemplesPage.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import MapCanvas from "../components/MapCanvas";
-import CategorySlider from "../components/CategorySlider"; // новый универсальный слайдер
-import { allTemples } from "../components/mapData.js"; // ИСПРАВЛЕННЫЙ ПУТЬ
+import CategorySlider from "../components/CategorySlider";
+import { allTemples } from "../components/mapData.js";
 import "./TemplesPage.css";
 
-export default function TemplesPage() {
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showSlider, setShowSlider] = useState(true);
-  const [showMap, setShowMap] = useState(false);
-  const [selectedTemple, setSelectedTemple] = useState(null);
+export default function TemplesPage({
+  showSlider: externalShowSlider,
+  showMap: externalShowMap,
+  selectedItem: externalSelectedItem,
+  onNavigate,
+}) {
+  const [internalShowSlider, setInternalShowSlider] = useState(true);
+  const [internalShowMap, setInternalShowMap] = useState(false);
+  const [internalSelectedTemple, setInternalSelectedTemple] = useState(null);
+
+  const showSlider =
+    externalShowSlider !== undefined ? externalShowSlider : internalShowSlider;
+  const showMap =
+    externalShowMap !== undefined ? externalShowMap : internalShowMap;
+  const selectedTemple =
+    externalSelectedItem !== undefined
+      ? externalSelectedItem
+      : internalSelectedTemple;
+
   const mapRef = useRef(null);
 
-  // Блокировка скролла body при открытом слайдере
   useEffect(() => {
     if (showSlider) {
       document.body.style.overflow = "hidden";
@@ -27,103 +38,63 @@ export default function TemplesPage() {
     };
   }, [showSlider]);
 
-  const handleMenuItemClick = (page) => {
-    setMenuOpen(false);
-    switch (page) {
-      case "quest":
-        navigate("/quest");
-        break;
-      case "temples":
-        navigate("/temples");
-        break;
-      case "museums":
-        navigate("/museums");
-        break;
-      case "art":
-        navigate("/art");
-        break;
-      case "history":
-        navigate("/history");
-        break;
-      case "family":
-        navigate("/family");
-        break;
-      case "gastro":
-        navigate("/gastro");
-        break;
-      case "about":
-        navigate("/about");
-        break;
-      case "reviews":
-        navigate("/reviews");
-        break;
-      default:
-        navigate("/");
-        break;
-    }
-  };
-
-  const handleBackFromMap = () => {
-    setShowMap(false);
-    setShowSlider(true);
-    setSelectedTemple(null);
-  };
-
   const handleNavigateToTemple = (temple) => {
-    setSelectedTemple(temple);
-    setShowSlider(false);
-    setShowMap(true);
+    console.log("Navigating to temple:", temple);
 
-    // Даём время на монтирование карты
+    if (onNavigate) {
+      onNavigate(temple);
+    } else {
+      setInternalSelectedTemple(temple);
+      setInternalShowSlider(false);
+      setInternalShowMap(true);
+    }
+
     setTimeout(() => {
       if (mapRef.current && temple.mapId) {
-        mapRef.current.centerOnTemple(temple.mapId);
-        mapRef.current.buildRouteToTemple(temple.mapId);
+        mapRef.current.centerOnTemple?.(temple.mapId);
+        mapRef.current.buildRouteToTemple?.(temple.mapId);
       }
     }, 300);
   };
 
-  // Конфигурация для внешних ссылок (Яндекс Карты)
   const externalLinksConfig = {
-    startIndex: 5, // последние два храма (индексы 5 и 6)
+    startIndex: 5,
     links: [
       "https://yandex.ru/maps/-/CPBt64Ib",
       "https://yandex.ru/maps/-/CPBt66k1",
     ],
   };
 
-  return (
-    <>
-      <Header
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        onMenuItemClick={handleMenuItemClick}
-        onBack={showMap ? handleBackFromMap : undefined}
-        showBackButton={showMap}
-      />
-
+  if (!allTemples || allTemples.length === 0) {
+    return (
       <div className="temples-page-container">
-        {/* Слайдер с храмами */}
-        {showSlider && (
-          <CategorySlider
-            items={allTemples}
-            onNavigateToItem={handleNavigateToTemple}
-            externalLinksConfig={externalLinksConfig}
-          />
-        )}
-
-        {/* Карта с маршрутом к выбранному храму */}
-        {showMap && selectedTemple && (
-          <div className="temple-map-wrapper">
-            <MapCanvas
-              ref={mapRef}
-              mode="temple"
-              selectedTemple={selectedTemple}
-              className="temple-map"
-            />
-          </div>
-        )}
+        <div style={{ padding: "20px", textAlign: "center", color: "#4a3718" }}>
+          <h2>Данные о храмах загружаются...</h2>
+        </div>
       </div>
-    </>
+    );
+  }
+
+  return (
+    <div className="temples-page-container">
+      {showSlider && (
+        <CategorySlider
+          items={allTemples}
+          onNavigateToItem={handleNavigateToTemple}
+          externalLinksConfig={externalLinksConfig}
+        />
+      )}
+
+      {showMap && selectedTemple && (
+        <div className="temple-map-wrapper">
+          <MapCanvas
+            ref={mapRef}
+            mode="temple"
+            selectedTemple={selectedTemple}
+            className="temple-map"
+          />
+        </div>
+      )}
+    </div>
   );
 }

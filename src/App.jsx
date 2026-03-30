@@ -1,13 +1,15 @@
-// src/App.jsx
+// src/App.jsx - упрощенная версия для тестового режима
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import MainApp from "./pages/main";
 import { useAuth } from "./hooks/useAuth";
 import "./App.css";
 
+// Импорт модальных окон
 import { AuthModal } from "./components/AuthModal";
 import ProfileModal from "./components/ProfileModal";
 
+// Импорт изображений
 import aboutTitleSvg from "./assets/about-title.svg";
 import aboutIconSvg from "./assets/about-icon.svg";
 import aboutRightImage from "./assets/about-right-image.png";
@@ -38,12 +40,21 @@ function App() {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // Проверяем наличие доступа
     const accessToken = localStorage.getItem("app_access");
-    if (accessToken) {
+
+    // В тестовом режиме: если есть токен ИЛИ пользователь авторизован
+    if (accessToken || isAuthenticated) {
       setHasAccess(true);
+      // Автоматически устанавливаем app_access если его нет
+      if (!accessToken && isAuthenticated) {
+        localStorage.setItem("app_access", "true");
+      }
+    } else {
+      setHasAccess(false);
     }
     setIsLoading(false);
-  }, []);
+  }, [isAuthenticated]);
 
   // Плавная прокрутка к секции
   const scrollToSection = (sectionId) => {
@@ -56,11 +67,10 @@ function App() {
 
   // Лендинг с шапкой
   const LandingPage = () => {
-    // Состояние для модального окна аутентификации
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
 
-    // Эффект при скролле - шапка сворачивается только между вторым и последним блоком
+    // Эффект при скролле - шапка сворачивается
     useEffect(() => {
       const header = document.querySelector(".landing-header");
       const secondBlock = document.getElementById("features");
@@ -72,7 +82,6 @@ function App() {
           const lastBlockTop = lastBlock.offsetTop;
           const scrollY = window.scrollY;
 
-          // Шапка сворачивается только между вторым блоком и последним блоком
           if (scrollY >= secondBlockTop - 100 && scrollY < lastBlockTop - 300) {
             header.classList.add("scrolled");
           } else {
@@ -82,11 +91,31 @@ function App() {
       };
 
       window.addEventListener("scroll", handleScroll);
-      // Вызываем сразу, чтобы установить правильное состояние
       handleScroll();
 
       return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    // Обработчик кнопки "Купить" / "Начать путешествие"
+    const handlePurchaseOrStart = () => {
+      // В тестовом режиме просто переходим в приложение если авторизован
+      if (isAuthenticated) {
+        localStorage.setItem("app_access", "true");
+        window.location.href = "/app";
+      } else {
+        setShowAuthModal(true);
+      }
+    };
+
+    // Обработчик кнопки в первом блоке
+    const handleAboutBtnClick = () => {
+      if (isAuthenticated) {
+        localStorage.setItem("app_access", "true");
+        window.location.href = "/app";
+      } else {
+        scrollToSection("pricing");
+      }
+    };
 
     return (
       <div className="landing">
@@ -119,12 +148,11 @@ function App() {
                 Купить
               </button>
             </nav>
-            {/* Кнопки аутентификации */}
             <div className="auth-buttons">
               {isAuthenticated ? (
                 <button
                   className="nav-link"
-                  onClick={() => setShowProfileModal(true)} // Открываем модалку профиля
+                  onClick={() => setShowProfileModal(true)}
                 >
                   Профиль
                 </button>
@@ -143,7 +171,6 @@ function App() {
         {/* Секция "О нас" */}
         <section id="about" className="landing-about-section">
           <div className="landing-about-content">
-            {/* Левая колонка с текстом */}
             <div className="landing-about-left">
               <div className="landing-about-card">
                 <div className="landing-about-title-icon">
@@ -160,9 +187,9 @@ function App() {
                 </p>
                 <button
                   className="landing-about-btn"
-                  onClick={() => scrollToSection("pricing")}
+                  onClick={handleAboutBtnClick}
                 >
-                  Купить
+                  {isAuthenticated ? "Начать путешествие" : "Купить"}
                 </button>
               </div>
 
@@ -200,7 +227,7 @@ function App() {
 
               <div className="landing-features-item">
                 <h3 className="landing-features-item-title">
-                  КВЕСТ-ЭКСКУРСИЯ “МАЗАЙСКИЕ ЗАЙЦЫ”
+                  КВЕСТ-ЭКСКУРСИЯ "МАЗАЙСКИЕ ЗАЙЦЫ"
                 </h3>
                 <p className="landing-features-item-text">
                   Фигурки зайцев расставлены по центру Костромы. Каждая из них
@@ -212,7 +239,7 @@ function App() {
               </div>
 
               <div className="landing-features-item">
-                <h3 className="landing-features-item-title">“ГАСТРО-ТУР”</h3>
+                <h3 className="landing-features-item-title">"ГАСТРО-ТУР"</h3>
                 <p className="landing-features-item-text">
                   Подборка лучших кафе и ресторанов в центре города. У каждого
                   места — фирменное костромское блюдо, которое стоит попробовать
@@ -222,7 +249,7 @@ function App() {
 
               <div className="landing-features-item">
                 <h3 className="landing-features-item-title">
-                  “КУЛЬТУРНАЯ КАРТА”
+                  "КУЛЬТУРНАЯ КАРТА"
                 </h3>
                 <p className="landing-features-item-text">
                   Все ключевые точки города в одном месте: от храмов и галерей
@@ -257,7 +284,7 @@ function App() {
           </div>
         </section>
 
-        {/* Новая секция: "Вам тоже знакомо это чувство?" */}
+        {/* Секция: "Вам тоже знакомо это чувство?" */}
         <section className="landing-feeling-section">
           <div className="landing-feeling-container">
             <picture>
@@ -289,7 +316,7 @@ function App() {
           </div>
         </section>
 
-        {/* Новая секция: "Мы создали гид" */}
+        {/* Секция: "Мы создали гид" */}
         <section className="landing-guide-section">
           <div className="landing-guide-content">
             <div className="landing-guide-left">
@@ -356,12 +383,9 @@ function App() {
 
         {/* Секция: самостоятельно vs с гидом */}
         <section className="landing-comparison-section">
-          {/* Заголовок для десктопа */}
           <h2 className="landing-comparison-title desktop-title">
             самостоятельно vs с гидом
           </h2>
-
-          {/* Заголовок для мобильных */}
           <h2 className="landing-comparison-title mobile-title">
             самостоятельно изучать Кострому
           </h2>
@@ -375,7 +399,6 @@ function App() {
               />
             </div>
             <div className="landing-comparison-right">
-              {/* Добавляем заголовок над правым изображением только для мобильных */}
               <h3 className="landing-comparison-right-title">
                 с электронным гидом
               </h3>
@@ -393,7 +416,6 @@ function App() {
           <div className="landing-reviews-container">
             <h2 className="landing-reviews-title">Отзывы</h2>
             <div className="landing-reviews-grid">
-              {/* Ряд 1 - 3 отзыва */}
               <div className="landing-reviews-row">
                 <div className="landing-review-card">
                   <div className="landing-review-icon">
@@ -446,7 +468,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Ряд 2 - 3 отзыва */}
               <div className="landing-reviews-row">
                 <div className="landing-review-card">
                   <div className="landing-review-icon">
@@ -538,7 +559,6 @@ function App() {
         {/* Секция "Купить доступ" */}
         <section id="pricing" className="landing-pricing-section">
           <div className="landing-pricing-content">
-            {/* Левая колонка с текстом */}
             <div className="landing-pricing-left">
               <div className="landing-pricing-card">
                 <div className="landing-pricing-title-icon">
@@ -549,25 +569,19 @@ function App() {
                   />
                 </div>
 
-                {/* Плашка с ценой - эффект стекла */}
                 <div className="landing-pricing-price-glass">990₽</div>
 
                 <button
                   className="landing-pricing-btn"
-                  onClick={() => {
-                    if (isAuthenticated) {
-                      window.location.href = "/activate";
-                    } else {
-                      setShowAuthModal(true);
-                    }
-                  }}
+                  onClick={handlePurchaseOrStart}
                 >
-                  Купить воспоминания
+                  {isAuthenticated
+                    ? "Начать путешествие"
+                    : "Купить воспоминания"}
                 </button>
               </div>
             </div>
 
-            {/* Правая колонка с изображением */}
             <div className="landing-pricing-right">
               <img
                 src={aboutRightImage}
@@ -581,7 +595,6 @@ function App() {
         {/* Подвал */}
         <footer className="landing-footer">
           <div className="landing-footer-container">
-            {/* Первая колонка - описание (слева) */}
             <div className="landing-footer-col landing-footer-col-large">
               <p className="landing-footer-text">
                 Привет! 👋 Меня зовут Юля, я учусь на 4 курсе по направлению
@@ -594,9 +607,7 @@ function App() {
               </p>
             </div>
 
-            {/* Обертка для правых колонок - идут в строку друг над другом */}
             <div className="landing-footer-right-group">
-              {/* Вторая колонка - контакты 1 */}
               <div className="landing-footer-col">
                 <p className="landing-footer-contact-title">
                   со мной можно связаться:
@@ -640,7 +651,6 @@ function App() {
                 </div>
               </div>
 
-              {/* Третья колонка - контакты 2 */}
               <div className="landing-footer-col">
                 <p className="landing-footer-contact-title">
                   с программистом тоже:
@@ -687,15 +697,17 @@ function App() {
           </div>
         </footer>
 
-        {/* Модальное окно аутентификации */}
+        {/* Модальные окна */}
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
           onSuccess={() => {
-            // После успешного входа перенаправляем на активацию
-            window.location.href = "/activate";
+            // После успешного входа устанавливаем доступ
+            localStorage.setItem("app_access", "true");
+            window.location.href = "/app";
           }}
         />
+
         <ProfileModal
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}

@@ -11,34 +11,33 @@ export default function ReviewsPage() {
     setMenuOpen(false);
     switch (page) {
       case "quest":
-        navigate("/quest");
+        navigate("/app/quest");
         break;
       case "temples":
-        navigate("/temples");
+        navigate("/app/temples");
         break;
       case "museums":
-        navigate("/museums");
+        navigate("/app/museums");
         break;
       case "art":
-        navigate("/art");
+        navigate("/app/art");
         break;
       case "history":
-        navigate("/history");
+        navigate("/app/history");
         break;
       case "family":
-        navigate("/family");
+        navigate("/app/family");
         break;
       case "gastro":
-        navigate("/gastro");
+        navigate("/app/gastro");
         break;
       case "about":
-        navigate("/about");
+        navigate("/app/about");
         break;
       case "reviews":
-        navigate("/reviews");
+        navigate("/app/reviews");
         break;
       default:
-        navigate("/");
         break;
     }
   };

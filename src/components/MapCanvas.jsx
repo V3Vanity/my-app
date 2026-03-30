@@ -6,7 +6,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import "./MapCanvas.css";
+import "/src/components/MapCanvas.css";
 
 import mapImage from "../assets/map.svg";
 import rabbitIcon from "../assets/grabbit.svg";

@@ -1,5 +1,5 @@
 import React from "react";
-import "./RewardPage.css";
+import "/src/components/RewardPage.css";
 
 import rewardImage from "../assets/reward.png";
 

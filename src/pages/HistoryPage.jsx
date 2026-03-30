@@ -1,20 +1,31 @@
+// src/pages/HistoryPage.jsx
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
 import MapCanvas from "../components/MapCanvas";
 import CategorySlider from "../components/CategorySlider";
 import { allHistory } from "../components/mapData.js";
 import "./HistoryPage.css";
 
-export default function HistoryPage() {
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showSlider, setShowSlider] = useState(true);
-  const [showMap, setShowMap] = useState(false);
-  const [selectedHistory, setSelectedHistory] = useState(null);
+export default function HistoryPage({
+  showSlider: externalShowSlider,
+  showMap: externalShowMap,
+  selectedItem: externalSelectedItem,
+  onNavigate,
+}) {
+  const [internalShowSlider, setInternalShowSlider] = useState(true);
+  const [internalShowMap, setInternalShowMap] = useState(false);
+  const [internalSelectedHistory, setInternalSelectedHistory] = useState(null);
+
+  const showSlider =
+    externalShowSlider !== undefined ? externalShowSlider : internalShowSlider;
+  const showMap =
+    externalShowMap !== undefined ? externalShowMap : internalShowMap;
+  const selectedHistory =
+    externalSelectedItem !== undefined
+      ? externalSelectedItem
+      : internalSelectedHistory;
+
   const mapRef = useRef(null);
 
-  // Блокировка скролла body при открытом слайдере
   useEffect(() => {
     if (showSlider) {
       document.body.style.overflow = "hidden";
@@ -27,123 +38,60 @@ export default function HistoryPage() {
     };
   }, [showSlider]);
 
-  const handleMenuItemClick = (page) => {
-    setMenuOpen(false);
-    switch (page) {
-      case "quest":
-        navigate("/quest");
-        break;
-      case "temples":
-        navigate("/temples");
-        break;
-      case "museums":
-        navigate("/museums");
-        break;
-      case "art":
-        navigate("/art");
-        break;
-      case "history":
-        navigate("/history");
-        break;
-      case "family":
-        navigate("/family");
-        break;
-      case "gastro":
-        navigate("/gastro");
-        break;
-      case "about":
-        navigate("/about");
-        break;
-      case "reviews":
-        navigate("/reviews");
-        break;
-      default:
-        navigate("/");
-        break;
-    }
-  };
-
-  const handleBackFromMap = () => {
-    setShowMap(false);
-    setShowSlider(true);
-    setSelectedHistory(null);
-  };
-
   const handleNavigateToHistory = (historyItem) => {
     console.log("Navigating to history place:", historyItem);
-    setSelectedHistory(historyItem);
-    setShowSlider(false);
-    setShowMap(true);
 
-    // Даём время на монтирование карты
+    if (onNavigate) {
+      onNavigate(historyItem);
+    } else {
+      setInternalSelectedHistory(historyItem);
+      setInternalShowSlider(false);
+      setInternalShowMap(true);
+    }
+
     setTimeout(() => {
       if (mapRef.current && historyItem.mapId) {
-        // ИСПОЛЬЗУЕМ МЕТОДЫ ДЛЯ ИСТОРИИ
         mapRef.current.centerOnHistory?.(historyItem.mapId);
         mapRef.current.buildRouteToHistory?.(historyItem.mapId);
       }
     }, 300);
   };
 
-  // Конфигурация для внешних ссылок
   const externalLinksConfig = {
     startIndex: 1,
     links: [allHistory[1]?.externalLink || "https://yandex.ru/maps/"],
   };
 
-  // Проверяем, что allHistory существует и не пустой
   if (!allHistory || allHistory.length === 0) {
-    console.warn("allHistory is empty or undefined!");
     return (
-      <>
-        <Header
-          menuOpen={menuOpen}
-          setMenuOpen={setMenuOpen}
-          onMenuItemClick={handleMenuItemClick}
-        />
-        <div className="history-page-container">
-          <div
-            style={{ padding: "20px", textAlign: "center", color: "#4a3718" }}
-          >
-            <h2>Данные об истории загружаются...</h2>
-          </div>
+      <div className="history-page-container">
+        <div style={{ padding: "20px", textAlign: "center", color: "#4a3718" }}>
+          <h2>Данные об истории загружаются...</h2>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <Header
-        menuOpen={menuOpen}
-        setMenuOpen={setMenuOpen}
-        onMenuItemClick={handleMenuItemClick}
-        onBack={showMap ? handleBackFromMap : undefined}
-        showBackButton={showMap}
-      />
+    <div className="history-page-container">
+      {showSlider && (
+        <CategorySlider
+          items={allHistory}
+          onNavigateToItem={handleNavigateToHistory}
+          externalLinksConfig={externalLinksConfig}
+        />
+      )}
 
-      <div className="history-page-container">
-        {/* Слайдер с историческими местами */}
-        {showSlider && (
-          <CategorySlider
-            items={allHistory}
-            onNavigateToItem={handleNavigateToHistory}
-            externalLinksConfig={externalLinksConfig}
+      {showMap && selectedHistory && (
+        <div className="history-map-wrapper">
+          <MapCanvas
+            ref={mapRef}
+            mode="history"
+            selectedItem={selectedHistory}
+            className="history-map"
           />
-        )}
-
-        {/* Карта с маршрутом к выбранному месту */}
-        {showMap && selectedHistory && (
-          <div className="history-map-wrapper">
-            <MapCanvas
-              ref={mapRef}
-              mode="history" // ВАЖНО: режим "history"
-              selectedItem={selectedHistory} // ИЗМЕНЕНО: используем selectedItem вместо selectedTemple
-              className="history-map"
-            />
-          </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   );
 }

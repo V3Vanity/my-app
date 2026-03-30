@@ -1,5 +1,5 @@
 import React from "react";
-import "./HintModal.css";
+import "/src/components/HintModal.css";
 
 export default function HintModal({ isOpen, onClose, imageSrc, address }) {
   if (!isOpen) return null;

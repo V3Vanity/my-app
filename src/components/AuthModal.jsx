@@ -21,14 +21,45 @@ export const AuthModal = ({ isOpen, onClose }) => {
     setError("");
     setLoading(true);
 
+    // Добавляем отладочный вывод
+    console.log("=== Form Submit ===");
+    console.log("Mode:", isLogin ? "login" : "signup");
+    console.log("Email:", email);
+    console.log("Password:", password ? "***" : "empty");
+    console.log("Name:", name);
+
     try {
+      // Валидация
+      if (!email || !email.trim()) {
+        throw new Error("Пожалуйста, введите email");
+      }
+
+      if (!password || !password.trim()) {
+        throw new Error("Пожалуйста, введите пароль");
+      }
+
+      if (!isLogin && (!name || !name.trim())) {
+        throw new Error("Пожалуйста, введите имя");
+      }
+
       let response;
 
       if (isLogin) {
-        response = await apiClient.login(email, password);
+        console.log("Calling login with:", {
+          email: email.trim(),
+          password: password,
+        });
+        response = await apiClient.login(email.trim(), password);
       } else {
-        response = await apiClient.signup(email, password, name);
+        console.log("Calling signup with:", {
+          email: email.trim(),
+          password: password,
+          name: name.trim(),
+        });
+        response = await apiClient.signup(email.trim(), password, name.trim());
       }
+
+      console.log("API Response:", response);
 
       // Проверяем структуру ответа от функции
       if (response && response.success) {
@@ -36,13 +67,14 @@ export const AuthModal = ({ isOpen, onClose }) => {
         const token = response.session?.access_token;
 
         if (userData && token) {
+          console.log("Login successful, storing token");
           login(userData, token);
           onClose();
         } else {
           throw new Error("Неверный формат ответа от сервера");
         }
       } else {
-        throw new Error(response.error || "Ошибка авторизации");
+        throw new Error(response?.error || "Ошибка авторизации");
       }
     } catch (err) {
       console.error("Auth error:", err);
@@ -102,6 +134,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
           onClick={() => {
             setIsLogin(!isLogin);
             setError("");
+            // Не очищаем поля при переключении, чтобы пользователь не терял введенные данные
           }}
           className="auth-modal-switch"
           disabled={loading}

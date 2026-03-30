@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import "./CategorySlider.css";
+import "/src/components/CategorySlider.css";
 
 export default function CategorySlider({
   items = [],
