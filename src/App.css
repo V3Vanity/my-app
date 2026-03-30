@@ -20,8 +20,16 @@ body {
   overflow-x: hidden;
   height: auto !important;
   min-height: 100vh;
+  width: 100%;
   font-family: "Montserrat", sans-serif;
   background-color: #c8b28d;
+  position: relative;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -39,11 +47,14 @@ body {
 /* Лендинг */
 .landing {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
   background-color: #c8b28d;
   overflow-x: hidden;
   overflow-y: visible !important;
   position: relative;
   display: block;
+  margin: 0 auto;
 }
 
 /* Шапка - плавная анимация с оптимизацией */
@@ -51,7 +62,10 @@ body {
   position: fixed;
   top: 40px;
   right: 20px;
-  width: calc(100% - 270px);
+  left: auto;
+  width: auto;
+  min-width: 200px;
+  max-width: calc(100% - 40px);
   height: 40px;
   background: linear-gradient(
     90deg,
@@ -61,7 +75,7 @@ body {
   );
   border-radius: 20px;
   z-index: 1000;
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: auto;
   overflow: hidden;
   will-change: width;
@@ -69,37 +83,31 @@ body {
   transform: translateZ(0);
 }
 
-/* Свернутое состояние - цвет не меняется */
+/* Свернутое состояние */
 .landing-header.scrolled {
-  width: 60px;
+  width: 80px !important;
+  min-width: 80px !important;
   background: linear-gradient(
     90deg,
     rgba(180, 130, 43, 0) 0%,
     #6e2e2663 30%,
     #70180c7e 100%
   );
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Контейнер шапки */
 .header-container {
-  max-width: 1200px;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
   height: 100%;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  transition:
-    padding 0.4s ease,
-    justify-content 0.4s ease;
-  will-change: padding;
-}
-
-/* Свернутое состояние контейнера */
-.landing-header.scrolled .header-container {
-  justify-content: center;
-  padding: 0;
+  gap: 1rem;
+  transition: all 0.4s ease;
 }
 
 /* Навигационное меню */
@@ -108,19 +116,46 @@ body {
   gap: 2rem;
   align-items: center;
   height: 100%;
-  transition:
-    gap 0.4s ease,
-    opacity 0.3s ease,
-    visibility 0.3s ease;
-  will-change: gap, opacity;
+  transition: all 0.4s ease;
 }
 
-/* Свернутое состояние меню */
-.landing-header.scrolled .nav-menu {
-  gap: 0;
+/* Кнопки аутентификации */
+.auth-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.auth-buttons .nav-link {
+  white-space: nowrap;
+}
+
+/* При наведении на свернутую шапку */
+.landing-header.scrolled:hover {
+  width: auto !important;
+  min-width: 300px !important;
+  max-width: calc(100% - 40px) !important;
+}
+
+.landing-header.scrolled:hover .header-container {
+  justify-content: flex-end;
+  padding: 0 2rem;
+  gap: 1rem;
+}
+
+.landing-header.scrolled:hover .nav-menu,
+.landing-header.scrolled:hover .auth-buttons {
+  opacity: 1;
+  visibility: visible;
+  width: auto;
+}
+
+/* Скрываем меню и кнопку в свернутом состоянии */
+.landing-header.scrolled .nav-menu,
+.landing-header.scrolled .auth-buttons {
   opacity: 0;
   visibility: hidden;
   width: 0;
+  overflow: hidden;
 }
 
 /* Иконка для свернутого состояния */
@@ -137,34 +172,8 @@ body {
   opacity: 1;
 }
 
-/* При наведении на свернутую шапку - разворачиваем */
-.landing-header.scrolled:hover {
-  width: calc(100% - 270px);
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.landing-header.scrolled:hover .header-container {
-  justify-content: flex-end;
-  padding: 0 2rem;
-  transition:
-    padding 0.4s ease 0.05s,
-    justify-content 0.4s ease 0.05s;
-}
-
-.landing-header.scrolled:hover .nav-menu {
-  gap: 2rem;
-  opacity: 1;
-  visibility: visible;
-  width: auto;
-  transition:
-    gap 0.4s ease 0.1s,
-    opacity 0.3s ease 0.1s,
-    visibility 0.3s ease 0.1s;
-}
-
 .landing-header.scrolled:hover::before {
   opacity: 0;
-  transition: opacity 0.2s ease;
 }
 
 /* Навигационные ссылки - общие стили */
@@ -214,118 +223,6 @@ body {
   color: #fff;
 }
 
-/* Шапка адаптив */
-@media (max-width: 768px) {
-  .landing-header {
-    top: 10px;
-    right: 10px;
-    left: auto;
-    width: calc(100% - 20px);
-    border-radius: 15px;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .landing-header.scrolled {
-    right: 10px;
-    left: auto;
-    width: 50px;
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .landing-header.scrolled:hover {
-    width: calc(100% - 20px);
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Иконка для свернутого состояния - справа */
-  .landing-header.scrolled::before {
-    content: "☰";
-    position: absolute;
-    top: 50%;
-    left: auto !important;
-    right: 15px !important;
-    transform: translateY(-50%);
-    color: #cbb99c;
-    font-size: 18px;
-    font-weight: 500;
-    transition: opacity 0.3s ease;
-    opacity: 1;
-  }
-
-  /* При наведении на свернутую шапку на мобильных */
-  .landing-header.scrolled:hover::before {
-    opacity: 0;
-  }
-
-  .header-container {
-    padding: 0 1rem;
-  }
-
-  .nav-menu {
-    gap: 1rem;
-  }
-
-  .nav-link {
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 480px) {
-  .landing-header {
-    top: 8px;
-    right: 8px;
-    left: auto;
-    width: calc(100% - 16px);
-    border-radius: 12px;
-    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    background: #44444400;
-  }
-
-  .landing-header.scrolled {
-    right: 8px;
-    left: auto;
-    width: 45px;
-    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    background: none;
-  }
-
-  .landing-header.scrolled:hover {
-    width: calc(100% - 16px);
-    transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Иконка для свернутого состояния - справа */
-  .landing-header.scrolled::before {
-    content: "☰";
-    position: absolute;
-    top: 50%;
-    left: auto !important;
-    right: 12px !important;
-    transform: translateY(-50%);
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 500;
-    transition: opacity 0.3s ease;
-    opacity: 1;
-  }
-
-  .landing-header.scrolled:hover::before {
-    opacity: 0;
-  }
-
-  .header-container {
-    padding: 0 0.8rem;
-  }
-
-  .nav-menu {
-    gap: 0.8rem;
-  }
-
-  .nav-link {
-    font-size: 9px;
-    color: #fff;
-  }
-}
 /* Секции заглушки */
 .section {
   min-height: auto;
@@ -376,6 +273,8 @@ body {
 .landing-about-section {
   min-height: auto;
   display: block;
+  width: 100%;
+  max-width: 100%;
   padding: 160px 2rem 4rem;
   background-color: #c8b28d;
   background-image: url("./assets/about-bg.png");
@@ -432,7 +331,7 @@ body {
   display: block;
 }
 
-/* Левая колонка - плашка поверх изображения - меняем на relative для нормальной прокрутки */
+/* Левая колонка - плашка поверх изображения */
 .landing-about-left {
   position: relative;
   left: 0;
@@ -536,7 +435,7 @@ body {
   text-align: left;
 }
 
-/* ===== Адаптив для секции "О нас" (мобильные) ===== */
+/* ===== Адаптив для секции "О нас" ===== */
 @media (max-width: 768px) {
   .landing-about-section {
     padding: 242px 1.5rem 3rem;
@@ -647,6 +546,8 @@ body {
 .landing-features-section {
   min-height: auto;
   display: block;
+  width: 100%;
+  max-width: 100%;
   padding: 100px 2rem 4rem;
   background-color: #c8b28d;
   position: relative;
@@ -818,6 +719,8 @@ body {
 
 /* ===== Секция "Вам тоже знакомо это чувство?" ===== */
 .landing-feeling-section {
+  width: 100%;
+  max-width: 100%;
   padding: 100px 2rem 4rem;
   background-color: #c8b28d;
   position: relative;
@@ -885,11 +788,12 @@ body {
 
 /* ===== Секция "Мы создали гид" ===== */
 .landing-guide-section {
-  margin: auto;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
   background-color: #c8b28d;
   position: relative;
   clear: both;
-  max-width: 1300px;
 }
 
 .landing-guide-container {
@@ -951,24 +855,24 @@ body {
 
 /* ===== Секция с тремя фичами ===== */
 .landing-features-grid-section {
+  width: 100%;
+  max-width: 100%;
   padding-top: 210px;
   background-color: #c8b28d;
   text-align: center;
-  max-width: 1300px;
-  margin: auto;
 }
 
 .landing-features-grid-title {
   width: 100%;
   max-width: 550px;
   height: auto;
-  margin: 0 0 1rem;
+  margin: 0 auto 1rem;
   display: block;
 }
 
 .landing-features-grid {
   max-width: 1300px;
-  margin: 0 0;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -1000,6 +904,8 @@ body {
 
 /* ===== Секция "самостоятельно vs с гидом" ===== */
 .landing-comparison-section {
+  width: 100%;
+  max-width: 100%;
   padding: 100px 2rem 4rem;
   background-color: #c8b28d;
   text-align: center;
@@ -1053,6 +959,29 @@ body {
 
 /* Адаптив для планшетов и мобильных (до 768px) */
 @media (max-width: 768px) {
+  /* Шапка */
+  .landing-header {
+    top: 10px;
+    right: 10px;
+  }
+
+  .landing-header.scrolled {
+    width: 70px !important;
+    min-width: 70px !important;
+  }
+
+  .landing-header.scrolled:hover {
+    min-width: 280px !important;
+  }
+
+  .header-container {
+    padding: 0 1.5rem;
+  }
+
+  .nav-menu {
+    gap: 1rem;
+  }
+
   /* Секция сравнения */
   .landing-comparison-section {
     padding: 80px 1.5rem 3rem;
@@ -1103,11 +1032,11 @@ body {
   }
 
   .landing-feeling-right {
-    order: 1; /* Картинка первая */
+    order: 1;
   }
 
   .landing-feeling-left {
-    order: 2; /* Текст второй */
+    order: 2;
   }
 
   .landing-feeling-left,
@@ -1140,10 +1069,48 @@ body {
   .landing-features-grid {
     gap: 18px;
   }
+
+  .landing-features-grid-title {
+    margin: 0 auto 1rem;
+  }
 }
 
 /* Адаптив для маленьких телефонов (до 480px) */
 @media (max-width: 480px) {
+  /* Шапка */
+  .landing-header {
+    top: 8px;
+    right: 8px;
+    background: rgba(68, 68, 68, 0);
+  }
+
+  .landing-header.scrolled {
+    width: 60px !important;
+    min-width: 60px !important;
+    background: none;
+  }
+
+  .landing-header.scrolled:hover {
+    min-width: 260px !important;
+  }
+
+  .header-container {
+    padding: 0 1rem;
+  }
+
+  .nav-menu {
+    gap: 0.8rem;
+  }
+
+  .nav-link {
+    font-size: 9px;
+  }
+
+  .landing-header.scrolled::before {
+    font-size: 16px;
+    color: #ffffff;
+  }
+
   /* Секция сравнения */
   .landing-comparison-section {
     padding: 60px 1rem 2rem;
@@ -1163,7 +1130,7 @@ body {
 
   /* Другие адаптивные стили */
   .landing-features-grid-title {
-    margin: 165px 0 1rem;
+    margin: 165px auto 1rem;
   }
 
   .landing-feeling-section,
@@ -1174,6 +1141,7 @@ body {
 
   .landing-guide-text:nth-child(2) {
     width: 267px;
+    margin: 0 auto;
   }
 
   .landing-feeling-left h3,
@@ -1182,12 +1150,10 @@ body {
   }
 
   .landing-feeling-text,
-  .landing-guide-text,
-  .landing-about-description,
-  .landing-about-info-text {
+  .landing-guide-text {
     font-size: 9px;
     width: 232px;
-    margin: auto;
+    margin: 0 auto;
   }
 
   .landing-feature-text {
@@ -1197,7 +1163,7 @@ body {
     padding: 0;
     text-align: center;
     text-transform: none;
-    margin: auto;
+    margin: 0 auto;
   }
 
   .landing-feature-card:nth-child(2) .landing-feature-text {
@@ -1214,8 +1180,11 @@ body {
     margin-bottom: 13px;
   }
 }
+
 /* ===== Секция "Отзывы" ===== */
 .landing-reviews-section {
+  width: 100%;
+  max-width: 100%;
   padding: 100px 2rem 4rem;
   background-color: #c8b28d;
   position: relative;
@@ -1369,6 +1338,8 @@ body {
 
 /* ===== Секция с видео города ===== */
 .landing-city-video-section {
+  width: 100%;
+  max-width: 100%;
   padding: 100px 2rem 4rem;
   background-color: #c8b28d;
   text-align: center;
@@ -1467,6 +1438,8 @@ body {
 .landing-pricing-section {
   min-height: auto;
   display: block;
+  width: 100%;
+  max-width: 100%;
   padding: 145px 2rem 4rem;
   background-color: #c8b28d;
   background-image: url("./assets/about-bg.png");
@@ -1616,45 +1589,7 @@ body {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Блок с информацией */
-.landing-pricing-info-block {
-  padding: 0;
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  text-align: left;
-  justify-content: center;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 61%;
-}
-
-/* Иконка */
-.landing-pricing-info-icon {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-.landing-pricing-icon-svg {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-/* Текст информации */
-.landing-pricing-info-text {
-  font-size: 0.9rem;
-  color: #fff8e9;
-  line-height: 1.5;
-  margin: 0;
-  text-align: left;
-}
-
-/* Адаптив для секции покупки - повторяем стили первого блока */
+/* Адаптив для секции покупки */
 @media (max-width: 768px) {
   .landing-pricing-section {
     padding: 80px 1.5rem 3rem;
@@ -1757,6 +1692,8 @@ body {
   margin-top: 0;
   position: relative;
   clear: both;
+  width: 100%;
+  max-width: 100%;
 }
 
 .landing-footer-container {
@@ -1764,7 +1701,7 @@ body {
   margin: 0 auto;
   display: flex;
   gap: 3rem;
-  flex-wrap: nowrap; /* Запрещаем перенос на всех экранах */
+  flex-wrap: nowrap;
   align-items: flex-start;
 }
 
@@ -1785,7 +1722,7 @@ body {
   display: flex;
   gap: 3rem;
   flex: 1;
-  flex-wrap: nowrap; /* Запрещаем перенос правых колонок */
+  flex-wrap: nowrap;
 }
 
 .landing-footer-right-group .landing-footer-col {
@@ -1866,7 +1803,7 @@ body {
   font-weight: 500;
 }
 
-/* Адаптивность подвала - на телефонах все колонки в строку без переносов */
+/* Адаптивность подвала */
 @media (max-width: 968px) {
   .landing-footer {
     padding: 40px 1.5rem 30px;
