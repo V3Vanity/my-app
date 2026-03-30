@@ -5,8 +5,8 @@ import MainApp from "./pages/main";
 import { useAuth } from "./hooks/useAuth";
 import "./App.css";
 
-// Импорт модального окна аутентификации
 import { AuthModal } from "./components/AuthModal";
+import ProfileModal from "./components/ProfileModal";
 
 import aboutTitleSvg from "./assets/about-title.svg";
 import aboutIconSvg from "./assets/about-icon.svg";
@@ -58,6 +58,7 @@ function App() {
   const LandingPage = () => {
     // Состояние для модального окна аутентификации
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
     // Эффект при скролле - шапка сворачивается только между вторым и последним блоком
     useEffect(() => {
@@ -123,7 +124,7 @@ function App() {
               {isAuthenticated ? (
                 <button
                   className="nav-link"
-                  onClick={() => (window.location.href = "/profile")}
+                  onClick={() => setShowProfileModal(true)} // Открываем модалку профиля
                 >
                   Профиль
                 </button>
@@ -694,6 +695,10 @@ function App() {
             // После успешного входа перенаправляем на активацию
             window.location.href = "/activate";
           }}
+        />
+        <ProfileModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
         />
       </div>
     );
