@@ -40,7 +40,7 @@ import {
   historyPoints,
   familyPoints,
 } from "./mapData.js";
-const DEBUG_USER = true;
+const DEBUG_USER = false;
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
 
 export default forwardRef(function MapCanvasBlock(
