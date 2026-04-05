@@ -702,8 +702,7 @@ function App() {
           <div className="landing-footer-requisites">
             <div className="landing-footer-requisites-content">
               <span className="requisites-text">
-                ИП Коробкова Юлия Евгеньевна | ИНН: 123456789012 | ОГРНИП:
-                3240000000012345
+                ИП Коробкова Юлия Евгеньевна | ИНН: 440120991310
               </span>
               <button
                 className="requisites-link"

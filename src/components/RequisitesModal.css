@@ -62,6 +62,9 @@
   padding: 28px 24px 24px;
   overflow-y: auto;
   max-height: 85vh;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
 }
 
 .requisites-content h2 {

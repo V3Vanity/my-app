@@ -25,12 +25,12 @@ export const RequisitesModal = ({ onClose }) => {
             </div>
             <div className="requisites-row">
               <span className="requisites-label">ИНН:</span>
-              <span className="requisites-value">123456789012</span>
+              <span className="requisites-value">440120991310</span>
             </div>
-            <div className="requisites-row">
+            {/* <div className="requisites-row">
               <span className="requisites-label">ОГРНИП:</span>
               <span className="requisites-value">3240000000012345</span>
-            </div>
+            </div> */}
           </div>
 
           <div className="requisites-section">

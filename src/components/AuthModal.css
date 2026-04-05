@@ -21,6 +21,7 @@
   position: relative;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 248, 233, 0.3);
+  overscroll-behavior: contain;
 }
 
 .auth-modal-close {
@@ -199,6 +200,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  overscroll-behavior: contain;
 }
 
 .offer-modal-close {
@@ -226,6 +228,8 @@
 .offer-content {
   padding: 24px;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .offer-content h2 {
