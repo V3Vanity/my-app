@@ -101,7 +101,7 @@ function App() {
       // В тестовом режиме просто переходим в приложение если авторизован
       if (isAuthenticated) {
         localStorage.setItem("app_access", "true");
-        window.location.href = "/app";
+        window.open("/app", "_blank");
       } else {
         setShowAuthModal(true);
       }
@@ -111,7 +111,7 @@ function App() {
     const handleAboutBtnClick = () => {
       if (isAuthenticated) {
         localStorage.setItem("app_access", "true");
-        window.location.href = "/app";
+        window.open("/app", "_blank");
       } else {
         scrollToSection("pricing");
       }
@@ -704,7 +704,7 @@ function App() {
           onSuccess={() => {
             // После успешного входа устанавливаем доступ
             localStorage.setItem("app_access", "true");
-            window.location.href = "/app";
+            window.open("/app", "_blank");
           }}
         />
 

@@ -31,13 +31,36 @@
   border: none;
   font-size: 28px;
   cursor: pointer;
-  color: #b53220;
+  color: #89674f;
   font-weight: bold;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.auth-modal-close:focus,
+.auth-modal-close:active,
+.auth-modal-close:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+
+/* Если используешь кнопку как ссылку */
+.auth-modal-close::-moz-focus-inner {
+  border: 0;
 }
 
 .auth-modal h2 {
   text-align: center;
-  color: #b53220;
+  color: #89674f;
   margin-bottom: 1.5rem;
   font-size: 1.8rem;
 }
@@ -100,4 +123,181 @@
 
 .auth-modal-switch:hover {
   color: #ff6b6b;
+}
+
+/* ===== НОВЫЕ СТИЛИ ДЛЯ СОГЛАШЕНИЙ ===== */
+
+/* Секция с соглашениями */
+.agreements-section {
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agreement-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.agreement-checkbox input {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: #89674f;
+}
+
+.agreement-text {
+  color: #fff8e9;
+  font-size: 12px;
+  text-align: left;
+}
+
+.agreement-link {
+  background: none;
+  border: none;
+  color: #ffd700;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.agreement-link:hover {
+  color: #ffeb3b;
+}
+
+/* Модальное окно оферты */
+.offer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+}
+
+.offer-modal {
+  background: #fff8e9;
+  border-radius: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.offer-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  font-size: 19px;
+  width: 24px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.offer-modal-close:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.offer-content {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.offer-content h2 {
+  color: #b53220;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.offer-content h3 {
+  color: #862518;
+  font-size: 1rem;
+  margin: 16px 0 8px 0;
+}
+
+.offer-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.offer-text p {
+  margin-bottom: 10px;
+}
+
+.offer-text ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.offer-text li {
+  margin-bottom: 4px;
+}
+
+.offer-accept-btn {
+  background: #89674f;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+}
+
+.offer-accept-btn:hover {
+  background: #6e4f3a;
+  transform: translateY(-2px);
+}
+
+/* Адаптив для мобильных */
+@media (max-width: 480px) {
+  .auth-modal {
+    padding: 1.5rem;
+  }
+
+  .agreement-text {
+    font-size: 10px;
+  }
+
+  .offer-content {
+    padding: 16px;
+  }
+
+  .offer-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .offer-text {
+    font-size: 10px;
+  }
 }

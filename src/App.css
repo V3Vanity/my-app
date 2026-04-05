@@ -196,6 +196,15 @@ body {
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-link:focus,
+.nav-link:active,
+.nav-link:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .nav-link::after {
@@ -207,20 +216,33 @@ body {
   height: 2px;
   background: #cbb99c;
   transition: width 0.3s ease;
+  outline: none;
+  box-shadow: none;
+  border: none;
 }
 
 .nav-link:hover::after,
+.nav-link:active,
 .nav-link.active::after {
   width: 100%;
+  outline: none;
+  box-shadow: none;
+  border: none;
 }
 
 .nav-link:hover {
   color: #fff;
   transform: translateY(-1px);
+  outline: none;
+  box-shadow: none;
+  border: none;
 }
 
 .nav-link.active {
   color: #fff;
+  outline: none;
+  box-shadow: none;
+  border: none;
 }
 
 /* Секции заглушки */
