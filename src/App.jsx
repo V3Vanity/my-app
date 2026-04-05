@@ -8,6 +8,7 @@ import "./App.css";
 // Импорт модальных окон
 import { AuthModal } from "./components/AuthModal";
 import ProfileModal from "./components/ProfileModal";
+import { RequisitesModal } from "./components/RequisitesModal";
 
 // Импорт изображений
 import aboutTitleSvg from "./assets/about-title.svg";
@@ -69,6 +70,7 @@ function App() {
   const LandingPage = () => {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showRequisitesModal, setShowRequisitesModal] = useState(false);
 
     // Эффект при скролле - шапка сворачивается
     useEffect(() => {
@@ -695,6 +697,22 @@ function App() {
               </div>
             </div>
           </div>
+
+          {/* НОВЫЙ БЛОК: Реквизиты для ЮMoney */}
+          <div className="landing-footer-requisites">
+            <div className="landing-footer-requisites-content">
+              <span className="requisites-text">
+                ИП Коробкова Юлия Евгеньевна | ИНН: 123456789012 | ОГРНИП:
+                3240000000012345
+              </span>
+              <button
+                className="requisites-link"
+                onClick={() => setShowRequisitesModal(true)}
+              >
+                Реквизиты и контакты
+              </button>
+            </div>
+          </div>
         </footer>
 
         {/* Модальные окна */}
@@ -712,6 +730,10 @@ function App() {
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
         />
+
+        {showRequisitesModal && (
+          <RequisitesModal onClose={() => setShowRequisitesModal(false)} />
+        )}
       </div>
     );
   };
