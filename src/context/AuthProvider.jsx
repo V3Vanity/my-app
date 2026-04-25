@@ -1,6 +1,7 @@
 // src/context/AuthProvider.jsx
 import { useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
+import { supabase } from "../supabase/client";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -8,55 +9,150 @@ export const AuthProvider = ({ children }) => {
   const [subscriptionActive, setSubscriptionActive] = useState(false);
 
   useEffect(() => {
-    const loadAuthData = async () => {
-      const token = localStorage.getItem("auth_token");
-      const userData = localStorage.getItem("user_data");
+    const initAuth = async () => {
+      setLoading(true);
 
-      if (token && userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-          setUser(parsedUser);
+      // Получаем текущую сессию из Supabase
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-          // Проверяем статус подписки
-          try {
-            const { apiClient } = await import("../api/client");
-            const response = await apiClient.checkSubscription();
-            setSubscriptionActive(response.is_active);
+      if (session) {
+        // Получаем данные пользователя из таблицы users
+        const { data: userData, error } = await supabase
+          .from("users")
+          .select("email, name, subscription_status")
+          .eq("email", session.user.email)
+          .single();
 
-            // Обновляем статус в localStorage
-            const updatedUser = {
-              ...parsedUser,
-              subscription_status: response.subscription_status,
-            };
-            localStorage.setItem("user_data", JSON.stringify(updatedUser));
-            setUser(updatedUser);
-          } catch (err) {
-            console.error("Error checking subscription:", err);
-          }
-        } catch (error) {
-          console.error("Ошибка при загрузке данных пользователя:", error);
-          localStorage.removeItem("auth_token");
-          localStorage.removeItem("user_data");
+        if (userData && !error) {
+          const userInfo = {
+            email: userData.email,
+            name: userData.name,
+            subscription_status: userData.subscription_status,
+          };
+          setUser(userInfo);
+          setSubscriptionActive(userData.subscription_status === "active");
+
+          // Сохраняем в localStorage для быстрого доступа
+          localStorage.setItem("user_data", JSON.stringify(userInfo));
         }
+      } else {
+        // Очищаем localStorage если нет сессии
+        localStorage.removeItem("user_data");
       }
+
       setLoading(false);
     };
 
-    loadAuthData();
+    initAuth();
+
+    // Подписываемся на изменения авторизации
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        // При входе — загружаем данные пользователя
+        const { data: userData } = await supabase
+          .from("users")
+          .select("email, name, subscription_status")
+          .eq("email", session.user.email)
+          .single();
+
+        if (userData) {
+          const userInfo = {
+            email: userData.email,
+            name: userData.name,
+            subscription_status: userData.subscription_status,
+          };
+          setUser(userInfo);
+          setSubscriptionActive(userData.subscription_status === "active");
+          localStorage.setItem("user_data", JSON.stringify(userInfo));
+        }
+      } else if (event === "SIGNED_OUT") {
+        // При выходе — очищаем всё
+        setUser(null);
+        setSubscriptionActive(false);
+        localStorage.removeItem("user_data");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = (userData, token) => {
-    localStorage.setItem("auth_token", token);
-    localStorage.setItem("user_data", JSON.stringify(userData));
-    setUser(userData);
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    // После успешного входа, загружаем данные пользователя
+    const { data: userData } = await supabase
+      .from("users")
+      .select("email, name, subscription_status")
+      .eq("email", data.user.email)
+      .single();
+
+    const userInfo = {
+      email: userData.email,
+      name: userData.name,
+      subscription_status: userData.subscription_status,
+    };
+
+    setUser(userInfo);
     setSubscriptionActive(userData.subscription_status === "active");
+    localStorage.setItem("user_data", JSON.stringify(userInfo));
+
+    return { user: userInfo, session: data.session };
   };
 
-  const logout = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_data");
+  const signup = async (email, password, name) => {
+    // 1. Регистрируем пользователя в Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (authError) throw authError;
+
+    // 2. Создаём запись в таблице users
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .insert([
+        {
+          email,
+          name,
+          subscription_status: "inactive",
+          user_id: authData.user?.id,
+        },
+      ])
+      .select()
+      .single();
+
+    if (userError) throw userError;
+
+    const userInfo = {
+      email: userData.email,
+      name: userData.name,
+      subscription_status: userData.subscription_status,
+    };
+
+    setUser(userInfo);
+    setSubscriptionActive(false);
+    localStorage.setItem("user_data", JSON.stringify(userInfo));
+
+    return { user: userInfo, session: authData.session };
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setSubscriptionActive(false);
+    localStorage.removeItem("user_data");
   };
 
   const updateUser = (userData) => {
@@ -65,16 +161,30 @@ export const AuthProvider = ({ children }) => {
     setSubscriptionActive(userData.subscription_status === "active");
   };
 
-  const updateSubscription = (isActive) => {
-    setSubscriptionActive(isActive);
-    if (user) {
-      const updatedUser = {
-        ...user,
-        subscription_status: isActive ? "active" : "inactive",
-      };
-      localStorage.setItem("user_data", JSON.stringify(updatedUser));
-      setUser(updatedUser);
+  const updateSubscription = async (isActive) => {
+    if (!user) return;
+
+    const newStatus = isActive ? "active" : "inactive";
+
+    // Обновляем в Supabase
+    const { error } = await supabase
+      .from("users")
+      .update({ subscription_status: newStatus })
+      .eq("email", user.email);
+
+    if (error) {
+      console.error("Ошибка обновления подписки:", error);
+      return;
     }
+
+    // Обновляем локальное состояние
+    setSubscriptionActive(isActive);
+    const updatedUser = {
+      ...user,
+      subscription_status: newStatus,
+    };
+    localStorage.setItem("user_data", JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
   return (
@@ -83,6 +193,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         login,
+        signup,
         logout,
         updateUser,
         updateSubscription,

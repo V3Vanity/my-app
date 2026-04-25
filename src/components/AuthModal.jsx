@@ -1,7 +1,6 @@
 // src/components/AuthModal.jsx
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { apiClient } from "../api/client";
 import "./AuthModal.css";
 
 export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
@@ -11,19 +10,22 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   // Новые состояния для соглашений
   const [agreeLocation, setAgreeLocation] = useState(false);
   const [agreeOffer, setAgreeOffer] = useState(false);
   const [showOfferText, setShowOfferText] = useState(false);
 
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setShowEmailConfirmation(false);
 
     // Проверка обязательных соглашений ТОЛЬКО при регистрации
     if (!isLogin && (!agreeLocation || !agreeOffer)) {
@@ -53,54 +55,78 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         throw new Error("Пожалуйста, введите имя");
       }
 
-      let response;
-
       if (isLogin) {
-        console.log("Calling login with:", {
-          email: email.trim(),
-          password: password,
-        });
-        response = await apiClient.login(email.trim(), password);
+        // Вход через Supabase
+        console.log("Calling login with:", { email: email.trim() });
+        await login(email.trim(), password);
+
+        const hasLocationConsent = localStorage.getItem("location_consent");
+        const hasOfferConsent = localStorage.getItem("offer_consent");
+
+        if (!hasLocationConsent || !hasOfferConsent) {
+          console.log("User logged in but consents missing");
+        }
+
+        console.log("Login successful");
+        if (onSuccess) onSuccess();
+        onClose();
       } else {
+        // Регистрация через Supabase
         console.log("Calling signup with:", {
           email: email.trim(),
-          password: password,
           name: name.trim(),
         });
-        response = await apiClient.signup(email.trim(), password, name.trim());
+
+        await signup(email.trim(), password, name.trim());
 
         // При регистрации сохраняем согласия в localStorage
-        if (response && response.success) {
-          localStorage.setItem("location_consent", "true");
-          localStorage.setItem("offer_consent", "true");
-          localStorage.setItem("offer_consent_date", new Date().toISOString());
-        }
-      }
+        localStorage.setItem("location_consent", "true");
+        localStorage.setItem("offer_consent", "true");
+        localStorage.setItem("offer_consent_date", new Date().toISOString());
 
-      console.log("API Response:", response);
+        // Показываем уведомление о подтверждении email
+        setRegisteredEmail(email.trim());
+        setShowEmailConfirmation(true);
 
-      if (response && response.success) {
-        const userData = response.user;
-        const token = response.session?.access_token;
-
-        if (userData && token) {
-          console.log("Login successful, storing token");
-          login(userData, token);
-
-          // Вызываем onSuccess если передан
-          if (onSuccess) {
-            onSuccess();
-          }
-          onClose();
-        } else {
-          throw new Error("Неверный формат ответа от сервера");
-        }
-      } else {
-        throw new Error(response?.error || "Ошибка авторизации");
+        // Очищаем форму
+        setEmail("");
+        setPassword("");
+        setName("");
+        setAgreeLocation(false);
+        setAgreeOffer(false);
       }
     } catch (err) {
       console.error("Auth error:", err);
-      setError(err.message || "Произошла ошибка. Попробуйте позже.");
+
+      // Игнорируем ошибку Lock (она не критична)
+      if (err.message && err.message.includes("Lock")) {
+        // Если это регистрация, показываем уведомление о подтверждении
+        if (!isLogin) {
+          setRegisteredEmail(email.trim());
+          setShowEmailConfirmation(true);
+          setEmail("");
+          setPassword("");
+          setName("");
+          setAgreeLocation(false);
+          setAgreeOffer(false);
+          setError("");
+        }
+        return;
+      }
+
+      // Обработка остальных ошибок Supabase
+      if (err.message === "Invalid login credentials") {
+        setError("Неверный email или пароль");
+      } else if (
+        err.message &&
+        err.message.includes("User already registered")
+      ) {
+        setError("Пользователь с таким email уже зарегистрирован");
+      } else if (err.message === "Email not confirmed") {
+        setError("Подтвердите email. Письмо отправлено на вашу почту.");
+      } else {
+        setError(err.message || "Произошла ошибка. Попробуйте позже.");
+      }
     } finally {
       setLoading(false);
     }
@@ -110,11 +136,18 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const handleSwitchMode = () => {
     setIsLogin(!isLogin);
     setError("");
+    setShowEmailConfirmation(false);
     // Сбрасываем соглашения только при переключении на вход
     if (!isLogin) {
       setAgreeLocation(false);
       setAgreeOffer(false);
     }
+  };
+
+  // Закрыть уведомление и закрыть модалку
+  const handleCloseConfirmation = () => {
+    setShowEmailConfirmation(false);
+    onClose();
   };
 
   return (
@@ -125,102 +158,128 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             ×
           </button>
 
-          <h2>{isLogin ? "Вход" : "Регистрация"}</h2>
+          {!showEmailConfirmation ? (
+            <>
+              <h2>{isLogin ? "Вход" : "Регистрация"}</h2>
 
-          <form onSubmit={handleSubmit}>
-            {!isLogin && (
-              <input
-                type="text"
-                placeholder="Имя"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+              <form onSubmit={handleSubmit}>
+                {!isLogin && (
+                  <input
+                    type="text"
+                    placeholder="Имя"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={loading}
+                    required
+                  />
+                )}
+
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+
+                <input
+                  type="password"
+                  placeholder="Пароль"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  required
+                />
+
+                {/* Соглашения - показываются только при регистрации */}
+                {!isLogin && (
+                  <div className="agreements-section">
+                    <label className="agreement-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={agreeLocation}
+                        onChange={(e) => setAgreeLocation(e.target.checked)}
+                      />
+                      <span className="agreement-text">
+                        Я согласен(на) на обработку геолокационных данных для
+                        работы карты и построения маршрутов в приложении
+                      </span>
+                    </label>
+
+                    <label className="agreement-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={agreeOffer}
+                        onChange={(e) => setAgreeOffer(e.target.checked)}
+                      />
+                      <span className="agreement-text">
+                        Я принимаю условия{" "}
+                        <button
+                          type="button"
+                          className="agreement-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowOfferText(true);
+                          }}
+                        >
+                          Договора оферты
+                        </button>
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                {error && <div className="auth-modal-error">{error}</div>}
+
+                <button type="submit" disabled={loading}>
+                  {loading
+                    ? "Загрузка..."
+                    : isLogin
+                      ? "Войти"
+                      : "Зарегистрироваться"}
+                </button>
+              </form>
+
+              <button
+                onClick={handleSwitchMode}
+                className="auth-modal-switch"
                 disabled={loading}
-                required
-              />
-            )}
-
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              required
-            />
-
-            <input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
-
-            {/* Соглашения - показываются только при регистрации */}
-            {!isLogin && (
-              <div className="agreements-section">
-                {/* Соглашение на геопозицию */}
-                <label className="agreement-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={agreeLocation}
-                    onChange={(e) => setAgreeLocation(e.target.checked)}
-                  />
-                  <span className="agreement-text">
-                    Я согласен(на) на обработку геолокационных данных для работы
-                    карты и построения маршрутов в приложении
-                  </span>
-                </label>
-
-                {/* Договор оферты */}
-                <label className="agreement-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={agreeOffer}
-                    onChange={(e) => setAgreeOffer(e.target.checked)}
-                  />
-                  <span className="agreement-text">
-                    Я принимаю условия{" "}
-                    <button
-                      type="button"
-                      className="agreement-link"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowOfferText(true);
-                      }}
-                    >
-                      Договора оферты
-                    </button>
-                  </span>
-                </label>
-              </div>
-            )}
-
-            {error && <div className="auth-modal-error">{error}</div>}
-
-            <button type="submit" disabled={loading}>
-              {loading
-                ? "Загрузка..."
-                : isLogin
-                  ? "Войти"
-                  : "Зарегистрироваться"}
-            </button>
-          </form>
-
-          <button
-            onClick={handleSwitchMode}
-            className="auth-modal-switch"
-            disabled={loading}
-          >
-            {isLogin
-              ? "Нет аккаунта? Зарегистрироваться"
-              : "Уже есть аккаунт? Войти"}
-          </button>
+              >
+                {isLogin
+                  ? "Нет аккаунта? Зарегистрироваться"
+                  : "Уже есть аккаунт? Войти"}
+              </button>
+            </>
+          ) : (
+            // Уведомление о подтверждении email
+            <div className="email-confirmation-message">
+              <div className="email-confirmation-icon">📧</div>
+              <h3>Подтверждение email</h3>
+              <p>
+                На адрес <strong>{registeredEmail}</strong> отправлено письмо с
+                ссылкой для подтверждения регистрации.
+              </p>
+              <p className="email-confirmation-note">
+                Пожалуйста, перейдите по ссылке в письме, чтобы активировать ваш
+                аккаунт. После подтверждения вы сможете войти в приложение.
+              </p>
+              <p className="email-confirmation-spam">
+                Если письмо не пришло через несколько минут, проверьте папку
+                "Спам".
+              </p>
+              <button
+                className="email-confirmation-button"
+                onClick={handleCloseConfirmation}
+              >
+                Хорошо, понятно
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Модальное окно с текстом оферты */}
+      {/* Модальное окно с текстом оферты (остаётся без изменений) */}
       {showOfferText && (
         <div
           className="offer-modal-overlay"
