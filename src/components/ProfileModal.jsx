@@ -1,8 +1,10 @@
 // src/components/ProfileModal.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../hooks/useAuth";
 import "./ProfileModal.css";
 
 const ProfileModal = ({ isOpen, onClose }) => {
+  const { user, logout } = useAuth();
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -11,63 +13,71 @@ const ProfileModal = ({ isOpen, onClose }) => {
     purchaseDate: "2024-03-30",
   });
 
+  // ВСЕ ХУКИ ДОЛЖНЫ БЫТЬ ЗДЕСЬ, перед условным возвратом
+  const handleClose = useCallback(
+    (e) => {
+      if (e.target === e.currentTarget) {
+        onClose();
+      }
+    },
+    [onClose],
+  );
+
+  const handleLogout = useCallback(async () => {
+    try {
+      localStorage.removeItem("app_access");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_email");
+      localStorage.removeItem("auth_token");
+
+      if (typeof logout === "function") {
+        await logout();
+      } else {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace("/");
+      }
+
+      onClose();
+    } catch (error) {
+      console.error("Logout error:", error);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace("/");
+    }
+  }, [logout, onClose]);
+
+  const formatDate = useCallback((dateString) => {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString("ru-RU", options);
+  }, []);
+
   useEffect(() => {
-    // Загружаем данные пользователя из localStorage или API
     if (isOpen) {
+      const email =
+        user?.email || localStorage.getItem("user_email") || "user@example.com";
       const storedName = localStorage.getItem("user_name");
-      const storedEmail = localStorage.getItem("user_email");
 
       setUserData({
-        name: storedName || "Тестовый Пользователь",
-        email: storedEmail || "user@example.com",
+        name: storedName || email.split("@")[0] || "Пользователь",
+        email: email,
         subscriptionStatus: "active",
         subscriptionExpires: "2025-12-31",
         purchaseDate: "2024-03-30",
       });
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
+  // Условный возврат ТОЛЬКО после всех хуков
   if (!isOpen) return null;
-
-  const handleClose = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  const handleLogout = () => {
-    // Очищаем данные пользователя
-    localStorage.removeItem("app_access");
-    localStorage.removeItem("user_name");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("auth_token");
-
-    // Закрываем модалку и перенаправляем на главную
-    onClose();
-    window.location.href = "/";
-  };
-
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("ru-RU", options);
-  };
 
   return (
     <div className="profile-modal-overlay" onClick={handleClose}>
       <div className="profile-modal-container">
-        {/* Кнопка закрытия */}
         <button className="profile-modal-close" onClick={onClose}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M18 6L6 18M6 6L18 18"
-              stroke="#fff8e9"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
+          ×
         </button>
 
-        {/* Заголовок */}
         <div className="profile-modal-header">
           <div className="profile-avatar">
             <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
@@ -81,7 +91,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
           <h2 className="profile-modal-title">Мой профиль</h2>
         </div>
 
-        {/* Информация о пользователе */}
         <div className="profile-info">
           <div className="profile-info-item">
             <div className="profile-info-label">
@@ -178,7 +187,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Кнопки действий */}
         <div className="profile-actions">
           <button className="profile-action-btn renew-btn">
             Продлить подписку
@@ -191,7 +199,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
           </button>
         </div>
 
-        {/* Текст для тестов */}
         <div className="profile-test-info">
           <p>ℹ️ Тестовый режим</p>
           <small>

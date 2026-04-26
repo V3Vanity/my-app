@@ -1,207 +1,250 @@
 // src/context/AuthProvider.jsx
-import { useState, useEffect } from "react";
-import { AuthContext } from "./AuthContext";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "../supabase/client";
+import { AuthContext } from "./AuthContext";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [subscriptionActive, setSubscriptionActive] = useState(false);
 
-  useEffect(() => {
-    const initAuth = async () => {
-      setLoading(true);
+  const processingRef = useRef(false);
 
-      // Получаем текущую сессию из Supabase
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+  const updateUserState = useCallback((userData) => {
+    console.log("updateUserState called with:", userData);
+    setUser(userData || null);
+  }, []);
 
-      if (session) {
-        // Получаем данные пользователя из таблицы users
-        const { data: userData, error } = await supabase
-          .from("users")
-          .select("email, name, subscription_status")
-          .eq("email", session.user.email)
-          .single();
+  const loadUserData = useCallback(async (email) => {
+    if (!email) return null;
+    console.log("loadUserData for:", email);
+    return { email };
+  }, []);
 
-        if (userData && !error) {
-          const userInfo = {
-            email: userData.email,
-            name: userData.name,
-            subscription_status: userData.subscription_status,
-          };
-          setUser(userInfo);
-          setSubscriptionActive(userData.subscription_status === "active");
+  const login = useCallback(
+    async (email, password) => {
+      console.log("=== LOGIN START ===");
+      processingRef.current = true;
 
-          // Сохраняем в localStorage для быстрого доступа
-          localStorage.setItem("user_data", JSON.stringify(userInfo));
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        console.log("Login response:", { data, error });
+
+        if (error) {
+          processingRef.current = false;
+          throw error;
         }
-      } else {
-        // Очищаем localStorage если нет сессии
-        localStorage.removeItem("user_data");
+
+        if (data?.user?.email) {
+          const userInfo = await loadUserData(data.user.email);
+          updateUserState(userInfo);
+        }
+
+        setTimeout(() => {
+          processingRef.current = false;
+        }, 1000);
+
+        return data;
+      } catch (err) {
+        processingRef.current = false;
+        throw err;
+      }
+    },
+    [loadUserData, updateUserState],
+  );
+
+  const register = useCallback(
+    async (email, password, name) => {
+      console.log("=== REGISTER START ===");
+      processingRef.current = true;
+
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { name },
+          },
+        });
+
+        console.log("Register response:", { data, error });
+
+        if (error) {
+          processingRef.current = false;
+          throw error;
+        }
+
+        if (data?.user?.email) {
+          const userInfo = await loadUserData(data.user.email);
+          updateUserState(userInfo);
+        }
+
+        setTimeout(() => {
+          processingRef.current = false;
+        }, 1000);
+
+        return data;
+      } catch (err) {
+        processingRef.current = false;
+        throw err;
+      }
+    },
+    [loadUserData, updateUserState],
+  );
+
+  const logout = useCallback(async () => {
+    console.log("=== LOGOUT START ===");
+
+    processingRef.current = true;
+    updateUserState(null);
+
+    try {
+      console.log("Calling supabase.auth.signOut()...");
+
+      const { error } = await supabase.auth.signOut({
+        scope: "local",
+      });
+
+      console.log("SignOut response:", { error });
+
+      if (error) {
+        console.error("Logout error:", error);
       }
 
-      setLoading(false);
+      console.log("Clearing localStorage...");
+
+      Object.keys(localStorage).forEach((key) => {
+        if (key.includes("supabase") || key.startsWith("sb-")) {
+          console.log("Removing:", key);
+          localStorage.removeItem(key);
+        }
+      });
+
+      sessionStorage.clear();
+
+      console.log("Current localStorage:", { ...localStorage });
+    } catch (err) {
+      console.error("Logout exception:", err);
+    } finally {
+      console.log("Redirecting to / ...");
+
+      setTimeout(() => {
+        processingRef.current = false;
+        window.location.replace("/");
+      }, 200);
+    }
+  }, [updateUserState]);
+
+  useEffect(() => {
+    console.log("=== AuthProvider useEffect ===");
+
+    const initializeAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        console.log("Initial session:", session);
+
+        if (session?.user?.email) {
+          const userInfo = await loadUserData(session.user.email);
+          updateUserState(userInfo);
+        } else {
+          updateUserState(null);
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        updateUserState(null);
+      } finally {
+        setLoading(false);
+        console.log("Loading set to false");
+      }
     };
 
-    initAuth();
+    initializeAuth();
 
-    // Подписываемся на изменения авторизации
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN" && session) {
-        // При входе — загружаем данные пользователя
-        const { data: userData } = await supabase
-          .from("users")
-          .select("email, name, subscription_status")
-          .eq("email", session.user.email)
-          .single();
+      console.log("=== AUTH STATE CHANGE ===");
+      console.log("Event:", event);
+      console.log("Session:", session?.user?.email);
+      console.log("processingRef.current:", processingRef.current);
 
-        if (userData) {
-          const userInfo = {
-            email: userData.email,
-            name: userData.name,
-            subscription_status: userData.subscription_status,
-          };
-          setUser(userInfo);
-          setSubscriptionActive(userData.subscription_status === "active");
-          localStorage.setItem("user_data", JSON.stringify(userInfo));
+      if (processingRef.current) {
+        console.log("⚠️ Skipping - manual operation in progress");
+        return;
+      }
+
+      try {
+        switch (event) {
+          case "SIGNED_IN":
+            if (session?.user?.email) {
+              console.log("✅ Handling SIGNED_IN");
+              const userInfo = await loadUserData(session.user.email);
+              updateUserState(userInfo);
+            }
+            break;
+
+          case "SIGNED_OUT":
+            console.log("✅ Handling SIGNED_OUT");
+            updateUserState(null);
+            break;
+
+          case "USER_UPDATED":
+            if (session?.user?.email) {
+              console.log("✅ Handling USER_UPDATED");
+              const userInfo = await loadUserData(session.user.email);
+              updateUserState(userInfo);
+            }
+            break;
+
+          case "TOKEN_REFRESHED":
+            console.log("✅ Handling TOKEN_REFRESHED");
+            if (session?.user?.email) {
+              const userInfo = await loadUserData(session.user.email);
+              updateUserState(userInfo);
+            }
+            break;
+
+          case "INITIAL_SESSION":
+            console.log("✅ Handling INITIAL_SESSION");
+            if (session?.user?.email) {
+              const userInfo = await loadUserData(session.user.email);
+              updateUserState(userInfo);
+            }
+            break;
+
+          default:
+            console.log("ℹ️ Unhandled event:", event);
         }
-      } else if (event === "SIGNED_OUT") {
-        // При выходе — очищаем всё
-        setUser(null);
-        setSubscriptionActive(false);
-        localStorage.removeItem("user_data");
+      } catch (error) {
+        console.error("Auth state change error:", error);
       }
     });
 
     return () => {
+      console.log("Unsubscribing from auth changes");
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loadUserData, updateUserState]);
 
-  const login = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) throw error;
-
-    // После успешного входа, загружаем данные пользователя
-    const { data: userData } = await supabase
-      .from("users")
-      .select("email, name, subscription_status")
-      .eq("email", data.user.email)
-      .single();
-
-    const userInfo = {
-      email: userData.email,
-      name: userData.name,
-      subscription_status: userData.subscription_status,
-    };
-
-    setUser(userInfo);
-    setSubscriptionActive(userData.subscription_status === "active");
-    localStorage.setItem("user_data", JSON.stringify(userInfo));
-
-    return { user: userInfo, session: data.session };
-  };
-
-  const signup = async (email, password, name) => {
-    // 1. Регистрируем пользователя в Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (authError) throw authError;
-
-    // 2. Создаём запись в таблице users
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .insert([
-        {
-          email,
-          name,
-          subscription_status: "inactive",
-          user_id: authData.user?.id,
-        },
-      ])
-      .select()
-      .single();
-
-    if (userError) throw userError;
-
-    const userInfo = {
-      email: userData.email,
-      name: userData.name,
-      subscription_status: userData.subscription_status,
-    };
-
-    setUser(userInfo);
-    setSubscriptionActive(false);
-    localStorage.setItem("user_data", JSON.stringify(userInfo));
-
-    return { user: userInfo, session: authData.session };
-  };
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSubscriptionActive(false);
-    localStorage.removeItem("user_data");
-  };
-
-  const updateUser = (userData) => {
-    localStorage.setItem("user_data", JSON.stringify(userData));
-    setUser(userData);
-    setSubscriptionActive(userData.subscription_status === "active");
-  };
-
-  const updateSubscription = async (isActive) => {
-    if (!user) return;
-
-    const newStatus = isActive ? "active" : "inactive";
-
-    // Обновляем в Supabase
-    const { error } = await supabase
-      .from("users")
-      .update({ subscription_status: newStatus })
-      .eq("email", user.email);
-
-    if (error) {
-      console.error("Ошибка обновления подписки:", error);
-      return;
-    }
-
-    // Обновляем локальное состояние
-    setSubscriptionActive(isActive);
-    const updatedUser = {
-      ...user,
-      subscription_status: newStatus,
-    };
-    localStorage.setItem("user_data", JSON.stringify(updatedUser));
-    setUser(updatedUser);
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    signup: register,
+    logout,
+    isAuthenticated: !!user,
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        signup,
-        logout,
-        updateUser,
-        updateSubscription,
-        isAuthenticated: !!user,
-        hasSubscription: subscriptionActive,
-      }}
-    >
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

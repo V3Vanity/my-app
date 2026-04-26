@@ -1,5 +1,5 @@
 // src/components/AuthModal.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import "./AuthModal.css";
 
@@ -13,12 +13,29 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
 
-  // Новые состояния для соглашений
+  // Состояния для соглашений
   const [agreeLocation, setAgreeLocation] = useState(false);
   const [agreeOffer, setAgreeOffer] = useState(false);
   const [showOfferText, setShowOfferText] = useState(false);
 
   const { login, signup } = useAuth();
+
+  // СБРАСЫВАЕМ ФОРМУ ПРИ ОТКРЫТИИ МОДАЛКИ
+  useEffect(() => {
+    if (isOpen) {
+      setIsLogin(true);
+      setEmail("");
+      setPassword("");
+      setName("");
+      setError("");
+      setLoading(false);
+      setShowEmailConfirmation(false);
+      setRegisteredEmail("");
+      setAgreeLocation(false);
+      setAgreeOffer(false);
+      setShowOfferText(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -27,7 +44,6 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setError("");
     setShowEmailConfirmation(false);
 
-    // Проверка обязательных соглашений ТОЛЬКО при регистрации
     if (!isLogin && (!agreeLocation || !agreeOffer)) {
       setError("Для регистрации необходимо принять все условия");
       return;
@@ -38,11 +54,9 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     console.log("=== Form Submit ===");
     console.log("Mode:", isLogin ? "login" : "signup");
     console.log("Email:", email);
-    console.log("Password:", password ? "***" : "empty");
     console.log("Name:", name);
 
     try {
-      // Валидация
       if (!email || !email.trim()) {
         throw new Error("Пожалуйста, введите email");
       }
@@ -56,22 +70,16 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       }
 
       if (isLogin) {
-        // Вход через Supabase
         console.log("Calling login with:", { email: email.trim() });
         await login(email.trim(), password);
-
-        const hasLocationConsent = localStorage.getItem("location_consent");
-        const hasOfferConsent = localStorage.getItem("offer_consent");
-
-        if (!hasLocationConsent || !hasOfferConsent) {
-          console.log("User logged in but consents missing");
-        }
-
         console.log("Login successful");
-        if (onSuccess) onSuccess();
-        onClose();
+
+        setTimeout(() => {
+          if (onSuccess) onSuccess();
+          onClose();
+        }, 100);
+        return;
       } else {
-        // Регистрация через Supabase
         console.log("Calling signup with:", {
           email: email.trim(),
           name: name.trim(),
@@ -79,16 +87,13 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
 
         await signup(email.trim(), password, name.trim());
 
-        // При регистрации сохраняем согласия в localStorage
         localStorage.setItem("location_consent", "true");
         localStorage.setItem("offer_consent", "true");
         localStorage.setItem("offer_consent_date", new Date().toISOString());
 
-        // Показываем уведомление о подтверждении email
         setRegisteredEmail(email.trim());
         setShowEmailConfirmation(true);
 
-        // Очищаем форму
         setEmail("");
         setPassword("");
         setName("");
@@ -98,9 +103,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     } catch (err) {
       console.error("Auth error:", err);
 
-      // Игнорируем ошибку Lock (она не критична)
       if (err.message && err.message.includes("Lock")) {
-        // Если это регистрация, показываем уведомление о подтверждении
         if (!isLogin) {
           setRegisteredEmail(email.trim());
           setShowEmailConfirmation(true);
@@ -114,7 +117,6 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         return;
       }
 
-      // Обработка остальных ошибок Supabase
       if (err.message === "Invalid login credentials") {
         setError("Неверный email или пароль");
       } else if (
@@ -132,19 +134,17 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     }
   };
 
-  // Сброс формы при переключении режима
   const handleSwitchMode = () => {
     setIsLogin(!isLogin);
     setError("");
     setShowEmailConfirmation(false);
-    // Сбрасываем соглашения только при переключении на вход
-    if (!isLogin) {
-      setAgreeLocation(false);
-      setAgreeOffer(false);
-    }
+    setEmail("");
+    setPassword("");
+    setName("");
+    setAgreeLocation(false);
+    setAgreeOffer(false);
   };
 
-  // Закрыть уведомление и закрыть модалку
   const handleCloseConfirmation = () => {
     setShowEmailConfirmation(false);
     onClose();
@@ -192,7 +192,6 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                   required
                 />
 
-                {/* Соглашения - показываются только при регистрации */}
                 {!isLogin && (
                   <div className="agreements-section">
                     <label className="agreement-checkbox">
@@ -252,7 +251,6 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
               </button>
             </>
           ) : (
-            // Уведомление о подтверждении email
             <div className="email-confirmation-message">
               <div className="email-confirmation-icon">📧</div>
               <h3>Подтверждение email</h3>
@@ -279,7 +277,6 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
       </div>
 
-      {/* Модальное окно с текстом оферты (остаётся без изменений) */}
       {showOfferText && (
         <div
           className="offer-modal-overlay"
