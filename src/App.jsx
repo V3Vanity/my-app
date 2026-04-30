@@ -27,6 +27,10 @@ import comparisonLeftSvg from "./assets/comparison-left.svg";
 import comparisonRightSvg from "./assets/comparison-right.svg";
 import reviewIcon1 from "./assets/review-icon-1.svg";
 import reviewIcon2 from "./assets/review-icon-2.svg";
+import reviewIcon3 from "./assets/review-icon-3.svg";
+import reviewIcon4 from "./assets/review-icon-4.svg";
+import reviewIcon5 from "./assets/review-icon-5.svg";
+import reviewIcon6 from "./assets/review-icon-6.svg";
 import phoneCitySvg from "./assets/phone-city.svg";
 import aboutTitleSvg2 from "./assets/about-title-2.svg";
 import tgQr1 from "./assets/tg-qr-1.svg";
@@ -258,7 +262,7 @@ function App() {
                   Чем заняться?
                 </p>
                 <button
-                  className="landing-about-btn"
+                  className={`landing-about-btn ${isAuthenticated ? "active" : ""}`}
                   onClick={handleAboutBtnClick}
                 >
                   {isAuthenticated ? "Начать путешествие" : "Купить"}
@@ -295,7 +299,7 @@ function App() {
         <section id="features" className="landing-features-section">
           <div className="landing-features-content">
             <div className="landing-features-left">
-              <h2 className="landing-features-title">Что внутри ?</h2>
+              <h2 className="landing-features-title">Что внутри?</h2>
 
               <div className="landing-features-item">
                 <h3 className="landing-features-item-title">
@@ -371,9 +375,9 @@ function App() {
                 <h3>Вам тоже знакомо?</h3>
                 <p className="landing-feeling-text">
                   Когда перед поездкой голова идёт кругом:<br></br> что
-                  обязательно посмотреть, куда бежать, если время ограничено, и
-                  как сделать так, чтобы отдых понравился и подростку, и
-                  бабушке, и вам самим?
+                  обязательно надо посмотреть, куда бежать, если время
+                  ограничено, и как сделать так, чтобы отдых понравился и
+                  подростку, и бабушке, и вам самим?
                 </p>
               </div>
               <div className="landing-feeling-right">
@@ -400,11 +404,9 @@ function App() {
             <div className="landing-guide-right">
               <h3>Мы создали гид, чтобы вы забыли об этих вопросах.</h3>
               <p className="landing-guide-text">
-                Ни разу за поездку у вас не возникнет мыслей:<br></br> «как всем
-                угодить?», «как успеть всё?», «где поесть, чтобы было вкусно и
-                без сюрпризов?», «как провести время всей семьёй, чтобы никто не
-                заскучал?». Просто выбирайте маршрут, гуляйте и получайте
-                удовольствие.
+                «как всем угодить?», «как успеть всё?», «где поесть, чтобы было
+                вкусно и без сюрпризов?», «как провести время всей семьёй, чтобы
+                никто не заскучал?».
               </p>
             </div>
           </div>
@@ -425,8 +427,8 @@ function App() {
                 className="landing-feature-icon"
               />
               <p className="landing-feature-text">
-                Путешествуйте по городу, раскрывайте тайны Костромы и собирайте
-                Мазайских зайцев
+                Ваше путешествие — ваши правила. Выбирайте самые интересные
+                места и наполняйте поездку живыми эмоциями
               </p>
             </div>
             <div className="landing-feature-card">
@@ -436,7 +438,8 @@ function App() {
                 className="landing-feature-icon"
               />
               <p className="landing-feature-text">
-                Исследуйте культурную карту, познакомьтесь с местным искусством
+                Путешествуйте по городу, раскрывайте тайны Костромы и собирайте
+                Мазайских зайцев
               </p>
             </div>
             <div className="landing-feature-card">
@@ -446,7 +449,8 @@ function App() {
                 className="landing-feature-icon"
               />
               <p className="landing-feature-text">
-                Выбирайте из лучших мест и попробуйте местную кухню
+                Познакомьтесь с памятниками истории, архитектуры и искусства
+                города
               </p>
             </div>
           </div>
@@ -489,12 +493,15 @@ function App() {
             <div className="landing-reviews-grid">
               <div className="landing-reviews-row">
                 <div className="landing-review-card">
-                  <div className="landing-review-icon">
-                    <img
-                      src={reviewIcon1}
-                      alt="иконка"
-                      className="review-icon-svg"
-                    />
+                  <div className="landing-review-header">
+                    <div className="landing-review-icon">
+                      <img
+                        src={reviewIcon1}
+                        alt="иконка"
+                        className="review-icon-svg"
+                      />
+                    </div>
+                    <h4 className="landing-review-author">Алина, Воронеж</h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
@@ -506,12 +513,15 @@ function App() {
                 </div>
 
                 <div className="landing-review-card">
-                  <div className="landing-review-icon">
-                    <img
-                      src={reviewIcon2}
-                      alt="иконка"
-                      className="review-icon-svg"
-                    />
+                  <div className="landing-review-header">
+                    <div className="landing-review-icon">
+                      <img
+                        src={reviewIcon2}
+                        alt="иконка"
+                        className="review-icon-svg"
+                      />
+                    </div>
+                    <h4 className="landing-review-author">Виктория, Москва </h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
@@ -523,17 +533,22 @@ function App() {
                 </div>
 
                 <div className="landing-review-card">
-                  <div className="landing-review-icon">
-                    <img
-                      src={reviewIcon1}
-                      alt="иконка"
-                      className="review-icon-svg"
-                    />
+                  <div className="landing-review-header">
+                    <div className="landing-review-icon">
+                      <img
+                        src={reviewIcon3}
+                        alt="иконка"
+                        className="review-icon-svg"
+                      />
+                    </div>
+                    <h4 className="landing-review-author">Николай, Рязань </h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
-                      "Никаких лишних деталей, только нужная информация. Помог
-                      быстро спланировать день, ничего не упустил."
+                      "Купил электронный гид перед путешествием — реально
+                      сэкономил время и силы. Все места отмечены, карта
+                      интерактивная, подробные советы по
+                      достопримечательностям."
                     </p>
                   </div>
                 </div>
@@ -541,12 +556,15 @@ function App() {
 
               <div className="landing-reviews-row">
                 <div className="landing-review-card">
-                  <div className="landing-review-icon">
-                    <img
-                      src={reviewIcon2}
-                      alt="иконка"
-                      className="review-icon-svg"
-                    />
+                  <div className="landing-review-header">
+                    <div className="landing-review-icon">
+                      <img
+                        src={reviewIcon4}
+                        alt="иконка"
+                        className="review-icon-svg"
+                      />
+                    </div>
+                    <h4 className="landing-review-author">Карина, Казань</h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
@@ -558,12 +576,17 @@ function App() {
                 </div>
 
                 <div className="landing-review-card">
-                  <div className="landing-review-icon">
-                    <img
-                      src={reviewIcon1}
-                      alt="иконка"
-                      className="review-icon-svg"
-                    />
+                  <div className="landing-review-header">
+                    <div className="landing-review-icon">
+                      <img
+                        src={reviewIcon5}
+                        alt="иконка"
+                        className="review-icon-svg"
+                      />
+                    </div>
+                    <h4 className="landing-review-author">
+                      Евгений, Санкт-Петербург
+                    </h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
@@ -575,19 +598,20 @@ function App() {
                 </div>
 
                 <div className="landing-review-card">
-                  <div className="landing-review-icon">
-                    <img
-                      src={reviewIcon2}
-                      alt="иконка"
-                      className="review-icon-svg"
-                    />
+                  <div className="landing-review-header">
+                    <div className="landing-review-icon">
+                      <img
+                        src={reviewIcon6}
+                        alt="иконка"
+                        className="review-icon-svg"
+                      />
+                    </div>
+                    <h4 className="landing-review-author">Дмитрий, Владимир</h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
-                      "Купил электронный гид перед путешествием — реально
-                      сэкономил время и силы. Все места отмечены, карта
-                      интерактивная, подробные советы по
-                      достопримечательностям."
+                      "Никаких лишних деталей, только нужная информация. Помог
+                      быстро спланировать день, ничего не упустил."
                     </p>
                   </div>
                 </div>
@@ -665,22 +689,10 @@ function App() {
         {/* Подвал */}
         <footer className="landing-footer">
           <div className="landing-footer-container">
-            <div className="landing-footer-col landing-footer-col-large">
-              <p className="landing-footer-text">
-                Привет! 👋 Меня зовут Юля, я учусь на 4 курсе по направлению
-                дизайна. Этот сайт — мой первый опыт создания веб-сайта, и я
-                сделала его для защиты дипломного проекта.
-                <br />
-                <br />
-                Мне будет очень приятно, если вы оставите свой отзыв — ваше
-                мнение поможет мне стать лучше и совершенствовать проект! 🌟
-              </p>
-            </div>
-
             <div className="landing-footer-right-group">
               <div className="landing-footer-col">
                 <p className="landing-footer-contact-title">
-                  со мной можно связаться:
+                  с дизайнером сайта можно связаться:
                 </p>
                 <div className="landing-footer-email">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -723,19 +735,19 @@ function App() {
 
               <div className="landing-footer-col">
                 <p className="landing-footer-contact-title">
-                  с программистом тоже:
+                  с программистом сайта можно связаться:
                 </p>
                 <div className="landing-footer-email">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path
                       d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4Z"
-                      stroke="#e0d6c7"
+                      stroke="#ffffff"
                       strokeWidth="1.5"
                       fill="none"
                     />
                     <path
                       d="M22 6L12 13L2 6"
-                      stroke="#e0d6c7"
+                      stroke="#ffffff"
                       strokeWidth="1.5"
                       fill="none"
                     />
@@ -770,7 +782,7 @@ function App() {
           <div className="landing-footer-requisites">
             <div className="landing-footer-requisites-content">
               <span className="requisites-text">
-                ИП Коробкова Юлия Евгеньевна | ИНН: 440120991310
+                Коробко Юлия Евгеньевна | ИНН: 440120991310
               </span>
               <button
                 className="requisites-link"

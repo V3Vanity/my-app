@@ -17,7 +17,7 @@ export const RequisitesModal = ({ onClose }) => {
             <h3>Информация о продавце</h3>
             <div className="requisites-row">
               <span className="requisites-label">ФИО:</span>
-              <span className="requisites-value">Коробкова Юлия Сергеевна</span>
+              <span className="requisites-value">Коробко Юлия Евгеньевна</span>
             </div>
             <div className="requisites-row">
               <span className="requisites-label">Статус:</span>
@@ -46,7 +46,7 @@ export const RequisitesModal = ({ onClose }) => {
             <div className="requisites-row">
               <span className="requisites-label">Почтовый адрес:</span>
               <span className="requisites-value">
-                г. Кострома, ул. Примерная, д. 1
+                г. Кострома, ул. Красная маевка, д. 44
               </span>
             </div>
           </div>

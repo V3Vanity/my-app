@@ -1,4 +1,3 @@
-/* src/App.css */
 @import url("./styles/fonts.css");
 
 /* Общие стили - исправлено для прокрутки */
@@ -57,20 +56,19 @@ body {
   margin: 0 auto;
 }
 
-/* Шапка - плавная анимация с оптимизацией */
+/* ===== ШАПКА - центрирована ===== */
 .landing-header {
   position: fixed;
   top: 40px;
-  right: 20px;
-  left: auto;
-  width: auto;
-  min-width: 200px;
-  max-width: calc(100% - 40px);
+  left: 56%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 1060px;
   height: 40px;
   background: linear-gradient(
     90deg,
     rgba(180, 130, 43, 0) 0%,
-    #6e2e2663 30%,
+    #6e2e2663 70%,
     #70180c7e 100%
   );
   border-radius: 20px;
@@ -78,27 +76,40 @@ body {
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: auto;
   overflow: hidden;
-  will-change: width;
+  will-change: width, left, transform;
   backface-visibility: hidden;
-  transform: translateZ(0);
 }
 
-/* Свернутое состояние */
+/* Свернутое состояние - прижимается к правому краю */
 .landing-header.scrolled {
+  left: auto !important;
+  right: 20px !important;
+  transform: translateX(0) !important;
   width: 80px !important;
   min-width: 80px !important;
+  max-width: 80px !important;
   background: linear-gradient(
     90deg,
     rgba(180, 130, 43, 0) 0%,
     #6e2e2663 30%,
     #70180c7e 100%
   );
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* При наведении на свернутую шапку */
+.landing-header.scrolled:hover {
+  left: auto !important;
+  right: 20px !important;
+  transform: translateX(0) !important;
+  width: auto !important;
+  min-width: 300px !important;
+  max-width: calc(100% - 40px) !important;
+  border-radius: 20px !important;
 }
 
 /* Контейнер шапки */
 .header-container {
-  max-width: 1400px;
+  max-width: 1300px;
   width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
@@ -110,32 +121,7 @@ body {
   transition: all 0.4s ease;
 }
 
-/* Навигационное меню */
-.nav-menu {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-  height: 100%;
-  transition: all 0.4s ease;
-}
-
-/* Кнопки аутентификации */
-.auth-buttons {
-  display: flex;
-  align-items: center;
-}
-
-.auth-buttons .nav-link {
-  white-space: nowrap;
-}
-
-/* При наведении на свернутую шапку */
-.landing-header.scrolled:hover {
-  width: auto !important;
-  min-width: 300px !important;
-  max-width: calc(100% - 40px) !important;
-}
-
+/* При раскрытии на ховере */
 .landing-header.scrolled:hover .header-container {
   justify-content: flex-end;
   padding: 0 2rem;
@@ -176,7 +162,24 @@ body {
   opacity: 0;
 }
 
-/* Навигационные ссылки - общие стили */
+/* Навигационные ссылки */
+.nav-menu {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  height: 100%;
+  transition: all 0.4s ease;
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.auth-buttons .nav-link {
+  white-space: nowrap;
+}
+
 .nav-link {
   background: none;
   border: none;
@@ -245,63 +248,31 @@ body {
   border: none;
 }
 
-/* Секции заглушки */
-.section {
-  min-height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 2rem 4rem;
-  background-color: #c8b28d;
-  position: relative;
-  clear: both;
-}
-
-.section h2 {
-  font-size: 2.5rem;
-  color: #b53220;
-  margin-bottom: 1rem;
-}
-
-.section p {
-  font-size: 1.1rem;
-  color: #4a3b28;
-  line-height: 1.6;
-}
-
-.container {
-  max-width: 1200px;
+/* ===== ОБЩИЙ КОНТЕЙНЕР ДЛЯ ВСЕХ СЕКЦИЙ ===== */
+.landing-about-content,
+.landing-features-content,
+.landing-feeling-container,
+.landing-guide-container,
+.landing-reviews-container,
+.landing-city-video-container,
+.landing-pricing-content {
+  max-width: 1300px;
+  width: 100%;
   margin: 0 auto;
-  text-align: center;
+  padding: 0 2rem;
 }
 
-/* Анимация появления при скролле */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.section {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-/* ===== Секция "О нас" Лендинга ===== */
+/* ===== СЕКЦИЯ "О НАС" ===== */
 .landing-about-section {
   min-height: auto;
   display: block;
   width: 100%;
   max-width: 100%;
-  padding: 160px 2rem 4rem;
+  padding: 100px 0 4rem;
   background-color: #c8b28d;
   background-image: url("./assets/about-bg.png");
   background-size: auto;
-  background-position: left end;
+  background-position: 9% 35%;
   background-repeat: no-repeat;
   position: relative;
   overflow: visible;
@@ -320,9 +291,6 @@ body {
 }
 
 .landing-about-content {
-  max-width: 1300px;
-  width: 100%;
-  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -332,7 +300,7 @@ body {
   flex-wrap: wrap;
 }
 
-/* Правая колонка - изображение */
+/* Правая колонка */
 .landing-about-right {
   flex: 1;
   max-width: 55%;
@@ -353,18 +321,19 @@ body {
   display: block;
 }
 
-/* Левая колонка - плашка поверх изображения */
+/* Левая колонка */
 .landing-about-left {
   position: relative;
   left: 0;
   top: 0;
   transform: none;
-  width: 37%;
+  width: 380px;
+  max-width: 32%;
   z-index: 3;
   margin-right: -5%;
 }
 
-/* Карточка с текстом - эффект стекла */
+/* Карточка с текстом */
 .landing-about-card {
   background: rgba(255, 248, 233, 0.2);
   backdrop-filter: blur(10px);
@@ -376,7 +345,6 @@ body {
   text-align: left;
 }
 
-/* Заголовок в виде изображения */
 .landing-about-title-icon {
   margin-bottom: 0;
 }
@@ -386,25 +354,24 @@ body {
   max-width: 300px;
   height: auto;
   display: block;
+  margin-bottom: 18px;
 }
 
-/* Описание */
 .landing-about-description {
   max-width: 84%;
-  font-size: 1rem;
-  color: #fff8e9;
+  font-size: 13.5px;
+  color: #ebdfc8;
   line-height: 1.6;
-  margin-bottom: 1.5rem;
+  margin-bottom: 26px;
   text-align: left;
 }
 
-/* Кнопка */
 .landing-about-btn {
   text-transform: uppercase;
   background: #89674f;
   color: #fff8e9;
   border: none;
-  padding: 18px 102px;
+  padding: 13px 86px;
   border-radius: 30px;
   font-size: 16px;
   font-weight: 400;
@@ -414,6 +381,19 @@ body {
 }
 
 .landing-about-btn:hover {
+  background: #6e4f3a;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+/* Активное состояние кнопки - когда подписка активна (Начать путешествие) */
+.landing-about-btn.active {
+  background: #89674f;
+  color: #fff8e9;
+  font-size: 14px;
+  padding: 13px 42px;
+}
+
+.landing-about-btn.active:hover {
   background: #6e4f3a;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -432,7 +412,6 @@ body {
   max-width: 61%;
 }
 
-/* Иконка */
 .landing-about-info-icon {
   flex-shrink: 0;
   width: 32px;
@@ -448,138 +427,28 @@ body {
   object-fit: contain;
 }
 
-/* Текст информации */
 .landing-about-info-text {
-  font-size: 0.9rem;
-  color: #fff8e9;
+  font-size: 13.5px;
+  color: #ebdfc8;
   line-height: 1.5;
   margin: 0;
   text-align: left;
+  width: 213px;
 }
 
-/* ===== Адаптив для секции "О нас" ===== */
-@media (max-width: 768px) {
-  .landing-about-section {
-    padding: 242px 1.5rem 3rem;
-    background-image: url("./assets/about-bg.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-  }
-  .landing-about-section::before {
-    background: rgba(0, 0, 0, 0.1);
-  }
-  .landing-about-content {
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .landing-about-left {
-    position: relative;
-    width: 100%;
-    margin-right: 0;
-    margin-bottom: 0;
-  }
-
-  .landing-about-card {
-    text-align: center;
-    padding: 1.5rem;
-  }
-
-  .landing-about-title-icon {
-    display: flex;
-    justify-content: center;
-  }
-
-  .landing-about-description {
-    max-width: 100%;
-    text-align: start;
-  }
-
-  .landing-about-btn {
-    display: block;
-    margin: 0 0 0 28px;
-  }
-
-  .landing-about-info-block {
-    gap: 0.1rem;
-    justify-content: end;
-    max-width: 90%;
-  }
-
-  .landing-about-info-text {
-    text-align: center;
-  }
-
-  .landing-about-right {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .landing-about-section {
-    background-image: url("./assets/about-right-image-2.png");
-    padding: 200px 1rem 300px;
-    background-position: top;
-  }
-
-  .landing-about-card {
-    padding: 41px 25px;
-    max-width: 322px;
-    min-height: 293px;
-    margin: 0 auto 10px;
-    background: rgb(255 248 233 / 0%);
-  }
-
-  .landing-about-title-svg {
-    max-width: 200px;
-    margin-bottom: 13px;
-  }
-
-  .landing-about-description {
-    width: 218px;
-    margin: 0 auto 20px;
-    font-size: 10px;
-  }
-
-  .landing-about-btn {
-    padding: 12px 40px;
-    font-size: 14px;
-    background-color: #673600;
-  }
-  .landing-about-icon-svg {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-  }
-  .landing-about-info-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .landing-about-info-text {
-    font-size: 0.85rem;
-    text-align: left;
-    max-width: 150px;
-  }
-}
-
-/* ===== Секция "Что внутри?" ===== */
+/* ===== СЕКЦИЯ "ЧТО ВНУТРИ?" ===== */
 .landing-features-section {
   min-height: auto;
   display: block;
   width: 100%;
   max-width: 100%;
-  padding: 100px 2rem 4rem;
+  padding: 100px 0 4rem;
   background-color: #c8b28d;
   position: relative;
   clear: both;
 }
 
 .landing-features-content {
-  max-width: 1300px;
-  width: 100%;
-  margin: 0 auto;
   display: flex;
   gap: 4rem;
   align-items: flex-start;
@@ -587,7 +456,6 @@ body {
   flex-wrap: wrap;
 }
 
-/* Левая часть */
 .landing-features-left {
   flex: 1;
   max-width: 50%;
@@ -623,7 +491,6 @@ body {
   text-align: left;
 }
 
-/* Правая часть - телефон */
 .landing-features-right {
   flex: 1;
   max-width: 40%;
@@ -666,93 +533,14 @@ body {
   border-radius: 20px;
 }
 
-/* Адаптив для секции "Что внутри?" */
-@media (max-width: 768px) {
-  .landing-features-section {
-    padding: 80px 1.5rem 3rem;
-  }
-
-  .landing-features-content {
-    flex-direction: column;
-    gap: 3rem;
-  }
-
-  .landing-features-left {
-    max-width: 80%;
-    margin: auto;
-  }
-
-  .landing-features-title {
-    text-align: center;
-    font-size: 2rem;
-  }
-
-  .landing-features-item-title {
-    text-align: center;
-  }
-
-  .landing-features-item-text {
-    text-align: center;
-  }
-
-  .landing-features-right {
-    max-width: 80%;
-    margin: auto;
-  }
-
-  .landing-phone-frame {
-    max-width: 280px;
-  }
-}
-
-@media (max-width: 480px) {
-  .landing-features-section {
-    padding: 70px 1rem 2rem;
-  }
-
-  .landing-features-title {
-    font-size: 32px;
-  }
-
-  .landing-features-item-title {
-    font-size: 10px;
-  }
-
-  .landing-features-item-text {
-    font-size: 10px;
-    text-align: justify;
-  }
-
-  .landing-phone-frame {
-    max-width: 260px;
-  }
-  .landing-video-container {
-    position: absolute;
-    top: 2%;
-    left: 51%;
-    transform: translateX(-50%);
-    width: 85%;
-    height: 97%;
-    border-radius: 45px;
-    z-index: 1;
-    overflow: hidden;
-  }
-}
-
-/* ===== Секция "Вам тоже знакомо это чувство?" ===== */
+/* ===== СЕКЦИЯ "ВАМ ТОЖЕ ЗНАКОМО?" ===== */
 .landing-feeling-section {
   width: 100%;
   max-width: 100%;
-  padding: 100px 2rem 4rem;
+  padding: 100px 0 4rem;
   background-color: #c8b28d;
   position: relative;
   clear: both;
-}
-
-.landing-feeling-container {
-  max-width: 1300px;
-  width: 100%;
-  margin: 0 auto;
 }
 
 .landing-feeling-title {
@@ -808,31 +596,19 @@ body {
   border-radius: 20px;
 }
 
-/* ===== Секция "Мы создали гид" ===== */
+/* ===== СЕКЦИЯ "МЫ СОЗДАЛИ ГИД" ===== */
 .landing-guide-section {
   width: 100%;
-  max-width: 1300px;
-  margin: 0 auto;
+  max-width: 100%;
   background-color: #c8b28d;
   position: relative;
   clear: both;
 }
 
-.landing-guide-container {
-  max-width: 1300px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.landing-guide-title {
-  width: 100%;
-  max-width: 500px;
-  height: auto;
-  margin: 0 auto 3rem;
-  display: block;
-}
-
 .landing-guide-content {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 2rem;
   display: flex;
   gap: 12rem;
   align-items: center;
@@ -875,11 +651,12 @@ body {
   width: 465px;
 }
 
-/* ===== Секция с тремя фичами ===== */
+/* ===== СЕКЦИЯ С ТРЕМЯ ФИЧАМИ ===== */
 .landing-features-grid-section {
   width: 100%;
   max-width: 100%;
   padding-top: 210px;
+  padding-bottom: 4rem;
   background-color: #c8b28d;
   text-align: center;
 }
@@ -888,13 +665,14 @@ body {
   width: 100%;
   max-width: 550px;
   height: auto;
-  margin: 0 auto 1rem;
+  margin: 0 0 0 15%;
   display: block;
 }
 
 .landing-features-grid {
   max-width: 1300px;
   margin: 0 auto;
+  padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -909,31 +687,29 @@ body {
 
 .landing-feature-icon {
   width: 300px;
-  height: 584px;
+  height: 580px;
   margin-bottom: 1.5rem;
 }
 
 .landing-feature-text {
   font-family: "Inter", sans-serif;
-  text-transform: uppercase;
-  font-size: 1rem;
+  font-size: 18px;
   color: #432f2d;
   line-height: 1.2;
   text-align: left;
-  padding-left: 20px;
-  font-weight: 600;
+  padding-left: 40px;
+  font-weight: 400;
 }
 
-/* ===== Секция "самостоятельно vs с гидом" ===== */
+/* ===== СЕКЦИЯ "САМОСТОЯТЕЛЬНО VS С ГИДОМ" ===== */
 .landing-comparison-section {
   width: 100%;
   max-width: 100%;
-  padding: 100px 2rem 4rem;
+  padding: 100px 0 4rem;
   background-color: #c8b28d;
   text-align: center;
 }
 
-/* Десктопный заголовок */
 .landing-comparison-title.desktop-title {
   font-family: "UNCAGE", sans-serif;
   font-size: 2.5rem;
@@ -944,12 +720,10 @@ body {
   display: block;
 }
 
-/* Мобильный заголовок - скрыт на десктопе */
 .landing-comparison-title.mobile-title {
   display: none;
 }
 
-/* Заголовок над правым изображением - скрыт на десктопе */
 .landing-comparison-right-title {
   display: none;
 }
@@ -957,6 +731,7 @@ body {
 .landing-comparison-content {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 2rem;
   display: flex;
   gap: 3rem;
   justify-content: center;
@@ -979,21 +754,473 @@ body {
   height: auto;
 }
 
-/* Адаптив для планшетов и мобильных (до 768px) */
+/* ===== СЕКЦИЯ "ОТЗЫВЫ" ===== */
+.landing-reviews-section {
+  width: 100%;
+  max-width: 100%;
+  padding: 100px 0 4rem;
+  background-color: #c8b28d;
+  position: relative;
+  clear: both;
+}
+
+.landing-reviews-title {
+  font-family: "UNCAGE", sans-serif;
+  font-size: 2.5rem;
+  color: #862518;
+  margin-bottom: 3rem;
+  font-weight: 500;
+  text-align: left;
+  padding-left: 80px;
+}
+
+.landing-reviews-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.landing-reviews-row {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Карточка отзыва */
+.landing-review-card {
+  flex: 1;
+  min-width: 280px;
+  max-width: 350px;
+  background: rgba(255, 248, 233, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 248, 233, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.landing-review-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Верхняя строка: иконка + имя */
+.landing-review-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Иконка */
+.landing-review-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-icon-svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Имя автора */
+.landing-review-author {
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #212121;
+  margin: 0;
+}
+
+/* Контент отзыва */
+.landing-review-content {
+  width: 100%;
+}
+
+/* Текст отзыва */
+.landing-review-text {
+  font-family: "Inter", sans-serif;
+  font-size: 14px;
+  color: #212121;
+  line-height: 1.5;
+  text-align: left;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ===== СЕКЦИЯ С ВИДЕО ГОРОДА ===== */
+.landing-city-video-section {
+  width: 100%;
+  max-width: 100%;
+  padding: 100px 0 4rem;
+  background-color: #c8b28d;
+  text-align: center;
+  clear: both;
+}
+
+.landing-city-video-title {
+  font-family: "UNCAGE", sans-serif;
+  max-width: 797px;
+  text-transform: uppercase;
+  font-size: 1.8rem;
+  color: #752419;
+  font-weight: 500;
+  text-align: left;
+  line-height: 1.2;
+  padding-left: 260px;
+}
+
+.landing-city-phone-frame {
+  position: relative;
+  width: 850px;
+  margin: 0 auto;
+}
+
+.landing-city-phone-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  position: relative;
+  z-index: 2;
+}
+
+.landing-city-video-wrapper {
+  position: absolute;
+  top: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96%;
+  height: 86%;
+  border-radius: 76px;
+  overflow: hidden;
+  z-index: 1;
+  padding: 8px 8px 8px 8px;
+}
+
+.landing-city-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 0%;
+}
+
+/* ===== СЕКЦИЯ "КУПИТЬ ДОСТУП" ===== */
+.landing-pricing-section {
+  min-height: auto;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 145px 0 4rem;
+  background-color: #c8b28d;
+  background-image: url("./assets/about-bg.png");
+  background-size: auto;
+  background-position: left center;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: visible;
+  clear: both;
+}
+
+.landing-pricing-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(200, 178, 141, 0.3);
+  pointer-events: none;
+}
+
+.landing-pricing-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+  z-index: 1;
+  min-height: auto;
+  flex-wrap: wrap;
+}
+
+.landing-pricing-right {
+  flex: 1;
+  max-width: 55%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.landing-pricing-image {
+  width: 100%;
+  max-width: 757px;
+  height: auto;
+  border-radius: 30px;
+  object-fit: contain;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  display: block;
+}
+
+.landing-pricing-left {
+  position: relative;
+  left: 0;
+  top: 0;
+  transform: none;
+  width: 37%;
+  z-index: 3;
+  margin-right: -5%;
+}
+
+.landing-pricing-card {
+  background: rgba(255, 248, 233, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 41px;
+  padding: 35px 28px 35px 28px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 248, 233, 0.3);
+  text-align: left;
+}
+
+.landing-pricing-title-icon {
+  margin-bottom: 1rem;
+}
+
+.landing-pricing-title-svg {
+  width: 100%;
+  max-width: 460px;
+  height: auto;
+  display: block;
+}
+
+.landing-pricing-description {
+  max-width: 84%;
+  font-size: 1rem;
+  color: #fff8e9;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.landing-pricing-price-glass {
+  font-family: "UNCAGE", sans-serif;
+  display: block;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  background: rgba(255, 248, 233, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 42px;
+  padding: 8px 32px 5px;
+  font-size: 70px;
+  font-weight: 500;
+  line-height: 90%;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  margin-top: 2.5rem;
+  letter-spacing: 1px;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(270.06deg, #896750 0.07%, #bba580 97.32%);
+}
+
+.landing-pricing-btn {
+  font-family: "UNCAGE", sans-serif;
+  text-transform: uppercase;
+  background: #89674f;
+  color: #fff8e9;
+  border: none;
+  padding: 20px 30px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  max-width: 100%;
+  margin: auto;
+}
+
+.landing-pricing-btn:hover {
+  background: #6e4f3a;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== ПОДВАЛ ===== */
+.landing-footer {
+  font-family: "Inter", sans-serif;
+  background: #a59170;
+  padding: 39px 2rem 39px;
+  margin-top: 0;
+  position: relative;
+  clear: both;
+  width: 100%;
+  max-width: 100%;
+}
+
+.landing-footer-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+  flex-wrap: wrap;
+}
+
+/* Группа правых колонок (теперь она одна, но оставим для совместимости) */
+.landing-footer-right-group {
+  display: flex;
+  gap: 4rem;
+  justify-content: start;
+  flex-wrap: wrap;
+  width: 70%;
+}
+
+/* Колонки подвала */
+.landing-footer-col {
+  flex: 1;
+  min-width: 250px;
+  max-width: 350px;
+  text-align: center;
+}
+
+/* Заголовок контактов */
+.landing-footer-contact-title {
+  font-family: "UNCAGE", sans-serif;
+  text-transform: uppercase;
+  font-size: 1rem;
+  color: #ffffff;
+  margin-bottom: 16px;
+  font-weight: 500;
+  text-align: left;
+}
+
+/* Блок с email */
+.landing-footer-email {
+  display: flex;
+  align-items: start;
+  justify-content: start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.landing-footer-email svg {
+  flex-shrink: 0;
+}
+
+.landing-footer-email-text {
+  font-size: 15px;
+  color: #fff;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+/* QR коды */
+.landing-footer-qr-row {
+  display: flex;
+  justify-content: start;
+  gap: 1.5rem;
+}
+
+.landing-footer-qr-item {
+  text-align: center;
+}
+
+.landing-footer-qr-image {
+  width: 80px;
+  height: 80px;
+  display: block;
+  margin-bottom: 0.5rem;
+  border-radius: 12px;
+  padding: 4px;
+  transition: transform 0.3s ease;
+}
+
+.landing-footer-qr-image:hover {
+  transform: scale(1.05);
+}
+
+.landing-footer-qr-label {
+  font-size: 10px;
+  color: #ffffff;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Реквизиты */
+.landing-footer-requisites {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(224, 214, 199, 0.3);
+  text-align: center;
+}
+
+.landing-footer-requisites-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.requisites-text {
+  color: #e0d6c7;
+  opacity: 0.7;
+  font-size: 11px;
+}
+
+.requisites-link {
+  background: none;
+  border: none;
+  color: #cbb99c;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.requisites-link:hover {
+  color: #fff;
+  background: rgba(255, 248, 233, 0.1);
+}
+
+.requisites-link:focus,
+.requisites-link:active {
+  outline: none;
+}
+
+/* ===== АДАПТИВ ===== */
 @media (max-width: 768px) {
   /* Шапка */
   .landing-header {
     top: 10px;
-    right: 10px;
+    width: calc(100% - 20px);
   }
 
   .landing-header.scrolled {
     width: 70px !important;
     min-width: 70px !important;
+    max-width: 70px !important;
   }
 
   .landing-header.scrolled:hover {
     min-width: 280px !important;
+    max-width: calc(100% - 20px) !important;
   }
 
   .header-container {
@@ -1004,48 +1231,131 @@ body {
     gap: 1rem;
   }
 
-  /* Секция сравнения */
-  .landing-comparison-section {
-    padding: 80px 1.5rem 3rem;
+  /* Секции - возвращаем горизонтальные отступы */
+  .landing-about-section,
+  .landing-features-section,
+  .landing-feeling-section,
+  .landing-comparison-section,
+  .landing-reviews-section,
+  .landing-city-video-section,
+  .landing-pricing-section {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
-  /* Скрываем десктопный заголовок */
-  .landing-comparison-title.desktop-title {
+  .landing-about-content,
+  .landing-features-content,
+  .landing-feeling-container,
+  .landing-guide-container,
+  .landing-reviews-container,
+  .landing-city-video-container,
+  .landing-pricing-content {
+    padding: 0;
+  }
+
+  .landing-guide-content,
+  .landing-features-grid {
+    padding: 0;
+  }
+
+  /* Секция "О нас" */
+  .landing-about-section {
+    padding: 232px 1.5rem 3rem;
+    background-image: url("./assets/about-bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .landing-about-section::before {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .landing-about-content {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .landing-about-left {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  .landing-about-card {
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .landing-about-title-icon {
+    display: flex;
+    justify-content: center;
+  }
+
+  .landing-about-description {
+    max-width: 100%;
+    text-align: start;
+  }
+
+  .landing-about-btn {
+    display: block;
+    margin: 0 0 0 28px;
+  }
+
+  .landing-about-info-block {
+    gap: 0.1rem;
+    justify-content: end;
+    max-width: 90%;
+  }
+
+  .landing-about-info-text {
+    text-align: center;
+  }
+
+  .landing-about-right {
     display: none;
   }
 
-  /* Показываем мобильный заголовок */
-  .landing-comparison-title.mobile-title {
-    display: block;
-    font-family: "UNCAGE", sans-serif;
-    font-size: 1.8rem;
-    color: #862518;
-    margin-bottom: 2rem;
-    text-transform: uppercase;
-    font-weight: 500;
+  /* Секция "Что внутри?" */
+  .landing-features-section {
+    padding: 80px 1.5rem 3rem;
   }
 
-  /* Показываем заголовок над правым изображением */
-  .landing-comparison-right-title {
-    display: block;
-    font-family: "UNCAGE", sans-serif;
-    font-size: 1.5rem;
-    color: #862518;
-    font-weight: 500;
+  .landing-features-content {
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .landing-features-left {
+    max-width: 80%;
+    margin: auto;
+  }
+
+  .landing-features-title {
     text-align: center;
-    margin-bottom: 1rem;
+    font-size: 2rem;
   }
 
-  .landing-comparison-content {
-    gap: 2rem;
+  .landing-features-item-title {
+    text-align: center;
   }
 
-  .landing-comparison-left,
-  .landing-comparison-right {
-    min-width: 280px;
+  .landing-features-item-text {
+    text-align: center;
   }
 
-  /* Другие адаптивные стили для остальных секций */
+  .landing-features-right {
+    max-width: 80%;
+    margin: auto;
+  }
+
+  .landing-phone-frame {
+    max-width: 280px;
+  }
+
+  /* Другие секции */
   .landing-feeling-content,
   .landing-guide-content {
     flex-direction: column;
@@ -1095,211 +1405,46 @@ body {
   .landing-features-grid-title {
     margin: 0 auto 1rem;
   }
-}
-
-/* Адаптив для маленьких телефонов (до 480px) */
-@media (max-width: 480px) {
-  /* Шапка */
-  .landing-header {
-    top: 8px;
-    right: 8px;
-    background: rgba(68, 68, 68, 0);
-  }
-
-  .landing-header.scrolled {
-    width: 60px !important;
-    min-width: 60px !important;
-    background: none;
-  }
-
-  .landing-header.scrolled:hover {
-    min-width: 260px !important;
-  }
-
-  .header-container {
-    padding: 0 1rem;
-  }
-
-  .nav-menu {
-    gap: 0.8rem;
-  }
-
-  .nav-link {
-    font-size: 9px;
-  }
-
-  .landing-header.scrolled::before {
-    font-size: 16px;
-    color: #ffffff;
-  }
 
   /* Секция сравнения */
   .landing-comparison-section {
-    padding: 60px 1rem 2rem;
+    padding: 80px 1.5rem 3rem;
+  }
+
+  .landing-comparison-title.desktop-title {
+    display: none;
   }
 
   .landing-comparison-title.mobile-title {
-    font-size: 1.5rem;
+    display: block;
+    font-family: "UNCAGE", sans-serif;
+    font-size: 1.8rem;
+    color: #862518;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    font-weight: 500;
   }
 
   .landing-comparison-right-title {
-    font-size: 1.3rem;
+    display: block;
+    font-family: "UNCAGE", sans-serif;
+    font-size: 1.5rem;
+    color: #862518;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 1rem;
   }
 
   .landing-comparison-content {
     gap: 2rem;
   }
 
-  /* Другие адаптивные стили */
-  .landing-features-grid-title {
-    margin: 165px auto 1rem;
+  .landing-comparison-left,
+  .landing-comparison-right {
+    min-width: 280px;
   }
 
-  .landing-feeling-section,
-  .landing-guide-section,
-  .landing-features-grid-section {
-    padding: 0 1rem 14px;
-  }
-
-  .landing-guide-text:nth-child(2) {
-    width: 267px;
-    margin: 0 auto;
-  }
-
-  .landing-feeling-left h3,
-  .landing-guide-right h3 {
-    font-size: 10px;
-  }
-
-  .landing-feeling-text,
-  .landing-guide-text {
-    font-size: 9px;
-    width: 232px;
-    margin: 0 auto;
-  }
-
-  .landing-feature-text {
-    font-size: 10px;
-    width: 170px;
-    font-weight: 400;
-    padding: 0;
-    text-align: center;
-    text-transform: none;
-    margin: 0 auto;
-  }
-
-  .landing-feature-card:nth-child(2) .landing-feature-text {
-    width: 152px;
-  }
-
-  .landing-feature-card {
-    padding: 0;
-  }
-
-  .landing-feature-icon {
-    width: 219px;
-    height: 426px;
-    margin-bottom: 13px;
-  }
-}
-
-/* ===== Секция "Отзывы" ===== */
-.landing-reviews-section {
-  width: 100%;
-  max-width: 100%;
-  padding: 100px 2rem 4rem;
-  background-color: #c8b28d;
-  position: relative;
-  clear: both;
-}
-
-.landing-reviews-container {
-  max-width: 1300px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.landing-reviews-title {
-  font-family: "UNCAGE", sans-serif;
-  font-size: 2.5rem;
-  color: #862518;
-  margin-bottom: 3rem;
-  font-weight: 500;
-  text-align: left;
-  padding-left: 80px;
-}
-
-.landing-reviews-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-}
-
-.landing-reviews-row {
-  display: flex;
-  gap: 2rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* Карточка отзыва - эффект стекла */
-.landing-review-card {
-  flex: 1;
-  min-width: 280px;
-  max-width: 350px;
-  background: rgba(255, 248, 233, 0.2);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  padding: 1rem 1rem 1rem 1rem;
-  position: relative;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(255, 248, 233, 0.3);
-  transition: transform 0.3s ease;
-}
-
-.landing-review-card:hover {
-  transform: translateY(-5px);
-}
-
-/* Иконка - 50% торчит за пределами карточки */
-.landing-review-icon {
-  position: absolute;
-  top: -20px;
-  width: 60px;
-  height: 60px;
-  z-index: 2;
-}
-
-.landing-review-icon.right-icon {
-  right: -10px;
-}
-
-.landing-review-icon.left-icon {
-  left: -10px;
-}
-
-.landing-review-icon svg {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
-}
-
-/* Контент отзыва */
-.landing-review-content {
-  margin-top: 20px;
-}
-
-.landing-review-text {
-  font-family: "Inter", sans-serif;
-  font-size: 0.85rem;
-  color: #444444;
-  line-height: 1.2;
-  text-align: left;
-  margin: 0;
-}
-
-/* Адаптив для отзывов - показываем только 4 отзыва */
-@media (max-width: 768px) {
+  /* Отзывы */
   .landing-reviews-section {
     padding: 80px 1.5rem 3rem;
   }
@@ -1327,102 +1472,11 @@ body {
     top: -25px;
   }
 
-  /* Скрываем последние 2 отзыва (второй ряд) */
   .landing-reviews-row:last-child {
     display: none;
   }
-}
 
-@media (max-width: 480px) {
-  .landing-reviews-section {
-    padding: 60px 1rem 2rem;
-  }
-
-  .landing-reviews-title {
-    font-size: 1.8rem;
-  }
-
-  .landing-review-card {
-    padding: 8px 21px 22px;
-    width: 90%;
-  }
-
-  .landing-review-text {
-    font-size: 0.85rem;
-  }
-
-  .landing-review-icon {
-    width: 45px;
-    height: 45px;
-    top: -22px;
-  }
-}
-
-/* ===== Секция с видео города ===== */
-.landing-city-video-section {
-  width: 100%;
-  max-width: 100%;
-  padding: 100px 2rem 4rem;
-  background-color: #c8b28d;
-  text-align: center;
-  clear: both;
-}
-
-.landing-city-video-container {
-  max-width: 1300px;
-  margin: 0 auto;
-}
-
-.landing-city-video-title {
-  font-family: "UNCAGE", sans-serif;
-  max-width: 797px;
-  text-transform: uppercase;
-  font-size: 1.8rem;
-  color: #752419;
-  font-weight: 500;
-  text-align: left;
-  line-height: 1.2;
-  padding-left: 260px;
-}
-
-/* Мокап телефона */
-.landing-city-phone-frame {
-  position: relative;
-  width: 850px;
-  margin: 0 auto;
-}
-
-.landing-city-phone-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  position: relative;
-  z-index: 2;
-}
-
-/* Видео внутри мокапа */
-.landing-city-video-wrapper {
-  position: absolute;
-  top: 7%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 96%;
-  height: 86%;
-  border-radius: 76px;
-  overflow: hidden;
-  z-index: 1;
-  padding: 8px 8px 8px 8px;
-}
-
-.landing-city-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 70% 0%;
-}
-
-/* Адаптив для секции с видео */
-@media (max-width: 768px) {
+  /* Видео города */
   .landing-city-video-section {
     padding: 80px 1.5rem 3rem;
   }
@@ -1438,188 +1492,8 @@ body {
   .landing-city-phone-frame {
     width: 380px;
   }
-}
 
-@media (max-width: 480px) {
-  .landing-city-video-section {
-    padding: 60px 1rem 2rem;
-  }
-
-  .landing-city-video-title {
-    font-size: 20px;
-  }
-
-  .landing-city-phone-frame {
-    width: 340px;
-  }
-
-  .landing-city-video-wrapper {
-    border-radius: 43px;
-    top: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    height: 90%;
-  }
-}
-
-/* ===== Секция "Купить доступ" ===== */
-.landing-pricing-section {
-  min-height: auto;
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  padding: 145px 2rem 4rem;
-  background-color: #c8b28d;
-  background-image: url("./assets/about-bg.png");
-  background-size: auto;
-  background-position: left center;
-  background-repeat: no-repeat;
-  position: relative;
-  overflow: visible;
-  clear: both;
-}
-
-.landing-pricing-section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(200, 178, 141, 0.3);
-  pointer-events: none;
-}
-
-.landing-pricing-content {
-  max-width: 1300px;
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  position: relative;
-  z-index: 1;
-  min-height: auto;
-  flex-wrap: wrap;
-}
-
-/* Правая колонка - изображение */
-.landing-pricing-right {
-  flex: 1;
-  max-width: 55%;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-}
-
-.landing-pricing-image {
-  width: 100%;
-  max-width: 757px;
-  height: auto;
-  border-radius: 30px;
-  object-fit: contain;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  display: block;
-}
-
-/* Левая колонка - плашка поверх изображения */
-.landing-pricing-left {
-  position: relative;
-  left: 0;
-  top: 0;
-  transform: none;
-  width: 37%;
-  z-index: 3;
-  margin-right: -5%;
-}
-
-/* Карточка с текстом - эффект стекла */
-.landing-pricing-card {
-  background: rgba(255, 248, 233, 0.2);
-  backdrop-filter: blur(10px);
-  border-radius: 41px;
-  padding: 35px 28px 35px 28px;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(255, 248, 233, 0.3);
-  text-align: left;
-}
-
-/* Заголовок в виде изображения */
-.landing-pricing-title-icon {
-  margin-bottom: 1rem;
-}
-
-.landing-pricing-title-svg {
-  width: 100%;
-  max-width: 460px;
-  height: auto;
-  display: block;
-}
-
-/* Описание */
-.landing-pricing-description {
-  max-width: 84%;
-  font-size: 1rem;
-  color: #fff8e9;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
-  text-align: left;
-}
-
-/* Плашка с ценой - эффект стекла */
-.landing-pricing-price-glass {
-  font-family: "UNCAGE", sans-serif;
-  display: block;
-  width: fit-content;
-  margin-left: auto;
-  margin-right: auto;
-  background: rgba(255, 248, 233, 0.25);
-  backdrop-filter: blur(10px);
-  border-radius: 42px;
-  padding: 8px 32px 5px;
-  font-size: 70px;
-  font-weight: 500;
-  line-height: 90%;
-  text-align: center;
-  margin-bottom: 2.5rem;
-  margin-top: 2.5rem;
-  letter-spacing: 1px;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(270.06deg, #896750 0.07%, #bba580 97.32%);
-}
-
-/* Кнопка */
-.landing-pricing-btn {
-  font-family: "UNCAGE", sans-serif;
-  text-transform: uppercase;
-  background: #89674f;
-  color: #fff8e9;
-  border: none;
-  padding: 20px 38px;
-  border-radius: 30px;
-  font-size: 20px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: block;
-  max-width: 100%;
-  margin: auto;
-}
-
-.landing-pricing-btn:hover {
-  background: #6e4f3a;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* Адаптив для секции покупки */
-@media (max-width: 768px) {
+  /* Секция покупки */
   .landing-pricing-section {
     padding: 80px 1.5rem 3rem;
     background-image: url("./assets/about-bg.png");
@@ -1670,9 +1544,281 @@ body {
   .landing-pricing-right {
     display: none;
   }
+
+  /* Подвал */
+  .landing-footer {
+    padding: 35px 1rem 25px;
+  }
+
+  .landing-footer-container {
+    gap: 1rem;
+  }
+
+  .landing-footer-text {
+    font-size: 0.75rem;
+  }
+
+  .landing-footer-contact-title {
+    font-size: 0.75rem;
+  }
+
+  .landing-footer-email-text {
+    font-size: 0.65rem;
+  }
+
+  .landing-footer-qr-image {
+    width: 45px;
+    height: 45px;
+  }
+
+  .landing-footer-qr-label {
+    font-size: 0.55rem;
+  }
 }
 
 @media (max-width: 480px) {
+  /* Шапка */
+  .landing-header {
+    top: 8px;
+    background: rgba(68, 68, 68, 0);
+  }
+
+  .landing-header.scrolled {
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+    background: none;
+  }
+
+  .landing-header.scrolled:hover {
+    min-width: 260px !important;
+  }
+
+  .header-container {
+    padding: 0 1rem;
+  }
+
+  .nav-menu {
+    gap: 0.8rem;
+  }
+
+  .nav-link {
+    font-size: 9px;
+  }
+
+  .landing-header.scrolled::before {
+    font-size: 16px;
+    color: #ffffff;
+  }
+
+  /* Секции */
+  .landing-about-section,
+  .landing-features-section,
+  .landing-feeling-section,
+  .landing-comparison-section,
+  .landing-reviews-section,
+  .landing-city-video-section,
+  .landing-pricing-section {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Секция "О нас" */
+  .landing-about-section {
+    background-image: url("./assets/about-right-image-2.png");
+    padding: 200px 1rem 300px;
+    background-position: top;
+  }
+
+  .landing-about-card {
+    padding: 41px 25px;
+    max-width: 322px;
+    min-height: 293px;
+    margin: 0 auto 10px;
+    background: rgb(255 248 233 / 0%);
+  }
+
+  .landing-about-title-svg {
+    max-width: 200px;
+    margin-bottom: 13px;
+  }
+
+  .landing-about-description {
+    width: 218px;
+    margin: 0 auto 20px;
+    font-size: 10px;
+  }
+
+  .landing-about-btn {
+    padding: 12px 40px;
+    font-size: 14px;
+    background-color: #673600;
+  }
+
+  .landing-about-icon-svg {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  .landing-about-info-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .landing-about-info-text {
+    font-size: 0.85rem;
+    text-align: left;
+    max-width: 150px;
+  }
+
+  /* Секция "Что внутри?" */
+  .landing-features-section {
+    padding: 70px 1rem 2rem;
+  }
+
+  .landing-features-title {
+    font-size: 32px;
+  }
+
+  .landing-features-item-title {
+    font-size: 10px;
+  }
+
+  .landing-features-item-text {
+    font-size: 10px;
+    text-align: justify;
+  }
+
+  .landing-phone-frame {
+    max-width: 260px;
+  }
+
+  .landing-video-container {
+    top: 2%;
+    left: 51%;
+    transform: translateX(-50%);
+    width: 85%;
+    height: 97%;
+    border-radius: 45px;
+  }
+
+  /* Другие секции */
+  .landing-features-grid-title {
+    margin: 165px auto 1rem;
+  }
+
+  .landing-feeling-section,
+  .landing-guide-section,
+  .landing-features-grid-section {
+    padding: 0 1rem 14px;
+  }
+
+  .landing-guide-text:nth-child(2) {
+    width: 267px;
+    margin: 0 auto;
+  }
+
+  .landing-feeling-left h3,
+  .landing-guide-right h3 {
+    font-size: 10px;
+  }
+
+  .landing-feeling-text,
+  .landing-guide-text {
+    font-size: 9px;
+    width: 232px;
+    margin: 0 auto;
+  }
+
+  .landing-feature-text {
+    font-size: 10px;
+    width: 170px;
+    font-weight: 400;
+    padding: 0;
+    text-align: center;
+    text-transform: none;
+    margin: 0 auto;
+  }
+
+  .landing-feature-card:nth-child(2) .landing-feature-text {
+    width: 152px;
+  }
+
+  .landing-feature-card {
+    padding: 0;
+  }
+
+  .landing-feature-icon {
+    width: 219px;
+    height: 426px;
+    margin-bottom: 13px;
+  }
+
+  /* Секция сравнения */
+  .landing-comparison-section {
+    padding: 60px 1rem 2rem;
+  }
+
+  .landing-comparison-title.mobile-title {
+    font-size: 1.5rem;
+  }
+
+  .landing-comparison-right-title {
+    font-size: 1.3rem;
+  }
+
+  .landing-comparison-content {
+    gap: 2rem;
+  }
+
+  /* Отзывы */
+  .landing-reviews-section {
+    padding: 60px 1rem 2rem;
+  }
+
+  .landing-reviews-title {
+    font-size: 1.8rem;
+  }
+
+  .landing-review-card {
+    padding: 8px 21px 22px;
+    width: 90%;
+  }
+
+  .landing-review-text {
+    font-size: 0.85rem;
+  }
+
+  .landing-review-icon {
+    width: 45px;
+    height: 45px;
+    top: -22px;
+  }
+
+  /* Видео города */
+  .landing-city-video-section {
+    padding: 60px 1rem 2rem;
+  }
+
+  .landing-city-video-title {
+    font-size: 20px;
+  }
+
+  .landing-city-phone-frame {
+    width: 340px;
+  }
+
+  .landing-city-video-wrapper {
+    border-radius: 43px;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 90%;
+  }
+
+  /* Секция покупки */
   .landing-pricing-section {
     padding: 200px 1rem 300px;
     background-image: url("./assets/about-right-image-2.png");
@@ -1711,337 +1857,205 @@ body {
     padding: 12px 32px;
     font-size: 14px;
   }
-}
 
-/* ===== Подвал ===== */
-.landing-footer {
-  font-family: "Inter", sans-serif;
-  background: #5d5241c2;
-  padding: 39px 2rem 39px;
-  margin-top: 0;
-  position: relative;
-  clear: both;
-  width: 100%;
-  max-width: 100%;
-}
+  /* ===== АДАПТИВ ПОДВАЛА ===== */
+  @media (max-width: 768px) {
+    .landing-footer {
+      padding: 35px 1.5rem 25px;
+    }
 
-.landing-footer-container {
-  max-width: 1300px;
-  margin: 0 auto;
-  display: flex;
-  gap: 3rem;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-}
+    .landing-footer-container {
+      gap: 2rem;
+    }
 
-/* Колонки подвала */
-.landing-footer-col {
-  padding-left: 30px;
-  flex: 1;
-  min-width: 250px;
-}
+    .landing-footer-right-group {
+      gap: 2rem;
+    }
 
-.landing-footer-col-large {
-  flex: 1.4;
-  max-width: 45%;
-}
+    .landing-footer-col {
+      min-width: 220px;
+    }
 
-/* Обертка для правых колонок - они идут в строку */
-.landing-footer-right-group {
-  display: flex;
-  gap: 3rem;
-  flex: 1;
-  flex-wrap: nowrap;
-}
+    .landing-footer-contact-title {
+      font-size: 0.85rem;
+    }
 
-.landing-footer-right-group .landing-footer-col {
-  flex: 1;
-  min-width: auto;
-  margin-left: auto;
-  padding-left: 0;
-}
+    .landing-footer-email-text {
+      font-size: 0.7rem;
+    }
 
-.landing-footer-right-group .landing-footer-col:first-child {
-  margin-left: 0;
-}
+    .landing-footer-qr-image {
+      width: 60px;
+      height: 60px;
+    }
 
-/* Текст описания */
-.landing-footer-text {
-  font-size: 0.95rem;
-  color: #e0d6c7;
-  line-height: 1.6;
-  text-align: left;
-  margin: 0;
-  width: 79%;
-}
+    .landing-footer-qr-label {
+      font-size: 0.65rem;
+    }
 
-/* Заголовок контактов */
-.landing-footer-contact-title {
-  font-size: 1rem;
-  color: #cbb99c;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
+    .landing-footer-requisites {
+      margin-top: 30px;
+      padding-top: 20px;
+    }
 
-/* Блок с email */
-.landing-footer-email {
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  margin-bottom: 0.5rem;
-}
-
-.landing-footer-email svg {
-  flex-shrink: 0;
-}
-
-.landing-footer-email-text {
-  font-size: 0.9rem;
-  color: #e0d6c7;
-  text-decoration: none;
-  word-break: break-all;
-}
-
-/* QR коды */
-.landing-footer-qr-row {
-  display: flex;
-  justify-content: start;
-  padding-left: 7%;
-  gap: 1rem;
-}
-
-.landing-footer-qr-item {
-  text-align: center;
-}
-
-.landing-footer-qr-image {
-  width: 80px;
-  height: 80px;
-  display: block;
-  margin-bottom: 0.5rem;
-  border-radius: 12px;
-  padding: 4px;
-  filter: brightness(0) saturate(100%) invert(87%) sepia(6%) saturate(241%)
-    hue-rotate(350deg) brightness(95%) contrast(88%);
-}
-
-.landing-footer-qr-label {
-  font-size: 0.8rem;
-  color: #e0d6c7;
-  text-transform: uppercase;
-  font-weight: 500;
-}
-
-/* Адаптивность подвала */
-@media (max-width: 968px) {
-  .landing-footer {
-    padding: 40px 1.5rem 30px;
+    .requisites-text,
+    .requisites-link {
+      font-size: 9px;
+    }
   }
 
-  .landing-footer-container {
-    flex-wrap: nowrap;
-    gap: 1.5rem;
+  @media (max-width: 600px) {
+    .landing-footer {
+      padding: 30px 1rem 20px;
+    }
+
+    .landing-footer-right-group {
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .landing-footer-col {
+      min-width: auto;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .landing-footer-qr-image {
+      width: 55px;
+      height: 55px;
+    }
+
+    .landing-footer-qr-label {
+      font-size: 0.6rem;
+    }
   }
 
-  .landing-footer-col-large {
-    max-width: 35%;
-    flex: 1;
+  @media (max-width: 480px) {
+    .landing-footer {
+      padding: 25px 0.75rem 20px;
+    }
+
+    .landing-footer-contact-title {
+      font-size: 0.75rem;
+    }
+
+    .landing-footer-email-text {
+      font-size: 0.6rem;
+    }
+
+    .landing-footer-qr-image {
+      width: 50px;
+      height: 50px;
+    }
+
+    .landing-footer-qr-label {
+      font-size: 0.55rem;
+    }
+
+    .landing-footer-requisites {
+      margin-top: 25px;
+      padding-top: 15px;
+    }
+
+    .requisites-text,
+    .requisites-link {
+      font-size: 8px;
+    }
+
+    .landing-footer-requisites-content {
+      flex-direction: column;
+      gap: 5px;
+    }
   }
 
-  .landing-footer-text {
-    width: 100%;
-    font-size: 0.85rem;
+  /* Дополнительные адаптивные правки */
+  @media (max-width: 968px) {
+    .landing-footer {
+      padding: 40px 1.5rem 30px;
+    }
+
+    .landing-footer-container {
+      flex-wrap: nowrap;
+      gap: 1.5rem;
+    }
+
+    .landing-footer-col-large {
+      max-width: 35%;
+      flex: 1;
+    }
+
+    .landing-footer-text {
+      width: 100%;
+      font-size: 0.85rem;
+    }
+
+    .landing-footer-right-group {
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .landing-footer-right-group .landing-footer-col {
+      min-width: auto;
+      flex: 1;
+    }
+
+    .landing-footer-col {
+      padding-left: 0;
+    }
+
+    .landing-footer-contact-title {
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .landing-footer-email {
+      justify-content: flex-start;
+    }
+
+    .landing-footer-email-text {
+      font-size: 0.75rem;
+    }
+
+    .landing-footer-qr-row {
+      justify-content: flex-start;
+      padding-left: 0;
+    }
+
+    .landing-footer-qr-image {
+      width: 55px;
+      height: 55px;
+    }
+
+    .landing-footer-qr-label {
+      font-size: 0.65rem;
+    }
   }
 
-  .landing-footer-right-group {
-    gap: 1.5rem;
-    flex: 1;
-  }
+  @media (max-width: 600px) {
+    .landing-footer-container {
+      gap: 0.75rem;
+    }
 
-  .landing-footer-right-group .landing-footer-col {
-    min-width: auto;
-    flex: 1;
-  }
+    .landing-footer-text {
+      font-size: 0.7rem;
+    }
 
-  .landing-footer-col {
-    padding-left: 0;
-  }
+    .landing-footer-contact-title {
+      font-size: 0.7rem;
+    }
 
-  .landing-footer-contact-title {
-    font-size: 0.85rem;
-    text-align: left;
-  }
+    .landing-footer-email-text {
+      font-size: 0.6rem;
+    }
 
-  .landing-footer-email {
-    justify-content: flex-start;
-  }
+    .landing-footer-qr-image {
+      width: 40px;
+      height: 40px;
+    }
 
-  .landing-footer-email-text {
-    font-size: 0.75rem;
-  }
-
-  .landing-footer-qr-row {
-    justify-content: flex-start;
-    padding-left: 0;
-  }
-
-  .landing-footer-qr-image {
-    width: 55px;
-    height: 55px;
-  }
-
-  .landing-footer-qr-label {
-    font-size: 0.65rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .landing-footer {
-    padding: 35px 1rem 25px;
-  }
-
-  .landing-footer-container {
-    gap: 1rem;
-  }
-
-  .landing-footer-text {
-    font-size: 0.75rem;
-  }
-
-  .landing-footer-contact-title {
-    font-size: 0.75rem;
-  }
-
-  .landing-footer-email-text {
-    font-size: 0.65rem;
-  }
-
-  .landing-footer-qr-image {
-    width: 45px;
-    height: 45px;
-  }
-
-  .landing-footer-qr-label {
-    font-size: 0.55rem;
-  }
-}
-
-@media (max-width: 600px) {
-  .landing-footer-container {
-    gap: 0.75rem;
-  }
-
-  .landing-footer-text {
-    font-size: 0.7rem;
-  }
-
-  .landing-footer-contact-title {
-    font-size: 0.7rem;
-  }
-
-  .landing-footer-email-text {
-    font-size: 0.6rem;
-  }
-
-  .landing-footer-qr-image {
-    width: 40px;
-    height: 40px;
-  }
-
-  .landing-footer-qr-label {
-    font-size: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .landing-footer {
-    padding: 30px 0.75rem 20px;
-  }
-
-  .landing-footer-container {
-    gap: 0.5rem;
-  }
-
-  .landing-footer-text {
-    font-size: 0.65rem;
-  }
-
-  .landing-footer-contact-title {
-    font-size: 0.65rem;
-  }
-
-  .landing-footer-email-text {
-    font-size: 0.55rem;
-  }
-
-  .landing-footer-qr-image {
-    width: 35px;
-    height: 35px;
-  }
-
-  .landing-footer-qr-label {
-    font-size: 0.45rem;
-  }
-}
-
-/* ===== Реквизиты в подвале ===== */
-.landing-footer-requisites {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(224, 214, 199, 0.3);
-  text-align: center;
-}
-
-.landing-footer-requisites-content {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 11px;
-}
-
-.requisites-text {
-  color: #e0d6c7;
-  opacity: 0.7;
-  font-size: 11px;
-}
-
-.requisites-link {
-  background: none;
-  border: none;
-  color: #cbb99c;
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 20px;
-  transition: all 0.2s ease;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.requisites-link:hover {
-  color: #fff;
-  background: rgba(255, 248, 233, 0.1);
-}
-
-.requisites-link:focus,
-.requisites-link:active {
-  outline: none;
-}
-
-@media (max-width: 600px) {
-  .landing-footer-requisites-content {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .requisites-text {
-    font-size: 9px;
-  }
-
-  .requisites-link {
-    font-size: 9px;
+    .landing-footer-qr-label {
+      font-size: 0.5rem;
+    }
   }
 }
