@@ -1,6 +1,6 @@
-// src/App.jsx - упрощенная версия для тестового режима
+// src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import MainApp from "./pages/main";
 import { useAuth } from "./hooks/useAuth";
 import "./App.css";
@@ -71,6 +71,76 @@ function App() {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showRequisitesModal, setShowRequisitesModal] = useState(false);
+
+    // Создаем refs для видео
+    const demoVideoRef = useRef(null);
+    const cityVideoRef = useRef(null);
+
+    // Функция для настройки Intersection Observer (ОБНОВЛЕННАЯ ВЕРСИЯ ДЛЯ ЯНДЕКС БРАУЗЕРА)
+    const setupVideoObserver = useCallback((videoRef, threshold = 0.3) => {
+      const video = videoRef.current;
+      if (!video) return null;
+
+      // Флаг для отслеживания, был ли уже разблокирован звук
+      let soundUnlocked = false;
+
+      // Функция для разблокировки звука (вызывается при клике/тапе)
+      const unlockSound = () => {
+        if (soundUnlocked) return;
+        video.muted = false;
+        soundUnlocked = true;
+        // Удаляем обработчики после разблокировки
+        document.removeEventListener("click", unlockSound);
+        document.removeEventListener("touchstart", unlockSound);
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // Видео появилось на экране
+              if (soundUnlocked) {
+                // Звук уже разблокирован - играем со звуком
+                video
+                  .play()
+                  .catch((error) => console.log("Play error:", error));
+              } else {
+                // Звук еще не разблокирован - играем без звука
+                video.muted = true;
+                video
+                  .play()
+                  .then(() => {
+                    // Как только видео начало играть, добавляем слушатели для разблокировки звука
+                    document.addEventListener("click", unlockSound);
+                    document.addEventListener("touchstart", unlockSound);
+                  })
+                  .catch((error) => console.log("Play error:", error));
+              }
+            } else {
+              // Видео ушло с экрана - ставим на паузу
+              if (!video.paused) {
+                video.pause();
+              }
+            }
+          });
+        },
+        { threshold: threshold },
+      );
+
+      observer.observe(video);
+      return observer;
+    }, []);
+
+    // Настраиваем наблюдатели для видео при монтировании компонента
+    useEffect(() => {
+      const demoObserver = setupVideoObserver(demoVideoRef, 0.3);
+      const cityObserver = setupVideoObserver(cityVideoRef, 0.3);
+
+      return () => {
+        if (demoObserver) demoObserver.disconnect();
+        if (cityObserver) cityObserver.disconnect();
+      };
+    }, [setupVideoObserver]);
 
     // Эффект при скролле - шапка сворачивается
     useEffect(() => {
@@ -270,10 +340,9 @@ function App() {
                 />
                 <div className="landing-video-container">
                   <video
+                    ref={demoVideoRef}
                     className="landing-demo-video"
-                    autoPlay
                     loop
-                    muted
                     playsInline
                     controls
                   >
@@ -543,10 +612,9 @@ function App() {
               />
               <div className="landing-city-video-wrapper">
                 <video
+                  ref={cityVideoRef}
                   className="landing-city-video"
-                  autoPlay
                   loop
-                  muted
                   playsInline
                   controls
                 >
@@ -698,7 +766,7 @@ function App() {
             </div>
           </div>
 
-          {/* НОВЫЙ БЛОК: Реквизиты для ЮMoney */}
+          {/* Реквизиты для ЮMoney */}
           <div className="landing-footer-requisites">
             <div className="landing-footer-requisites-content">
               <span className="requisites-text">
