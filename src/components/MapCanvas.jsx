@@ -40,33 +40,8 @@ import {
   historyPoints,
   familyPoints,
 } from "./mapData.js";
-
-const DEBUG_USER = false;
+const DEBUG_USER = true;
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
-
-// ========== НАСТРОЙКИ ДЛЯ КАЛИБРОВКИ (УДАЛЁННОЙ) ==========
-// Включи калибровочный режим:
-const CALIBRATION_MODE = true; // ← ВКЛЮЧИ ЭТО (true) для калибровки
-
-// КАЛИБРОВОЧНАЯ ТОЧКА - измени под свои данные!
-// Ты знаешь реальные GPS координаты места и где оно должно быть на карте (в пикселях)
-const CALIBRATION_POINT = {
-  // Реальные GPS координаты места (например, памятник, фонтан, здание)
-  realGPS: { lat: 57.7685, lon: 40.9269 }, // ← ИЗМЕНИ НА РЕАЛЬНЫЕ КООРДИНАТЫ
-
-  // Где эта точка должна быть на карте (пиксели)
-  // Открой карту, найди это место, посмотри примерные координаты
-  expectedPixel: { x: 500, y: 600 }, // ← ИЗМЕНИ НА ПИКСЕЛИ НА КАРТЕ
-
-  // Включить отображение калибровочной точки на карте
-  showOnMap: true,
-};
-
-// Коррекция GPS (будет автоматически вычислена на основе калибровки)
-let CALCULATED_CORRECTION = { lat: 0, lon: 0 };
-
-// Кэш для изображений
-const imageCache = new Map();
 
 export default forwardRef(function MapCanvasBlock(
   {
@@ -105,10 +80,6 @@ export default forwardRef(function MapCanvasBlock(
   const [initialized, setInitialized] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [userGPS, setUserGPS] = useState(DEBUG_USER ? debugUserGPS : null);
-  const [calibrationOffset, setCalibrationOffset] = useState({
-    lat: 0,
-    lon: 0,
-  });
 
   const [followUser, setFollowUser] = useState(false);
   const [followMode, setFollowMode] = useState("user");
@@ -122,89 +93,11 @@ export default forwardRef(function MapCanvasBlock(
   const lastInteractionRef = useRef(0);
   const lastRouteNodeRef = useRef(null);
   const lastRebuildTimeRef = useRef(0);
-  const lastGpsUpdateRef = useRef(0);
-  const gpsIntervalIdRef = useRef(null);
 
   const [routeNodes, setRouteNodes] = useState(null);
   const [currentMapMode, setCurrentMapMode] = useState(null);
 
   const affineRef = useRef(null);
-
-  // Функция для вычисления калибровочной коррекции
-  const calculateCalibrationCorrection = useCallback(() => {
-    if (!CALIBRATION_MODE || !affineRef.current) {
-      return { lat: 0, lon: 0 };
-    }
-
-    // Получаем пиксель, куда текущий affine преобразует реальные GPS калибровочной точки
-    const { realGPS, expectedPixel } = CALIBRATION_POINT;
-
-    const currentPixel = gpsToPixel(realGPS.lat, realGPS.lon);
-    if (!currentPixel) return { lat: 0, lon: 0 };
-
-    // Вычисляем разницу в пикселях
-    const pixelDeltaX = expectedPixel.x - currentPixel.x;
-    const pixelDeltaY = expectedPixel.y - currentPixel.y;
-
-    // Примерное преобразование пикселей в градусы (грубая оценка)
-    // 1 градус ≈ 111 км, 1 пиксель ≈ сколько градусов зависит от зума
-    // Для калибровки используем примерное значение
-    const pixelToDegree = 0.0000015; // ~10 метров на пиксель при стандартном зуме
-
-    const latCorrection = pixelDeltaY * pixelToDegree;
-    const lonCorrection = pixelDeltaX * pixelToDegree;
-
-    console.log("=== КАЛИБРОВКА ===");
-    console.log("Реальный GPS:", realGPS);
-    console.log("Текущий пиксель:", currentPixel);
-    console.log("Ожидаемый пиксель:", expectedPixel);
-    console.log("Смещение (пиксели):", { x: pixelDeltaX, y: pixelDeltaY });
-    console.log("Коррекция (градусы):", {
-      lat: latCorrection,
-      lon: lonCorrection,
-    });
-
-    return { lat: latCorrection, lon: lonCorrection };
-  }, [gpsToPixel]);
-
-  // Функция загрузки с кэшем
-  const loadImageWithCache = useCallback((src) => {
-    return new Promise((resolve) => {
-      if (imageCache.has(src)) {
-        resolve(imageCache.get(src));
-        return;
-      }
-
-      const img = new Image();
-      img.src = src;
-      img.onload = () => {
-        imageCache.set(src, img);
-        resolve(img);
-      };
-      img.onerror = () => {
-        imageCache.set(src, null);
-        resolve(null);
-      };
-      if ("decode" in img) {
-        img.decode().catch(() => {});
-      }
-    });
-  }, []);
-
-  // Применение коррекции GPS (автоматическая из калибровки)
-  const getCorrectedGPS = useCallback(
-    (lat, lon) => {
-      if (CALIBRATION_MODE) {
-        // Используем автоматически вычисленную коррекцию
-        return {
-          lat: lat + calibrationOffset.lat,
-          lon: lon + calibrationOffset.lon,
-        };
-      }
-      return { lat, lon };
-    },
-    [calibrationOffset],
-  );
 
   // --- Получение реального GPS пользователя ---
   useEffect(() => {
@@ -213,64 +106,29 @@ export default forwardRef(function MapCanvasBlock(
       return;
     }
 
-    if (!navigator.geolocation) {
-      console.warn("Геолокация не поддерживается");
-      // В режиме калибровки можно использовать калибровочную точку как имитацию
-      if (CALIBRATION_MODE) {
-        console.log("Калибровочный режим: используем тестовую точку");
-        const corrected = getCorrectedGPS(
-          CALIBRATION_POINT.realGPS.lat,
-          CALIBRATION_POINT.realGPS.lon,
-        );
-        setUserGPS({ lat: corrected.lat, lon: corrected.lon });
-      }
-      return;
-    }
+    if (!navigator.geolocation) return;
 
-    const updatePosition = () => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          const corrected = getCorrectedGPS(latitude, longitude);
-          setUserGPS({ lat: corrected.lat, lon: corrected.lon });
-          lastGpsUpdateRef.current = Date.now();
-        },
-        (err) => {
-          console.warn("Ошибка получения GPS:", err.message);
-          // В режиме калибровки используем калибровочную точку
-          if (CALIBRATION_MODE) {
-            const corrected = getCorrectedGPS(
-              CALIBRATION_POINT.realGPS.lat,
-              CALIBRATION_POINT.realGPS.lon,
-            );
-            setUserGPS({ lat: corrected.lat, lon: corrected.lon });
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 5000,
-        },
-      );
+    const handleSuccess = (pos) => {
+      const { latitude, longitude } = pos.coords;
+      setUserGPS({ lat: latitude, lon: longitude });
     };
 
-    updatePosition();
-
-    const intervalId = setInterval(() => {
-      const now = Date.now();
-      if (now - lastGpsUpdateRef.current >= 5000) {
-        updatePosition();
-      }
-    }, 3000);
-
-    gpsIntervalIdRef.current = intervalId;
-    const intervalIdToClean = intervalId;
-
-    return () => {
-      clearInterval(intervalIdToClean);
-      gpsIntervalIdRef.current = null;
+    const handleError = (err) => {
+      console.warn("Ошибка получения GPS:", err);
     };
-  }, [getCorrectedGPS]);
+
+    const watcherId = navigator.geolocation.watchPosition(
+      handleSuccess,
+      handleError,
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        timeout: 5000,
+      },
+    );
+
+    return () => navigator.geolocation.clearWatch(watcherId);
+  }, []);
 
   // --- Блокировка скролла страницы ---
   useEffect(() => {
@@ -298,7 +156,7 @@ export default forwardRef(function MapCanvasBlock(
 
     const debouncedUpdate = () => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(updateSize, 150);
+      timeoutId = setTimeout(updateSize, 100);
     };
 
     updateSize();
@@ -359,7 +217,6 @@ export default forwardRef(function MapCanvasBlock(
     const A = [];
     const bx = [];
     const by = [];
-
     nodes.forEach((n) => {
       const gps = gpsMap[n.id];
       if (!gps) return;
@@ -375,17 +232,7 @@ export default forwardRef(function MapCanvasBlock(
     const coeffY = solveLinearSystem(A, by);
 
     affineRef.current = { ax: coeffX, ay: coeffY };
-
-    console.log("Affine transform calculated:", affineRef.current);
-
-    // После вычисления affine, обновляем калибровочную коррекцию
-    if (CALIBRATION_MODE) {
-      const correction = calculateCalibrationCorrection();
-      setCalibrationOffset(correction);
-      CALCULATED_CORRECTION = correction;
-      console.log("Автоматическая коррекция применена:", correction);
-    }
-  }, [solveLinearSystem, calculateCalibrationCorrection]);
+  }, [solveLinearSystem]);
 
   const gpsToPixel = useCallback(
     (lat, lon) => {
@@ -424,9 +271,13 @@ export default forwardRef(function MapCanvasBlock(
 
     const dx = node1.x - node2.x;
     const dy = node1.y - node2.y;
+
+    // Базовое расстояние
     let distance = Math.sqrt(dx * dx + dy * dy);
 
+    // Приоритетные группы узлов
     const priorityNodes = [
+      // Все узлы, начинающиеся с Q, W, D, Y
       ...nodes.filter((n) => n.id.startsWith("Q")).map((n) => n.id),
       ...nodes.filter((n) => n.id.startsWith("W")).map((n) => n.id),
       ...nodes.filter((n) => n.id.startsWith("D")).map((n) => n.id),
@@ -434,13 +285,14 @@ export default forwardRef(function MapCanvasBlock(
       ...nodes.filter((n) => n.id.startsWith("U")).map((n) => n.id),
     ];
 
+    // Узлы, которые хотим избегать (можно добавить позже)
     const avoidNodes = [
       "M1",
       "Q1",
       "Q2",
       "P1",
       "R1",
-      "U1",
+      "U1", // обходные узлы
       "Z1",
       "Z2",
       "Z3",
@@ -453,26 +305,39 @@ export default forwardRef(function MapCanvasBlock(
       "Z10",
       "Z11",
       "Z12",
-      "Z13",
+      "Z13", // окраины
     ];
 
+    // Проверяем принадлежность узлов к приоритетным группам
     const isNode1Priority = priorityNodes.includes(node1Id);
     const isNode2Priority = priorityNodes.includes(node2Id);
     const isNode1Avoid = avoidNodes.includes(node1Id);
     const isNode2Avoid = avoidNodes.includes(node2Id);
 
+    // Приоритетные пути (оба узла из Q, W, D, Y)
     if (isNode1Priority && isNode2Priority) {
+      // Уменьшаем вес на 70% - делаем очень привлекательными
       distance = distance * 0.3;
-    } else if (isNode1Priority || isNode2Priority) {
+      console.log(
+        `Priority path: ${node1Id} → ${node2Id} = ${distance.toFixed(2)}`,
+      );
+    }
+    // Пути, ведущие к приоритетным узлам
+    else if (isNode1Priority || isNode2Priority) {
+      // Умеренное уменьшение веса на 40%
       distance = distance * 0.6;
     }
 
+    // Штрафы для нежелательных узлов
     if (isNode1Avoid && isNode2Avoid) {
+      // Оба узла нежелательные - большой штраф
       distance = distance * 3;
     } else if (isNode1Avoid || isNode2Avoid) {
+      // Один узел нежелательный - средний штраф
       distance = distance * 1.8;
     }
 
+    // Дополнительный бонус для связок внутри одной группы
     const sameGroup =
       (node1Id.startsWith("Q") && node2Id.startsWith("Q")) ||
       (node1Id.startsWith("W") && node2Id.startsWith("W")) ||
@@ -480,6 +345,7 @@ export default forwardRef(function MapCanvasBlock(
       (node1Id.startsWith("Y") && node2Id.startsWith("Y"));
 
     if (sameGroup) {
+      // Дополнительный бонус за перемещение внутри одной группы
       distance = distance * 0.8;
     }
 
@@ -489,20 +355,28 @@ export default forwardRef(function MapCanvasBlock(
   // --- построение маршрута по графу с весами (Дейкстра) ---
   const buildRouteDijkstra = useCallback(
     (startId, endId) => {
+      console.log(`Building weighted route from ${startId} to ${endId}`);
+
+      // Создаем граф с весами
       const graph = {};
 
+      // Для каждого ребра добавляем вес = расстояние между узлами
       edges.forEach(({ from, to }) => {
         const distance = calculateDistance(from, to);
+
         if (!graph[from]) graph[from] = [];
         if (!graph[to]) graph[to] = [];
+
         graph[from].push({ node: to, weight: distance });
         graph[to].push({ node: from, weight: distance });
       });
 
+      // Дейкстра
       const distances = {};
       const previous = {};
       const unvisited = new Set();
 
+      // Инициализация
       nodes.forEach((node) => {
         distances[node.id] = Infinity;
         previous[node.id] = null;
@@ -512,6 +386,7 @@ export default forwardRef(function MapCanvasBlock(
       distances[startId] = 0;
 
       while (unvisited.size > 0) {
+        // Находим узел с минимальным расстоянием среди непосещённых
         let current = null;
         let minDistance = Infinity;
 
@@ -523,12 +398,14 @@ export default forwardRef(function MapCanvasBlock(
         }
 
         if (current === null || current === endId) break;
-        if (distances[current] === Infinity) break;
+        if (distances[current] === Infinity) break; // Нет пути
 
         unvisited.delete(current);
 
+        // Обновляем расстояния до соседей
         for (const neighbor of graph[current] || []) {
           if (!unvisited.has(neighbor.node)) continue;
+
           const newDistance = distances[current] + neighbor.weight;
           if (newDistance < distances[neighbor.node]) {
             distances[neighbor.node] = newDistance;
@@ -537,7 +414,11 @@ export default forwardRef(function MapCanvasBlock(
         }
       }
 
-      if (distances[endId] === Infinity) return null;
+      // Восстанавливаем путь
+      if (distances[endId] === Infinity) {
+        console.warn("No path found");
+        return null;
+      }
 
       const path = [];
       let cur = endId;
@@ -545,6 +426,8 @@ export default forwardRef(function MapCanvasBlock(
         path.unshift(cur);
         cur = previous[cur];
       }
+
+      console.log("Path found with total distance:", distances[endId]);
       return path;
     },
     [calculateDistance],
@@ -586,25 +469,45 @@ export default forwardRef(function MapCanvasBlock(
     [clampOffset],
   );
 
-  // --- построение маршрута к храму ---
+  // --- построение маршрута к храму (используем Дейкстру) ---
   const buildRouteToTemple = useCallback(
     (templeId) => {
+      console.log("buildRouteToTemple called with:", templeId);
+
       const temple = templePoints.find((t) => t.id === templeId);
-      if (!temple || !userGPS) return;
+      if (!temple) {
+        console.warn("Temple not found:", templeId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
 
       const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-      if (!userPx) return;
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
 
       const nearestNodeToUser = findNearestNode(userPx);
       const nearestNodeToTemple = findNearestNode({ x: temple.x, y: temple.y });
 
-      if (!nearestNodeToUser || !nearestNodeToTemple) return;
+      if (!nearestNodeToUser || !nearestNodeToTemple) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
 
+      // Используем Дейкстру вместо BFS
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToTemple.id,
       );
-      if (!path) return;
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
 
       const route = [
         { id: "USER", x: userPx.x, y: userPx.y },
@@ -617,30 +520,51 @@ export default forwardRef(function MapCanvasBlock(
         { id: temple.id, x: temple.x, y: temple.y, isTemple: true },
       ];
 
+      console.log("Final route:", route);
       setRouteNodes(route);
     },
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к музею ---
+  // --- построение маршрута к музею (используем Дейкстру) ---
   const buildRouteToMuseum = useCallback(
     (museumId) => {
+      console.log("buildRouteToMuseum called with:", museumId);
+
       const museum = museumPoints.find((m) => m.id === museumId);
-      if (!museum || !userGPS) return;
+      if (!museum) {
+        console.warn("Museum not found:", museumId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
 
       const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-      if (!userPx) return;
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
 
       const nearestNodeToUser = findNearestNode(userPx);
       const nearestNodeToMuseum = findNearestNode({ x: museum.x, y: museum.y });
 
-      if (!nearestNodeToUser || !nearestNodeToMuseum) return;
+      if (!nearestNodeToUser || !nearestNodeToMuseum) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
 
+      // Используем Дейкстру вместо BFS
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToMuseum.id,
       );
-      if (!path) return;
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
 
       const route = [
         { id: "USER", x: userPx.x, y: userPx.y },
@@ -653,30 +577,51 @@ export default forwardRef(function MapCanvasBlock(
         { id: museum.id, x: museum.x, y: museum.y, isMuseum: true },
       ];
 
+      console.log("Final route to museum:", route);
       setRouteNodes(route);
     },
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к искусству ---
+  // --- построение маршрута к искусству (используем Дейкстру) ---
   const buildRouteToArt = useCallback(
     (artId) => {
+      console.log("buildRouteToArt called with:", artId);
+
       const art = artPoints.find((a) => a.id === artId);
-      if (!art || !userGPS) return;
+      if (!art) {
+        console.warn("Art point not found:", artId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
 
       const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-      if (!userPx) return;
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
 
       const nearestNodeToUser = findNearestNode(userPx);
       const nearestNodeToArt = findNearestNode({ x: art.x, y: art.y });
 
-      if (!nearestNodeToUser || !nearestNodeToArt) return;
+      if (!nearestNodeToUser || !nearestNodeToArt) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
 
+      // Используем Дейкстру
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToArt.id,
       );
-      if (!path) return;
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
 
       const route = [
         { id: "USER", x: userPx.x, y: userPx.y },
@@ -689,19 +634,33 @@ export default forwardRef(function MapCanvasBlock(
         { id: art.id, x: art.x, y: art.y, isArt: true },
       ];
 
+      console.log("Final route to art:", route);
       setRouteNodes(route);
     },
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к истории ---
+  // --- построение маршрута к истории (используем Дейкстру) ---
   const buildRouteToHistory = useCallback(
     (historyId) => {
+      console.log("buildRouteToHistory called with:", historyId);
+
       const history = historyPoints.find((h) => h.id === historyId);
-      if (!history || !userGPS) return;
+      if (!history) {
+        console.warn("History point not found:", historyId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
 
       const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-      if (!userPx) return;
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
 
       const nearestNodeToUser = findNearestNode(userPx);
       const nearestNodeToHistory = findNearestNode({
@@ -709,13 +668,20 @@ export default forwardRef(function MapCanvasBlock(
         y: history.y,
       });
 
-      if (!nearestNodeToUser || !nearestNodeToHistory) return;
+      if (!nearestNodeToUser || !nearestNodeToHistory) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
 
+      // Используем Дейкстру
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToHistory.id,
       );
-      if (!path) return;
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
 
       const route = [
         { id: "USER", x: userPx.x, y: userPx.y },
@@ -728,30 +694,54 @@ export default forwardRef(function MapCanvasBlock(
         { id: history.id, x: history.x, y: history.y, isHistory: true },
       ];
 
+      console.log("Final route to history:", route);
       setRouteNodes(route);
     },
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к семейным местам ---
+  // --- построение маршрута к семейным местам (используем Дейкстру) ---
   const buildRouteToFamily = useCallback(
     (familyId) => {
+      console.log("buildRouteToFamily called with:", familyId);
+
       const family = familyPoints.find((f) => f.id === familyId);
-      if (!family || !userGPS) return;
+      if (!family) {
+        console.warn("Family point not found:", familyId);
+        return;
+      }
+
+      if (!userGPS) {
+        console.warn("User GPS not available");
+        return;
+      }
 
       const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
-      if (!userPx) return;
+      if (!userPx) {
+        console.warn("Could not convert user GPS to pixel");
+        return;
+      }
 
       const nearestNodeToUser = findNearestNode(userPx);
-      const nearestNodeToFamily = findNearestNode({ x: family.x, y: family.y });
+      const nearestNodeToFamily = findNearestNode({
+        x: family.x,
+        y: family.y,
+      });
 
-      if (!nearestNodeToUser || !nearestNodeToFamily) return;
+      if (!nearestNodeToUser || !nearestNodeToFamily) {
+        console.warn("Could not find nearest nodes");
+        return;
+      }
 
+      // Используем Дейкстру
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToFamily.id,
       );
-      if (!path) return;
+      if (!path) {
+        console.warn("Could not build route between nodes");
+        return;
+      }
 
       const route = [
         { id: "USER", x: userPx.x, y: userPx.y },
@@ -764,14 +754,18 @@ export default forwardRef(function MapCanvasBlock(
         { id: family.id, x: family.x, y: family.y, isFamily: true },
       ];
 
+      console.log("Final route to family:", route);
       setRouteNodes(route);
     },
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута из GPS пользователя для квеста ---
+  // --- построение маршрута из GPS пользователя для квеста (используем Дейкстру) ---
   const rebuildRouteFromUser = useCallback(() => {
-    if (mode !== "step2") return;
+    if (mode !== "step2") {
+      return;
+    }
+
     if (!userGPS) return;
 
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
@@ -780,7 +774,8 @@ export default forwardRef(function MapCanvasBlock(
     const startQP = questPoints.find((qp) => qp.order === 1);
     if (!startQP) return;
 
-    const nearestNode = findNearestNode(userPx);
+    let nearestNode = findNearestNode(userPx);
+    // Используем Дейкстру вместо BFS
     const path = buildRouteDijkstra(nearestNode.id, "START");
     if (!path) return;
 
@@ -793,7 +788,11 @@ export default forwardRef(function MapCanvasBlock(
         .map((id) => {
           const node = nodes.find((n) => n.id === id);
           return node
-            ? { id: node.id, x: node.x, y: node.y - iconCenterOffset }
+            ? {
+                id: node.id,
+                x: node.x,
+                y: node.y - iconCenterOffset,
+              }
             : null;
         })
         .filter(Boolean),
@@ -812,8 +811,11 @@ export default forwardRef(function MapCanvasBlock(
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 25 && mode === "step2") {
-      onQuestPointReached?.(2);
+    const REACH_RADIUS = 25;
+    if (dist < REACH_RADIUS) {
+      if (mode === "step2") {
+        onQuestPointReached?.(2);
+      }
     }
   }, [
     userGPS,
@@ -824,12 +826,50 @@ export default forwardRef(function MapCanvasBlock(
     mode,
   ]);
 
-  // Объединенная функция построения маршрутов для квеста
+  // --- Обновление маршрута при движении пользователя ---
+  useEffect(() => {
+    if (mode !== "step2") return;
+    if (currentMapMode && currentMapMode !== "step2") return;
+    if (!userGPS) return;
+
+    const now = Date.now();
+    if (now - lastRebuildTimeRef.current < 3000) return;
+
+    const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
+    if (!userPx) return;
+
+    const nearestNode = findNearestNode(userPx);
+    if (!nearestNode) return;
+
+    rebuildRouteFromUser();
+
+    const startQP = questPoints[0];
+    const dx = userPx.x - startQP.x;
+    const dy = userPx.y - startQP.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const REACH_RADIUS = 25;
+    if (dist < REACH_RADIUS) {
+      onQuestPointReached?.(2);
+    }
+  }, [
+    userGPS,
+    gpsToPixel,
+    findNearestNode,
+    rebuildRouteFromUser,
+    onQuestPointReached,
+    mode,
+    currentMapMode,
+  ]);
+
+  // Объединенная функция построения маршрутов для квеста (используем Дейкстру)
   const buildRouteBetweenPoints = useCallback(
     (startOrder, targetOrder) => {
       const startQP = questPoints.find((qp) => qp.order === startOrder);
       const targetQP = questPoints.find((qp) => qp.order === targetOrder);
-      if (!startQP || !targetQP) return;
+
+      if (!startQP || !targetQP) {
+        return;
+      }
 
       const nearestNodeToStart = findNearestNode({
         x: startQP.x,
@@ -839,13 +879,20 @@ export default forwardRef(function MapCanvasBlock(
         x: targetQP.x,
         y: targetQP.y,
       });
-      if (!nearestNodeToStart || !nearestNodeToTarget) return;
 
+      if (!nearestNodeToStart || !nearestNodeToTarget) {
+        return;
+      }
+
+      // Используем Дейкстру вместо BFS
       const path = buildRouteDijkstra(
         nearestNodeToStart.id,
         nearestNodeToTarget.id,
       );
-      if (!path) return;
+
+      if (!path) {
+        return;
+      }
 
       const iconSize = 40;
       const iconCenterOffset = iconSize / 2;
@@ -854,7 +901,11 @@ export default forwardRef(function MapCanvasBlock(
         .map((id) => {
           const node = nodes.find((n) => n.id === id);
           return node
-            ? { id: node.id, x: node.x, y: node.y - iconCenterOffset }
+            ? {
+                id: node.id,
+                x: node.x,
+                y: node.y - iconCenterOffset,
+              }
             : null;
         })
         .filter(Boolean);
@@ -864,6 +915,7 @@ export default forwardRef(function MapCanvasBlock(
         x: startQP.x,
         y: startQP.y - iconCenterOffset,
       });
+
       route.push({
         id: targetQP.id,
         x: targetQP.x,
@@ -875,7 +927,7 @@ export default forwardRef(function MapCanvasBlock(
     [buildRouteDijkstra, findNearestNode],
   );
 
-  // --- Обработка изменения режима ---
+  // --- Обработка изменения режима из пропсов ---
   useEffect(() => {
     if (!initialized || !affineRef.current) return;
     if (!mode) return;
@@ -883,6 +935,13 @@ export default forwardRef(function MapCanvasBlock(
     if (progressModalJustClosed.current) {
       progressModalJustClosed.current = false;
       return;
+    }
+
+    console.log(`Mode changed via props: ${mode}`);
+
+    if (mode !== currentMapMode) {
+      setIsModeChanging(true);
+      setIsLoading(true);
     }
 
     if (mode === "step2" && userGPS) {
@@ -895,55 +954,69 @@ export default forwardRef(function MapCanvasBlock(
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [mode, initialized, userGPS, rebuildRouteFromUser]);
+  }, [mode, initialized, userGPS, rebuildRouteFromUser, currentMapMode]);
 
-  // --- Эффекты для центрирования на выбранных объектах ---
+  // --- Эффект для центрирования на выбранном храме ---
   useEffect(() => {
     if (mode === "temple" && selectedTemple && initialized) {
       const temple = templePoints.find((t) => t.id === selectedTemple.mapId);
       if (temple) {
         centerOnPixel({ x: temple.x, y: temple.y }, 2.0);
-        setTimeout(() => buildRouteToTemple(selectedTemple.mapId), 100);
+        setTimeout(() => {
+          buildRouteToTemple(selectedTemple.mapId);
+        }, 100);
       }
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToTemple]);
 
+  // --- Эффект для центрирования на выбранном музее ---
   useEffect(() => {
     if (mode === "museum" && selectedTemple && initialized) {
       const museum = museumPoints.find((m) => m.id === selectedTemple.mapId);
       if (museum) {
         centerOnPixel({ x: museum.x, y: museum.y }, 2.0);
-        setTimeout(() => buildRouteToMuseum(selectedTemple.mapId), 100);
+        setTimeout(() => {
+          buildRouteToMuseum(selectedTemple.mapId);
+        }, 100);
       }
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToMuseum]);
 
+  // --- Эффект для центрирования на выбранном искусстве ---
   useEffect(() => {
     if (mode === "art" && selectedTemple && initialized) {
       const art = artPoints.find((a) => a.id === selectedTemple.mapId);
       if (art) {
         centerOnPixel({ x: art.x, y: art.y }, 2.0);
-        setTimeout(() => buildRouteToArt(selectedTemple.mapId), 100);
+        setTimeout(() => {
+          buildRouteToArt(selectedTemple.mapId);
+        }, 100);
       }
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToArt]);
 
+  // --- Эффект для центрирования на выбранной истории ---
   useEffect(() => {
     if (mode === "history" && selectedTemple && initialized) {
       const history = historyPoints.find((h) => h.id === selectedTemple.mapId);
       if (history) {
         centerOnPixel({ x: history.x, y: history.y }, 2.0);
-        setTimeout(() => buildRouteToHistory(selectedTemple.mapId), 100);
+        setTimeout(() => {
+          buildRouteToHistory(selectedTemple.mapId);
+        }, 100);
       }
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToHistory]);
 
+  // --- Эффект для центрирования на выбранном семейном месте ---
   useEffect(() => {
     if (mode === "family" && selectedTemple && initialized) {
       const family = familyPoints.find((f) => f.id === selectedTemple.mapId);
       if (family) {
         centerOnPixel({ x: family.x, y: family.y }, 2.0);
-        setTimeout(() => buildRouteToFamily(selectedTemple.mapId), 100);
+        setTimeout(() => {
+          buildRouteToFamily(selectedTemple.mapId);
+        }, 100);
       }
     }
   }, [mode, selectedTemple, initialized, centerOnPixel, buildRouteToFamily]);
@@ -956,12 +1029,14 @@ export default forwardRef(function MapCanvasBlock(
       }
 
       const stepMap = {
-        step4: { icons: ["rabbitOne", "rabbitIcon"] },
-        step6: { icons: ["rabbitOne", "rabbitTwo", "rabbitIcon"] },
+        step4: { target: 2, icons: ["rabbitOne", "rabbitIcon"] },
+        step6: { target: 3, icons: ["rabbitOne", "rabbitTwo", "rabbitIcon"] },
         step8: {
+          target: 4,
           icons: ["rabbitOne", "rabbitTwo", "rabbitThree", "rabbitIcon"],
         },
         step10: {
+          target: 5,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -971,6 +1046,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step12: {
+          target: 6,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -981,6 +1057,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step14: {
+          target: 7,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -992,6 +1069,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step16: {
+          target: 8,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1004,6 +1082,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step18: {
+          target: 9,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1017,6 +1096,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step20: {
+          target: 10,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1031,6 +1111,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step22: {
+          target: 11,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1046,6 +1127,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step24: {
+          target: 12,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1062,6 +1144,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step26: {
+          target: 13,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1079,6 +1162,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step28: {
+          target: 14,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1097,6 +1181,7 @@ export default forwardRef(function MapCanvasBlock(
           ],
         },
         step30: {
+          target: 14,
           icons: [
             "rabbitOne",
             "rabbitTwo",
@@ -1138,7 +1223,9 @@ export default forwardRef(function MapCanvasBlock(
     const canvas = canvasRef.current;
     const bgCanvas = bgCanvasRef.current;
 
-    if (!canvas || !bgCanvas || !imgRef.current) return;
+    if (!canvas || !bgCanvas || !imgRef.current) {
+      return;
+    }
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -1161,20 +1248,38 @@ export default forwardRef(function MapCanvasBlock(
     ctx.translate(offsetRef.current.x, offsetRef.current.y);
     ctx.scale(zoomRef.current, zoomRef.current);
 
-    const SHOW_DEBUG_NODES = false;
-
+    // --- ОТЛАДКА: отрисовка всех узлов графа (временная) ---
+    const SHOW_DEBUG_NODES = false; // false / true
     if (SHOW_DEBUG_NODES) {
       nodes.forEach((node) => {
+        // Рисуем точку узла
         ctx.fillStyle = "#00FF00";
         ctx.beginPath();
         ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
         ctx.fill();
+
+        // Добавляем ID узла для идентификации
         ctx.fillStyle = "black";
         ctx.font = "bold 10px 'Advent Pro', sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(node.id, node.x, node.y - 10);
-      });
 
+        // Рисуем координаты для особо важных узлов
+        if (
+          node.id === "START" ||
+          node.id === "L" ||
+          node.id === "D4" ||
+          node.id === "U1"
+        ) {
+          ctx.fillStyle = "blue";
+          ctx.font = "8px 'Advent Pro', sans-serif";
+          ctx.fillText(`(${node.x},${node.y})`, node.x, node.y - 20);
+        }
+      });
+    }
+
+    // --- ОТЛАДКА: отрисовка всех соединений (рёбер графа) ---
+    if (SHOW_DEBUG_NODES) {
       ctx.strokeStyle = "rgba(0, 255, 0, 0.3)";
       ctx.lineWidth = 2;
       edges.forEach((edge) => {
@@ -1204,7 +1309,7 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
-    // Отрисовка маршрута
+    // --- draw route on top ---
     if (routeNodes && routeNodes.length > 1) {
       if (
         mode === "temple" ||
@@ -1221,21 +1326,45 @@ export default forwardRef(function MapCanvasBlock(
       }
 
       ctx.beginPath();
+
       routeNodes.forEach((n, i) => {
         if (!n) return;
-        if (i === 0) ctx.moveTo(n.x, n.y);
-        else ctx.lineTo(n.x, n.y);
+
+        // Используем координаты из routeNodes
+        let x = n.x;
+        let y = n.y;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
       });
+
       ctx.stroke();
+
+      // --- ОТЛАДКА: показываем точки маршрута ---
+      if (SHOW_DEBUG_NODES) {
+        routeNodes.forEach((n, i) => {
+          if (!n) return;
+          ctx.fillStyle = i === 0 ? "#FF0000" : "#FF00FF";
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
     }
 
-    // Отрисовка квестовых точек
+    // --- Отрисовка квестовых точек ---
     if (
       pageMode === "quest" &&
       rabbitIconsRef.current["rabbitIcon"] &&
       rabbitIconsRef.current["rabbitOne"]
     ) {
       const iconSize = 40;
+
+      let pointsToDraw = questPoints;
+
       const showUpTo = {
         step2: 1,
         step4: 2,
@@ -1253,15 +1382,16 @@ export default forwardRef(function MapCanvasBlock(
         step28: 14,
         step30: 14,
       };
+
       const maxOrder = showUpTo[mode] || 0;
-      let pointsToDraw =
-        maxOrder > 0
-          ? questPoints.filter((qp) => qp.order <= maxOrder)
-          : questPoints;
+      if (maxOrder > 0) {
+        pointsToDraw = questPoints.filter((qp) => qp.order <= maxOrder);
+      }
 
       pointsToDraw.forEach((qp) => {
         const icon = getQuestPointIcon(qp.order);
         if (!icon) return;
+
         ctx.drawImage(
           icon,
           qp.x - iconSize / 2,
@@ -1269,15 +1399,29 @@ export default forwardRef(function MapCanvasBlock(
           iconSize,
           iconSize,
         );
+
+        // --- ОТЛАДКА: показываем центр иконки и порядок ---
+        if (SHOW_DEBUG_NODES) {
+          ctx.fillStyle = "yellow";
+          ctx.beginPath();
+          ctx.arc(qp.x, qp.y - iconSize / 2, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "black";
+          ctx.font = "bold 12px 'Advent Pro', sans-serif";
+          ctx.fillText(`#${qp.order}`, qp.x + 20, qp.y - iconSize);
+        }
       });
     }
 
-    // Отрисовка ресторанов
+    // --- Отрисовка ресторанов ---
     if (mode === "gastro" && restaurants && restaurants.length > 0) {
       const iconWidth = 45;
       const iconHeight = 52;
+
       restaurants.forEach((restaurant) => {
         const icon = restaurantIconsRef.current[restaurant.id];
+
         if (icon) {
           ctx.drawImage(
             icon,
@@ -1298,13 +1442,28 @@ export default forwardRef(function MapCanvasBlock(
           );
           ctx.fill();
         }
+
+        // --- ОТЛАДКА: показываем координаты ресторанов ---
+        if (SHOW_DEBUG_NODES) {
+          ctx.fillStyle = "orange";
+          ctx.beginPath();
+          ctx.arc(
+            restaurant.location.x,
+            restaurant.location.y,
+            3,
+            0,
+            Math.PI * 2,
+          );
+          ctx.fill();
+        }
       });
     }
 
-    // Отрисовка храмов
+    // --- ОТРИСОВКА ХРАМОВ ---
     if (mode === "temple" && templePoints.length > 0) {
       const iconSize = 45;
       const icon = templeIconsRef.current.default;
+
       templePoints.forEach((temple) => {
         if (icon) {
           ctx.drawImage(
@@ -1314,6 +1473,7 @@ export default forwardRef(function MapCanvasBlock(
             iconSize,
             iconSize,
           );
+
           if (zoomRef.current > 1.5) {
             ctx.fillStyle = "white";
             ctx.font = "bold 12px 'Advent Pro', sans-serif";
@@ -1323,14 +1483,36 @@ export default forwardRef(function MapCanvasBlock(
             ctx.fillText(temple.name, temple.x, temple.y - iconSize - 5);
             ctx.shadowColor = "transparent";
           }
+
+          // --- ОТЛАДКА: показываем центр иконки храма и attachTo ---
+          if (SHOW_DEBUG_NODES) {
+            ctx.fillStyle = "purple";
+            ctx.beginPath();
+            ctx.arc(temple.x, temple.y - iconSize / 2, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "white";
+            ctx.font = "10px 'Advent Pro', sans-serif";
+            ctx.fillText(
+              `attached to: ${temple.attachTo}`,
+              temple.x,
+              temple.y - iconSize - 20,
+            );
+          }
+        } else {
+          ctx.fillStyle = "#FFD700";
+          ctx.beginPath();
+          ctx.arc(temple.x, temple.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
         }
       });
     }
 
-    // Отрисовка музеев
+    // --- ОТРИСОВКА МУЗЕЕВ ---
     if (mode === "museum" && museumPoints && museumPoints.length > 0) {
       const iconSize = 45;
       const icon = museumIconsRef.current.default;
+
       museumPoints.forEach((museum) => {
         if (icon) {
           ctx.drawImage(
@@ -1340,6 +1522,7 @@ export default forwardRef(function MapCanvasBlock(
             iconSize,
             iconSize,
           );
+
           if (zoomRef.current > 1.5) {
             ctx.fillStyle = "white";
             ctx.font = "bold 12px 'Advent Pro', sans-serif";
@@ -1349,14 +1532,21 @@ export default forwardRef(function MapCanvasBlock(
             ctx.fillText(museum.name, museum.x, museum.y - iconSize - 5);
             ctx.shadowColor = "transparent";
           }
+        } else {
+          ctx.fillStyle = "#4CAF50";
+          ctx.beginPath();
+          ctx.arc(museum.x, museum.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
         }
       });
     }
 
-    // Отрисовка искусства
+    // --- ОТРИСОВКА ИСКУССТВА ---
     if (mode === "art" && artPoints && artPoints.length > 0) {
       const iconSize = 45;
+      // Используем иконку музея для искусства (или можно добавить свою)
       const icon = museumIconsRef.current.default;
+
       artPoints.forEach((art) => {
         if (icon) {
           ctx.drawImage(
@@ -1366,20 +1556,31 @@ export default forwardRef(function MapCanvasBlock(
             iconSize,
             iconSize,
           );
+
           if (zoomRef.current > 1.5) {
             ctx.fillStyle = "white";
             ctx.font = "bold 12px 'Advent Pro', sans-serif";
             ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
             ctx.fillText(art.name, art.x, art.y - iconSize - 5);
+            ctx.shadowColor = "transparent";
           }
+        } else {
+          ctx.fillStyle = "#FF69B4"; // Розовый цвет для искусства
+          ctx.beginPath();
+          ctx.arc(art.x, art.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
         }
       });
     }
 
-    // Отрисовка истории
+    // --- ОТРИСОВКА ИСТОРИИ ---
     if (mode === "history" && historyPoints && historyPoints.length > 0) {
       const iconSize = 45;
+      // Используем иконку музея для истории (или можно добавить свою)
       const icon = museumIconsRef.current.default;
+
       historyPoints.forEach((history) => {
         if (icon) {
           ctx.drawImage(
@@ -1389,20 +1590,31 @@ export default forwardRef(function MapCanvasBlock(
             iconSize,
             iconSize,
           );
+
           if (zoomRef.current > 1.5) {
             ctx.fillStyle = "white";
             ctx.font = "bold 12px 'Advent Pro', sans-serif";
             ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
             ctx.fillText(history.name, history.x, history.y - iconSize - 5);
+            ctx.shadowColor = "transparent";
           }
+        } else {
+          ctx.fillStyle = "#8B4513"; // Коричневый цвет для истории
+          ctx.beginPath();
+          ctx.arc(history.x, history.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
         }
       });
     }
 
-    // Отрисовка семейных мест
+    // --- ОТРИСОВКА СЕМЕЙНЫХ МЕСТ ---
     if (mode === "family" && familyPoints && familyPoints.length > 0) {
       const iconSize = 45;
+      // Используем иконку музея для семейных мест (или можно добавить свою)
       const icon = museumIconsRef.current.default;
+
       familyPoints.forEach((family) => {
         if (icon) {
           ctx.drawImage(
@@ -1412,91 +1624,50 @@ export default forwardRef(function MapCanvasBlock(
             iconSize,
             iconSize,
           );
+
           if (zoomRef.current > 1.5) {
             ctx.fillStyle = "white";
             ctx.font = "bold 12px 'Advent Pro', sans-serif";
             ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+            ctx.shadowBlur = 4;
             ctx.fillText(family.name, family.x, family.y - iconSize - 5);
+            ctx.shadowColor = "transparent";
           }
+        } else {
+          ctx.fillStyle = "#FFA500"; // Оранжевый цвет для семейных мест
+          ctx.beginPath();
+          ctx.arc(family.x, family.y - iconSize / 2, 8, 0, Math.PI * 2);
+          ctx.fill();
         }
       });
     }
 
-    // Отрисовка калибровочной точки (если включено)
-    if (CALIBRATION_MODE && CALIBRATION_POINT.showOnMap && affineRef.current) {
-      const calibPixel = gpsToPixel(
-        CALIBRATION_POINT.realGPS.lat,
-        CALIBRATION_POINT.realGPS.lon,
-      );
-      if (calibPixel) {
-        // Рисуем крест
-        ctx.strokeStyle = "#00FF00";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(calibPixel.x - 15, calibPixel.y);
-        ctx.lineTo(calibPixel.x + 15, calibPixel.y);
-        ctx.moveTo(calibPixel.x, calibPixel.y - 15);
-        ctx.lineTo(calibPixel.x, calibPixel.y + 15);
-        ctx.stroke();
-
-        // Рисуем круг
-        ctx.beginPath();
-        ctx.arc(calibPixel.x, calibPixel.y, 12, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Подпись
-        ctx.fillStyle = "#00FF00";
-        ctx.font = "bold 14px 'Advent Pro', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("КАЛИБРОВКА", calibPixel.x, calibPixel.y - 18);
-
-        // Ожидаемая позиция (крестик)
-        ctx.strokeStyle = "#FF00FF";
-        ctx.beginPath();
-        ctx.moveTo(
-          CALIBRATION_POINT.expectedPixel.x - 10,
-          CALIBRATION_POINT.expectedPixel.y,
-        );
-        ctx.lineTo(
-          CALIBRATION_POINT.expectedPixel.x + 10,
-          CALIBRATION_POINT.expectedPixel.y,
-        );
-        ctx.moveTo(
-          CALIBRATION_POINT.expectedPixel.x,
-          CALIBRATION_POINT.expectedPixel.y - 10,
-        );
-        ctx.lineTo(
-          CALIBRATION_POINT.expectedPixel.x,
-          CALIBRATION_POINT.expectedPixel.y + 10,
-        );
-        ctx.stroke();
-
-        ctx.fillStyle = "#FF00FF";
-        ctx.fillText(
-          "ДОЛЖНО БЫТЬ ЗДЕСЬ",
-          CALIBRATION_POINT.expectedPixel.x,
-          CALIBRATION_POINT.expectedPixel.y - 12,
-        );
-      }
-    }
-
-    // Отрисовка пользователя
+    // --- Отрисовка пользователя ---
     if (userGPS) {
       const up = gpsToPixel(userGPS.lat, userGPS.lon);
       if (up) {
         ctx.fillStyle = "red";
         ctx.beginPath();
-        ctx.arc(up.x, up.y, 8, 0, Math.PI * 2);
+        ctx.arc(up.x, up.y, 6, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "white";
-        ctx.beginPath();
-        ctx.arc(up.x, up.y, 3, 0, Math.PI * 2);
-        ctx.fill();
+
         ctx.strokeStyle = "rgba(255,0,0,0.3)";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(up.x, up.y, 16, 0, Math.PI * 2);
+        ctx.arc(up.x, up.y, 12, 0, Math.PI * 2);
         ctx.stroke();
+
+        // --- ОТЛАДКА: показываем координаты пользователя ---
+        if (SHOW_DEBUG_NODES) {
+          ctx.fillStyle = "white";
+          ctx.font = "10px 'Advent Pro', sans-serif";
+          ctx.fillText(
+            `GPS: ${userGPS.lat.toFixed(4)}, ${userGPS.lon.toFixed(4)}`,
+            up.x,
+            up.y - 20,
+          );
+        }
       }
     }
 
@@ -1511,11 +1682,11 @@ export default forwardRef(function MapCanvasBlock(
     getQuestPointIcon,
   ]);
 
-  // ========== ЗАГРУЗКА ИЗОБРАЖЕНИЙ (с кэшем) ==========
+  // ========== ЗАГРУЗКА ИЗОБРАЖЕНИЙ ==========
   useEffect(() => {
     let isMounted = true;
     let loadedCount = 0;
-    const totalImages = 1 + (restaurants?.length || 0) + 5;
+    const totalImages = 1 + (restaurants?.length || 0) + 5; // +5 для temple, museum, art, history и family
 
     const updateProgress = () => {
       loadedCount++;
@@ -1524,8 +1695,29 @@ export default forwardRef(function MapCanvasBlock(
       }
     };
 
-    loadImageWithCache(mapImage).then((img) => {
-      if (!isMounted || !img) return;
+    const loadImage = (src) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          updateProgress();
+          resolve(img);
+        };
+        img.onerror = () => {
+          updateProgress();
+          resolve(null);
+        };
+        if ("decode" in img) {
+          img
+            .decode()
+            .then(() => resolve(img))
+            .catch(() => resolve(img));
+        }
+      });
+    };
+
+    loadImage(mapImage).then((img) => {
+      if (!isMounted) return;
       imgRef.current = img;
 
       const bgCanvas = document.createElement("canvas");
@@ -1536,16 +1728,22 @@ export default forwardRef(function MapCanvasBlock(
       bgCanvasRef.current = bgCanvas;
 
       computeAffineFromNodes();
-      setInitialized(true);
-      setTimeout(() => setIsLoading(false), 200);
 
-      loadImageWithCache(templeIcon).then((img) => {
-        if (img && isMounted) templeIconsRef.current.default = img;
+      setInitialized(true);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 200);
+
+      loadImage(templeIcon).then((img) => {
+        if (img && isMounted) {
+          templeIconsRef.current.default = img;
+        }
       });
 
-      loadImageWithCache(museumIcon).then((img) => {
+      loadImage(museumIcon).then((img) => {
         if (img && isMounted) {
           museumIconsRef.current.default = img;
+          // Для искусства, истории и семейных мест используем ту же иконку
           artIconsRef.current.default = img;
           historyIconsRef.current.default = img;
           familyIconsRef.current.default = img;
@@ -1553,25 +1751,28 @@ export default forwardRef(function MapCanvasBlock(
       });
 
       if (restaurants && restaurants.length > 0) {
-        restaurants.forEach((restaurant) => {
-          if (restaurant.logo) {
-            loadImageWithCache(restaurant.logo).then((img) => {
-              if (img && isMounted)
-                restaurantIconsRef.current[restaurant.id] = img;
-            });
-          } else {
+        Promise.all(
+          restaurants.map((restaurant) => {
+            if (restaurant.logo) {
+              return loadImage(restaurant.logo).then((img) => {
+                if (img && isMounted) {
+                  restaurantIconsRef.current[restaurant.id] = img;
+                }
+              });
+            }
             updateProgress();
-          }
-        });
+            return Promise.resolve();
+          }),
+        );
       }
     });
 
     return () => {
       isMounted = false;
     };
-  }, [computeAffineFromNodes, restaurants, loadImageWithCache]);
+  }, [computeAffineFromNodes, restaurants]);
 
-  // --- Загрузка иконок зайцев (с кэшем) ---
+  // --- Загрузка иконок зайцев ---
   useEffect(() => {
     if (!initialized) return;
 
@@ -1593,12 +1794,18 @@ export default forwardRef(function MapCanvasBlock(
       { key: "rabbitFourteen", src: rabbitFourteen },
     ];
 
-    rabbitImages.forEach(({ key, src }) => {
-      loadImageWithCache(src).then((img) => {
-        if (img) rabbitIconsRef.current[key] = img;
-      });
-    });
-  }, [initialized, loadImageWithCache]);
+    const loadRabbitIcons = async () => {
+      for (const { key, src } of rabbitImages) {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          rabbitIconsRef.current[key] = img;
+        };
+      }
+    };
+
+    loadRabbitIcons();
+  }, [initialized]);
 
   // --- main render ---
   useEffect(() => {
@@ -1615,6 +1822,7 @@ export default forwardRef(function MapCanvasBlock(
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
     if (zoomRef.current === 1 && imgRef.current) {
@@ -1660,8 +1868,11 @@ export default forwardRef(function MapCanvasBlock(
     };
 
     render();
+
     return () => {
-      if (rafId) cancelAnimationFrame(rafId);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
     };
   }, [initialized, canvasSize, drawMap]);
 
@@ -1705,6 +1916,7 @@ export default forwardRef(function MapCanvasBlock(
     lastRouteNodeRef.current = null;
     lastInteractionRef.current = Date.now();
     setFollowUser(false);
+
     draggingRef.current = true;
     lastMouseRef.current = { x: e.clientX, y: e.clientY };
   };
@@ -1728,24 +1940,30 @@ export default forwardRef(function MapCanvasBlock(
 
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
+
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
+
     const mapX = (clickX - offsetRef.current.x) / zoomRef.current;
     const mapY = (clickY - offsetRef.current.y) / zoomRef.current;
+
     const hitRadius = 20 / Math.max(0.5, zoomRef.current);
 
     if (mode === "gastro" && restaurants.length) {
       let closestRestaurant = null;
       let closestDistance = Infinity;
+
       restaurants.forEach((restaurant) => {
         const dx = mapX - restaurant.location.x;
         const dy = mapY - restaurant.location.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
         if (distance < hitRadius && distance < closestDistance) {
           closestDistance = distance;
           closestRestaurant = restaurant;
         }
       });
+
       if (closestRestaurant) {
         onMarkerClick(closestRestaurant.id);
         return;
@@ -1755,90 +1973,120 @@ export default forwardRef(function MapCanvasBlock(
     if (mode === "temple" && templePoints.length) {
       let closestTemple = null;
       let closestDistance = Infinity;
+
       templePoints.forEach((temple) => {
         const dx = mapX - temple.x;
         const dy = mapY - temple.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
         if (distance < hitRadius && distance < closestDistance) {
           closestDistance = distance;
           closestTemple = temple;
         }
       });
+
       if (closestTemple) {
+        console.log(`Clicked on temple: ${closestTemple.name}`);
         centerOnPixel({ x: closestTemple.x, y: closestTemple.y }, 2.0);
-        setTimeout(() => buildRouteToTemple(closestTemple.id), 100);
+        setTimeout(() => {
+          buildRouteToTemple(closestTemple.id);
+        }, 100);
       }
     }
 
     if (mode === "museum" && museumPoints && museumPoints.length) {
       let closestMuseum = null;
       let closestDistance = Infinity;
+
       museumPoints.forEach((museum) => {
         const dx = mapX - museum.x;
         const dy = mapY - museum.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
         if (distance < hitRadius && distance < closestDistance) {
           closestDistance = distance;
           closestMuseum = museum;
         }
       });
+
       if (closestMuseum) {
+        console.log(`Clicked on museum: ${closestMuseum.name}`);
         centerOnPixel({ x: closestMuseum.x, y: closestMuseum.y }, 2.0);
-        setTimeout(() => buildRouteToMuseum(closestMuseum.id), 100);
+        setTimeout(() => {
+          buildRouteToMuseum(closestMuseum.id);
+        }, 100);
       }
     }
 
     if (mode === "art" && artPoints && artPoints.length) {
       let closestArt = null;
       let closestDistance = Infinity;
+
       artPoints.forEach((art) => {
         const dx = mapX - art.x;
         const dy = mapY - art.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
         if (distance < hitRadius && distance < closestDistance) {
           closestDistance = distance;
           closestArt = art;
         }
       });
+
       if (closestArt) {
+        console.log(`Clicked on art: ${closestArt.name}`);
         centerOnPixel({ x: closestArt.x, y: closestArt.y }, 2.0);
-        setTimeout(() => buildRouteToArt(closestArt.id), 100);
+        setTimeout(() => {
+          buildRouteToArt(closestArt.id);
+        }, 100);
       }
     }
 
     if (mode === "history" && historyPoints && historyPoints.length) {
       let closestHistory = null;
       let closestDistance = Infinity;
+
       historyPoints.forEach((history) => {
         const dx = mapX - history.x;
         const dy = mapY - history.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
         if (distance < hitRadius && distance < closestDistance) {
           closestDistance = distance;
           closestHistory = history;
         }
       });
+
       if (closestHistory) {
+        console.log(`Clicked on history: ${closestHistory.name}`);
         centerOnPixel({ x: closestHistory.x, y: closestHistory.y }, 2.0);
-        setTimeout(() => buildRouteToHistory(closestHistory.id), 100);
+        setTimeout(() => {
+          buildRouteToHistory(closestHistory.id);
+        }, 100);
       }
     }
 
     if (mode === "family" && familyPoints && familyPoints.length) {
       let closestFamily = null;
       let closestDistance = Infinity;
+
       familyPoints.forEach((family) => {
         const dx = mapX - family.x;
         const dy = mapY - family.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
         if (distance < hitRadius && distance < closestDistance) {
           closestDistance = distance;
           closestFamily = family;
         }
       });
+
       if (closestFamily) {
+        console.log(`Clicked on family: ${closestFamily.name}`);
         centerOnPixel({ x: closestFamily.x, y: closestFamily.y }, 2.0);
-        setTimeout(() => buildRouteToFamily(closestFamily.id), 100);
+        setTimeout(() => {
+          buildRouteToFamily(closestFamily.id);
+        }, 100);
       }
     }
   };
@@ -1855,6 +2103,7 @@ export default forwardRef(function MapCanvasBlock(
     const handleTouchStart = (ev) => {
       lastInteractionRef.current = Date.now();
       setFollowUser(false);
+
       if (ev.touches.length === 1) {
         draggingRef.current = true;
         lastMouseRef.current = {
@@ -1929,7 +2178,10 @@ export default forwardRef(function MapCanvasBlock(
   // Эффект для автоматического показа прогресса
   useEffect(() => {
     if (mode && mode.startsWith("step") && mode !== "step2") {
-      const timer = setTimeout(() => setShowProgressModal(true), 800);
+      const timer = setTimeout(() => {
+        setShowProgressModal(true);
+      }, 800);
+
       return () => clearTimeout(timer);
     }
   }, [mode]);
@@ -1937,6 +2189,7 @@ export default forwardRef(function MapCanvasBlock(
   const handleCloseProgressModal = useCallback(() => {
     progressModalJustClosed.current = true;
     setShowProgressModal(false);
+
     setTimeout(() => {
       progressModalJustClosed.current = false;
     }, 500);
@@ -1946,10 +2199,12 @@ export default forwardRef(function MapCanvasBlock(
     startQuest: (newMode) => {
       setCurrentMapMode(newMode);
       setPageMode("quest");
+
       if (newMode !== currentMapMode) {
         setIsModeChanging(true);
         setIsLoading(true);
       }
+
       setRouteNodes(null);
       lastRouteNodeRef.current = null;
       lastRebuildTimeRef.current = 0;
@@ -2034,25 +2289,30 @@ export default forwardRef(function MapCanvasBlock(
         case "step30": {
           setRouteNodes([]);
           const lastPoint = questPoints.find((qp) => qp.order === 14);
-          if (lastPoint) centerOnPixel({ x: lastPoint.x, y: lastPoint.y }, 2.0);
+          if (lastPoint) {
+            centerOnPixel({ x: lastPoint.x, y: lastPoint.y }, 2.0);
+          }
           break;
         }
-        default: {
+        default:
           console.warn(`Режим ${newMode} не обработан`);
           break;
-        }
       }
+
       setTimeout(() => {
         setIsLoading(false);
         setIsModeChanging(false);
       }, 400);
     },
+
     buildRouteToStart: () => {
       handleBuildRoute();
     },
+
     howProgress: () => {
       setShowProgressModal(true);
     },
+
     buildRouteFromStartToSecondPoint: () => buildRouteBetweenPoints(1, 2),
     buildRouteFromSecondToThirdPoint: () => buildRouteBetweenPoints(2, 3),
     buildRouteFromThirdToFourthPoint: () => buildRouteBetweenPoints(3, 4),
@@ -2068,41 +2328,63 @@ export default forwardRef(function MapCanvasBlock(
       buildRouteBetweenPoints(12, 13),
     buildRouteFromThirteenthToFourteenthPoint: () =>
       buildRouteBetweenPoints(13, 14),
+
     buildRouteToTemple: (templeId) => {
       buildRouteToTemple(templeId);
     },
+
     centerOnTemple: (templeId) => {
       const temple = templePoints.find((t) => t.id === templeId);
-      if (temple) centerOnPixel({ x: temple.x, y: temple.y }, 2.0);
+      if (temple) {
+        centerOnPixel({ x: temple.x, y: temple.y }, 2.0);
+      }
     },
+
     buildRouteToMuseum: (museumId) => {
       buildRouteToMuseum(museumId);
     },
+
     centerOnMuseum: (museumId) => {
       const museum = museumPoints.find((m) => m.id === museumId);
-      if (museum) centerOnPixel({ x: museum.x, y: museum.y }, 2.0);
+      if (museum) {
+        centerOnPixel({ x: museum.x, y: museum.y }, 2.0);
+      }
     },
+
     buildRouteToArt: (artId) => {
       buildRouteToArt(artId);
     },
+
     centerOnArt: (artId) => {
       const art = artPoints.find((a) => a.id === artId);
-      if (art) centerOnPixel({ x: art.x, y: art.y }, 2.0);
+      if (art) {
+        centerOnPixel({ x: art.x, y: art.y }, 2.0);
+      }
     },
+
     buildRouteToHistory: (historyId) => {
       buildRouteToHistory(historyId);
     },
+
     centerOnHistory: (historyId) => {
       const history = historyPoints.find((h) => h.id === historyId);
-      if (history) centerOnPixel({ x: history.x, y: history.y }, 2.0);
+      if (history) {
+        centerOnPixel({ x: history.x, y: history.y }, 2.0);
+      }
     },
+
+    // НОВЫЕ МЕТОДЫ ДЛЯ СЕМЕЙНЫХ МЕСТ
     buildRouteToFamily: (familyId) => {
       buildRouteToFamily(familyId);
     },
+
     centerOnFamily: (familyId) => {
       const family = familyPoints.find((f) => f.id === familyId);
-      if (family) centerOnPixel({ x: family.x, y: family.y }, 2.0);
+      if (family) {
+        centerOnPixel({ x: family.x, y: family.y }, 2.0);
+      }
     },
+
     redraw: () => {
       drawMap();
     },
@@ -2111,32 +2393,43 @@ export default forwardRef(function MapCanvasBlock(
   const handleBuildRoute = useCallback(() => {
     if (pageMode !== "quest") return;
     rebuildRouteFromUser();
+
     if (!userGPS) return;
     const px = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!px) return;
+
     setFollowUser(true);
     centerOnPixel(px, 2.2);
   }, [pageMode, rebuildRouteFromUser, userGPS, gpsToPixel, centerOnPixel]);
 
   useEffect(() => {
     if (!followUser || !userGPS) return;
+
     const now = Date.now();
     if (now - lastInteractionRef.current < 3000) return;
+
     const px = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!px) return;
+
     centerOnPixel(px);
   }, [userGPS, followUser, gpsToPixel, centerOnPixel]);
 
   useEffect(() => {
     if (!userGPS) return;
+
     const userPx = gpsToPixel(userGPS.lat, userGPS.lon);
     if (!userPx) return;
+
     if (mode === "step2") {
       const startQP = questPoints[0];
       const dx = userPx.x - startQP.x;
       const dy = userPx.y - startQP.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 25) onQuestPointReached?.(2);
+      const REACH_RADIUS = 25;
+
+      if (dist < REACH_RADIUS) {
+        onQuestPointReached?.(2);
+      }
     }
   }, [userGPS, gpsToPixel, onQuestPointReached, mode]);
 
@@ -2144,6 +2437,7 @@ export default forwardRef(function MapCanvasBlock(
     (startOrder, targetOrder, zoom = 1.8) => {
       const startQP = questPoints.find((qp) => qp.order === startOrder);
       const targetQP = questPoints.find((qp) => qp.order === targetOrder);
+
       if (startQP && targetQP) {
         const centerX = (startQP.x + targetQP.x) / 2;
         const centerY = (startQP.y + targetQP.y) / 2;
@@ -2177,7 +2471,9 @@ export default forwardRef(function MapCanvasBlock(
   return (
     <div
       ref={containerRef}
-      className={`map-container ${className} ${mode === "quest" ? "map-container-quest" : ""} ${draggingRef.current ? "dragging" : ""}`}
+      className={`map-container ${className} ${
+        mode === "quest" ? "map-container-quest" : ""
+      } ${draggingRef.current ? "dragging" : ""}`}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
@@ -2216,6 +2512,7 @@ export default forwardRef(function MapCanvasBlock(
             className="map-follow-btn"
             onClick={() => {
               if (!routeNodes || routeNodes.length === 0 || !userGPS) return;
+
               if (followMode === "user") {
                 const lastNodeId = routeNodes[routeNodes.length - 1].id;
                 const node = nodes.find((n) => n.id === lastNodeId);
