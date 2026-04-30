@@ -1455,11 +1455,11 @@ body {
 
   .landing-city-video-wrapper {
     border-radius: 43px;
-    top: 7%;
+    top: 5%;
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    height: 87%;
+    height: 90%;
   }
 }
 
