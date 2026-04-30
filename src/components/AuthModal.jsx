@@ -18,9 +18,9 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   const [agreeOffer, setAgreeOffer] = useState(false);
   const [showOfferText, setShowOfferText] = useState(false);
 
-  const { login, signup } = useAuth();
+  const { login, register } = useAuth();
 
-  // СБРАСЫВАЕМ ФОРМУ ПРИ ОТКРЫТИИ МОДАЛКИ
+  // Сбрасываем форму при открытии модалки
   useEffect(() => {
     if (isOpen) {
       setIsLogin(true);
@@ -54,7 +54,6 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     console.log("=== Form Submit ===");
     console.log("Mode:", isLogin ? "login" : "signup");
     console.log("Email:", email);
-    console.log("Name:", name);
 
     try {
       if (!email || !email.trim()) {
@@ -74,26 +73,30 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         await login(email.trim(), password);
         console.log("Login successful");
 
-        setTimeout(() => {
-          if (onSuccess) onSuccess();
-          onClose();
-        }, 100);
-        return;
+        // После успешного входа
+        if (onSuccess) onSuccess();
+        onClose();
       } else {
-        console.log("Calling signup with:", {
+        // РЕГИСТРАЦИЯ
+        console.log("Calling register with:", {
           email: email.trim(),
           name: name.trim(),
         });
 
-        await signup(email.trim(), password, name.trim());
+        const result = await register(email.trim(), password, name.trim());
 
+        console.log("Register result:", result);
+
+        // Сохраняем соглашения
         localStorage.setItem("location_consent", "true");
         localStorage.setItem("offer_consent", "true");
         localStorage.setItem("offer_consent_date", new Date().toISOString());
 
+        // Показываем окно подтверждения email ВМЕСТО автоматического входа
         setRegisteredEmail(email.trim());
         setShowEmailConfirmation(true);
 
+        // Очищаем поля формы
         setEmail("");
         setPassword("");
         setName("");
@@ -103,20 +106,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     } catch (err) {
       console.error("Auth error:", err);
 
-      if (err.message && err.message.includes("Lock")) {
-        if (!isLogin) {
-          setRegisteredEmail(email.trim());
-          setShowEmailConfirmation(true);
-          setEmail("");
-          setPassword("");
-          setName("");
-          setAgreeLocation(false);
-          setAgreeOffer(false);
-          setError("");
-        }
-        return;
-      }
-
+      // Обработка ошибок
       if (err.message === "Invalid login credentials") {
         setError("Неверный email или пароль");
       } else if (
@@ -251,6 +241,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
               </button>
             </>
           ) : (
+            /* Окно подтверждения email */
             <div className="email-confirmation-message">
               <div className="email-confirmation-icon">📧</div>
               <h3>Подтверждение email</h3>
@@ -277,6 +268,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
       </div>
 
+      {/* Модальное окно с текстом оферты */}
       {showOfferText && (
         <div
           className="offer-modal-overlay"

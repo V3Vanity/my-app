@@ -9,91 +9,94 @@ export const AuthProvider = ({ children }) => {
 
   const processingRef = useRef(false);
 
-  const updateUserState = useCallback((userData) => {
+  const updateUserState = (userData) => {
     console.log("updateUserState called with:", userData);
     setUser(userData || null);
-  }, []);
+  };
 
-  const loadUserData = useCallback(async (email) => {
+  const loadUserData = async (email) => {
     if (!email) return null;
     console.log("loadUserData for:", email);
     return { email };
+  };
+
+  const login = useCallback(async (email, password) => {
+    console.log("=== LOGIN START ===");
+    processingRef.current = true;
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      console.log("Login response:", { data, error });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.user?.email) {
+        const userInfo = await loadUserData(data.user.email);
+        updateUserState(userInfo);
+      }
+
+      return data;
+    } finally {
+      setTimeout(() => {
+        processingRef.current = false;
+      }, 1000);
+    }
   }, []);
 
-  const login = useCallback(
-    async (email, password) => {
-      console.log("=== LOGIN START ===");
-      processingRef.current = true;
+  const register = useCallback(async (email, password, name) => {
+    console.log("=== REGISTER START ===");
+    processingRef.current = true;
 
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name },
+        },
+      });
 
-        console.log("Login response:", { data, error });
+      console.log("Register response:", {
+        user: data?.user,
+        session: data?.session
+          ? "Session created"
+          : "No session (email confirmation needed)",
+        error,
+      });
 
-        if (error) {
-          processingRef.current = false;
-          throw error;
-        }
-
-        if (data?.user?.email) {
-          const userInfo = await loadUserData(data.user.email);
-          updateUserState(userInfo);
-        }
-
-        setTimeout(() => {
-          processingRef.current = false;
-        }, 1000);
-
-        return data;
-      } catch (err) {
-        processingRef.current = false;
-        throw err;
+      if (error) {
+        throw error;
       }
-    },
-    [loadUserData, updateUserState],
-  );
 
-  const register = useCallback(
-    async (email, password, name) => {
-      console.log("=== REGISTER START ===");
-      processingRef.current = true;
+      // НЕ входим автоматически после регистрации
+      if (data?.user?.email) {
+        console.log("User registered:", data.user.email);
+        console.log("Confirmation email sent to:", data.user.email);
 
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-          },
-        });
-
-        console.log("Register response:", { data, error });
-
-        if (error) {
-          processingRef.current = false;
-          throw error;
+        // Если Supabase создал сессию — всё равно не входим, ждём подтверждения email
+        if (data.session) {
+          console.log(
+            "⚠️ Session created — but waiting for email confirmation",
+          );
+          // Выходим из созданной сессии
+          await supabase.auth.signOut({ scope: "local" });
+          updateUserState(null);
         }
-
-        if (data?.user?.email) {
-          const userInfo = await loadUserData(data.user.email);
-          updateUserState(userInfo);
-        }
-
-        setTimeout(() => {
-          processingRef.current = false;
-        }, 1000);
-
-        return data;
-      } catch (err) {
-        processingRef.current = false;
-        throw err;
       }
-    },
-    [loadUserData, updateUserState],
-  );
+
+      return data;
+    } finally {
+      setTimeout(() => {
+        processingRef.current = false;
+      }, 1000);
+    }
+  }, []);
 
   const logout = useCallback(async () => {
     console.log("=== LOGOUT START ===");
@@ -136,7 +139,7 @@ export const AuthProvider = ({ children }) => {
         window.location.replace("/");
       }, 200);
     }
-  }, [updateUserState]);
+  }, []);
 
   useEffect(() => {
     console.log("=== AuthProvider useEffect ===");
@@ -230,7 +233,7 @@ export const AuthProvider = ({ children }) => {
       console.log("Unsubscribing from auth changes");
       subscription.unsubscribe();
     };
-  }, [loadUserData, updateUserState]);
+  }, []);
 
   const value = {
     user,
