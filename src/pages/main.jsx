@@ -77,8 +77,8 @@ function HomePage() {
   );
 }
 
-// Обновленный PageWrapper с поддержкой onBack
-const PageWrapper = ({ children, onBack, showBackButton }) => {
+//  PageWrapper
+const PageWrapper = ({ children, onBack, showBackButton, onQuestBack }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -138,6 +138,7 @@ const PageWrapper = ({ children, onBack, showBackButton }) => {
         setMenuOpen={setMenuOpen}
         onMenuItemClick={handleMenuItemClick}
         onBack={showBackButton ? handleGoBack : undefined}
+        onQuestBack={onQuestBack}
         showBackButton={showBackButton}
       />
       {children}
@@ -268,7 +269,13 @@ export default function MainApp() {
       <Route
         path="quest"
         element={
-          <PageWrapper>
+          <PageWrapper
+            onQuestBack={() => {
+              const event = new CustomEvent("questBack");
+              window.dispatchEvent(event);
+            }}
+            showBackButton={true}
+          >
             <QuestPage />
           </PageWrapper>
         }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import TextBlock from "../components/TextBlock.jsx";
 import RewardChoice from "../components/RewardChoice.jsx";
 import MapCanvas from "../components/MapCanvas.jsx";
@@ -124,13 +124,26 @@ export default function QuestPage() {
 
   const handleNextStep = () => setCurrentStep((prev) => prev + 1);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (currentStep === 1) {
-      setCurrentStep(0); // возвращаемся на стартовый экран
+      setCurrentStep(0);
     } else if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1);
     }
-  };
+  }, [currentStep]);
+
+  // Слушаем событие от Header для кнопки "назад"
+  useEffect(() => {
+    const handleQuestBack = () => {
+      handleBack();
+    };
+
+    window.addEventListener("questBack", handleQuestBack);
+
+    return () => {
+      window.removeEventListener("questBack", handleQuestBack);
+    };
+  }, [handleBack]);
 
   const handleQuestPointReached = (stepNumber) => {
     // Добавляем точку в список найденных

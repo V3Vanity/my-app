@@ -11,6 +11,7 @@ export default function Header({
   onMenuItemClick,
   onBack,
   showBackButton = false,
+  onQuestBack,
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,9 +20,16 @@ export default function Header({
   const [isCulturalOpen, setIsCulturalOpen] = useState(false);
 
   const isHomePage = location.pathname === "/" || location.pathname === "/app";
+  const isQuestPage =
+    location.pathname === "/quest" || location.pathname === "/app/quest";
 
   // Функция возврата
   const handleGoBack = () => {
+    if (isQuestPage && onQuestBack) {
+      onQuestBack();
+      setMenuOpen(false);
+      return;
+    }
     if (onBack) {
       onBack();
     } else {
@@ -30,45 +38,57 @@ export default function Header({
     setMenuOpen(false);
   };
 
-  // Синхронизация активного пункта с текущим маршрутом
+  // Синхронизация активного пункта с текущим маршрутом (с префиксом /app)
   useEffect(() => {
     const path = location.pathname;
 
-    if (path === "/quest") {
+    // Убираем /app из пути для сравнения
+    const cleanPath = path.replace("/app", "") || "/";
+
+    if (cleanPath === "/quest") {
       setActiveMainItem("quest");
       setActiveSubItem(null);
       setIsCulturalOpen(false);
-    } else if (path === "/gastro") {
+    } else if (cleanPath === "/gastro") {
       setActiveMainItem("gastro");
       setActiveSubItem(null);
       setIsCulturalOpen(false);
-    } else if (path === "/about") {
+    } else if (cleanPath === "/about") {
       setActiveMainItem("about");
       setActiveSubItem(null);
       setIsCulturalOpen(false);
-    } else if (path === "/reviews") {
+    } else if (cleanPath === "/reviews") {
       setActiveMainItem("reviews");
       setActiveSubItem(null);
       setIsCulturalOpen(false);
-    } else if (
-      ["/temples", "/museums", "/art", "/history", "/family"].includes(path)
-    ) {
+    } else if (cleanPath === "/temples") {
       setActiveMainItem("cultural");
       setIsCulturalOpen(true);
-
-      if (path === "/temples") setActiveSubItem("temples");
-      else if (path === "/museums") setActiveSubItem("museums");
-      else if (path === "/art") setActiveSubItem("art");
-      else if (path === "/history") setActiveSubItem("history");
-      else if (path === "/family") setActiveSubItem("family");
-    } else {
+      setActiveSubItem("temples");
+    } else if (cleanPath === "/museums") {
+      setActiveMainItem("cultural");
+      setIsCulturalOpen(true);
+      setActiveSubItem("museums");
+    } else if (cleanPath === "/art") {
+      setActiveMainItem("cultural");
+      setIsCulturalOpen(true);
+      setActiveSubItem("art");
+    } else if (cleanPath === "/history") {
+      setActiveMainItem("cultural");
+      setIsCulturalOpen(true);
+      setActiveSubItem("history");
+    } else if (cleanPath === "/family") {
+      setActiveMainItem("cultural");
+      setIsCulturalOpen(true);
+      setActiveSubItem("family");
+    } else if (cleanPath === "/") {
       setActiveMainItem(null);
       setActiveSubItem(null);
       setIsCulturalOpen(false);
     }
   }, [location.pathname]);
 
-  // Обработка клика по пункту меню - ИСПРАВЛЕНАЯ ВЕРСИЯ
+  // Обработка клика по пункту меню
   const handleMenuItemClick = (page, isMain = true) => {
     // Обработка раскрытия/закрытия подменю "Культурная карта"
     if (page === "cultural" && isMain) {
@@ -79,54 +99,64 @@ export default function Header({
     // Закрываем меню
     setMenuOpen(false);
 
-    // Определяем путь для навигации
+    // Определяем путь для навигации (все пути идут через /app)
     let targetPath = "";
     switch (page) {
       case "quest":
-        targetPath = "/quest";
+        targetPath = "/app/quest";
         break;
       case "temples":
-        targetPath = "/temples";
+        targetPath = "/app/temples";
         break;
       case "museums":
-        targetPath = "/museums";
+        targetPath = "/app/museums";
         break;
       case "art":
-        targetPath = "/art";
+        targetPath = "/app/art";
         break;
       case "history":
-        targetPath = "/history";
+        targetPath = "/app/history";
         break;
       case "family":
-        targetPath = "/family";
+        targetPath = "/app/family";
         break;
       case "gastro":
-        targetPath = "/gastro";
+        targetPath = "/app/gastro";
         break;
       case "about":
-        targetPath = "/about";
+        targetPath = "/app/about";
         break;
       case "reviews":
-        targetPath = "/reviews";
+        targetPath = "/app/reviews";
         break;
       default:
-        targetPath = "/";
+        targetPath = "/app";
         break;
+    }
+
+    // Проверяем, находимся ли уже на этой странице
+    const currentPath = location.pathname;
+    if (currentPath === targetPath) {
+      // Если уже на этой странице - возвращаемся на главную
+      navigate("/app");
+      return;
     }
 
     // Если передан колбэк от родителя - используем его
     if (onMenuItemClick) {
       onMenuItemClick(page);
     } else {
-      // Иначе используем navigate
       navigate(targetPath);
     }
   };
 
+  // Определяем, показывать ли кнопку "назад"
+  const shouldShowBackButton = !isHomePage || showBackButton;
+
   return (
     <>
       <header className={`app-header ${menuOpen ? "open" : ""}`}>
-        {!isHomePage || showBackButton ? (
+        {shouldShowBackButton ? (
           <button className="back-arrow-button" onClick={handleGoBack}>
             ←
           </button>
