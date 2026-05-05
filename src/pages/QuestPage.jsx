@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import TextBlock from "../components/TextBlock.jsx";
-import RewardPage from "../components/RewardPage.jsx";
+import RewardChoice from "../components/RewardChoice.jsx";
 import MapCanvas from "../components/MapCanvas.jsx";
 import topImage from "../assets/marshrut44.png";
 import questImage from "../assets/quest-img.png";
@@ -41,7 +41,18 @@ export default function QuestPage() {
   });
   const [completedSteps, setCompletedSteps] = useState([]);
   const [foundQuestPoints, setFoundQuestPoints] = useState([]);
+  const [selectedReward, setSelectedReward] = useState(() => {
+    const saved = localStorage.getItem("selectedReward");
+    return saved ? JSON.parse(saved) : null;
+  });
   const mapRef = useRef(null);
+
+  // Сохраняем выбранную награду в localStorage
+  useEffect(() => {
+    if (selectedReward) {
+      localStorage.setItem("selectedReward", JSON.stringify(selectedReward));
+    }
+  }, [selectedReward]);
 
   // В useEffect где вызывается startQuest добавьте:
   useEffect(() => {
@@ -172,6 +183,10 @@ export default function QuestPage() {
 
       return prev;
     });
+  };
+
+  const handleRewardSelected = (reward) => {
+    setSelectedReward(reward);
   };
 
   const step1Text = (
@@ -1403,7 +1418,10 @@ export default function QuestPage() {
 
           {/* Блок с наградой поверх */}
           <div className="reward-overlay">
-            <RewardPage />
+            <RewardChoice
+              onRewardSelected={handleRewardSelected}
+              selectedRewardId={selectedReward?.id}
+            />
           </div>
         </div>
       )}
