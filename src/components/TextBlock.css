@@ -6,9 +6,6 @@
   height: calc(100dvh - 62px);
   box-sizing: border-box;
   border-radius: 0 0 16px 16px;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
 }
 
 .text-block-scroll {
@@ -16,13 +13,9 @@
   margin-top: 50px;
   overflow-y: auto;
   padding: 16px;
-  padding-bottom: 30px;
   box-sizing: border-box;
-  width: 100%;
-  -webkit-overflow-scrolling: touch;
 }
 
-/* Скрытие скроллбара */
 .text-block-scroll::-webkit-scrollbar {
   display: none;
 }
@@ -39,9 +32,7 @@
   font-weight: normal;
   margin-bottom: 16px;
   margin-top: 0;
-  word-break: break-word;
 }
-
 .text-title-number {
   font-family: "Zen Kurenaido", sans-serif;
 }
@@ -49,7 +40,6 @@
 .text-paragraph {
   font-family: "Inter", sans-serif;
   margin: 0;
-  margin-bottom: 16px;
   font-size: 20px;
   line-height: 1.6;
   color: #000000;
@@ -57,12 +47,10 @@
 
 .continue-button-container {
   text-align: center;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin-top: 16px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  width: 100%;
 }
 
 .continue-button-container.visible {
@@ -80,13 +68,6 @@
   border: none;
   border-radius: 41px;
   cursor: pointer;
-  transition: transform 0.1s ease;
-  width: auto;
-  min-width: 200px;
-}
-
-.continue-button:active {
-  transform: scale(0.98);
 }
 
 .back-button {
@@ -99,20 +80,15 @@
   font-weight: bold;
   cursor: pointer;
   margin-bottom: 16px;
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Кнопка Подсказки (знак вопроса) */
 .hint-button {
   position: absolute;
-  top: 12px;
-  right: 16px;
-  width: 53px;
-  height: 53px;
+  top: 75px;
+  right: 10px;
+  width: 40px;
+  height: 50px;
   background-color: #862518;
   color: #d9cfb8;
   border: none;
@@ -125,7 +101,6 @@
   justify-content: center;
   z-index: 10;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: transform 0.1s ease;
 }
 
 .hint-button:active {
@@ -133,31 +108,9 @@
   transform: scale(0.95);
 }
 
-.text-image {
-  width: 100%;
-  height: auto;
-  display: block;
-  margin: 16px 0;
-  border-radius: 12px;
-}
-
 /* Для ПК-тестирования */
 @media (hover: hover) {
   .hint-button:hover {
     background-color: #6a1e15;
-  }
-  .continue-button:hover {
-    background-color: #6a1e15;
-  }
-}
-
-/* Дополнительные стили для длинных текстов */
-.text-block-scroll > *:last-child {
-  margin-bottom: 0;
-}
-
-@media (max-width: 500px) {
-  .text-block-container {
-    width: 100%;
   }
 }
