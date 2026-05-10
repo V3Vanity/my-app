@@ -40,13 +40,9 @@
 }
 
 /* Адаптация для разных экранов - сохраняем 375px */
-@media (max-width: 375px) {
+@media (max-width: 500px) {
   .gastro-tour-container {
     width: 100%;
-  }
-
-  .gastro-map-container {
-    padding: 0 12px 12px 12px;
   }
 }
 

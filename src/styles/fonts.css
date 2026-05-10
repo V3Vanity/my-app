@@ -143,3 +143,23 @@
   font-style: normal;
   font-display: swap;
 }
+
+@font-face {
+  font-family: "Alumni Sans";
+  src:
+    url("../assets/fonts/AlumniSans/AlumniSans-Bold.woff2") format("woff2"),
+    url("../assets/fonts/AlumniSans/AlumniSans-Bold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Alumni Sans";
+  src:
+    url("../assets/fonts/AlumniSans/AlumniSans-Regular.woff2") format("woff2"),
+    url("../assets/fonts/AlumniSans/AlumniSans-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

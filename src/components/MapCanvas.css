@@ -162,7 +162,7 @@
   font-weight: bold;
 }
 
-@media (max-width: 399px) {
+@media (max-width: 500px) {
   .map-container {
     width: 100%;
   }

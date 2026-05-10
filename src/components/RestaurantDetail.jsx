@@ -229,7 +229,19 @@ export default function RestaurantDetail({ restaurant, isOpen, onClose }) {
         </div>
 
         {/* Название и описание */}
-        <h2 className="restaurant-name">{restaurant.name}</h2>
+        <h2 className="restaurant-name">
+          {restaurant.id === 11 ? (
+            <>
+              <span style={{ fontSize: "48px" }}>бар «</span>
+              <span style={{ fontFamily: "Alumni Sans", fontSize: "48px" }}>
+                Beer & Grill
+              </span>
+              <span style={{ fontSize: "48px" }}>»</span>
+            </>
+          ) : (
+            restaurant.name
+          )}
+        </h2>
         <p className="restaurant-description">{restaurant.description}</p>
 
         {/* Слайдер с меню */}

@@ -4,7 +4,7 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 420px;
+  width: 375px;
   height: 69px;
   display: flex;
   align-items: center;
@@ -46,7 +46,7 @@
   top: 71px;
   left: 50%;
   transform: translateX(-50%) translateY(-100%);
-  width: 420px;
+  width: 375px;
   background-color: var(--color-red);
   background-image: url("../assets/bgr-header.svg"); /* Тот же фон */
   background-size: cover;
@@ -182,7 +182,7 @@
   padding: 0 10px;
 }
 
-@media (max-width: 399px) {
+@media (max-width: 500px) {
   .app-header {
     width: 100%;
   }
