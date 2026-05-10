@@ -1,6 +1,6 @@
 .gastro-tour-container {
   position: relative;
-  width: 375px; /* фиксированная ширина как в приложении */
+  width: 420px; /* фиксированная ширина как в приложении */
   height: 100vh;
   margin: 0 auto; /* центрируем */
   padding: 0;

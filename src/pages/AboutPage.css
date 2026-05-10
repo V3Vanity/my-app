@@ -68,7 +68,7 @@
 }
 
 /* Для мобильных устройств */
-@media (max-width: 375px) {
+@media (max-width: 399px) {
   .about-page-container {
     width: 100%;
   }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import menuImage from "../assets/menu-img.svg";
+import arrowImage from "../assets/arrow-img.svg";
 import "./Header.css";
 
 export default function Header({
@@ -158,7 +159,7 @@ export default function Header({
       <header className={`app-header ${menuOpen ? "open" : ""}`}>
         {shouldShowBackButton ? (
           <button className="back-arrow-button" onClick={handleGoBack}>
-            ←
+            <img src={arrowImage} alt="Меню" />
           </button>
         ) : (
           <div className="header-placeholder" />

@@ -1,8 +1,10 @@
 .map-step-wrapper {
   position: relative;
-  height: calc(100vh - 110px); /* под шапку */
+  height: calc(100vh - 110px);
   padding: 110px 16px 16px 16px;
   box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
 }
 
 .map-step-wrapper .back-button {
@@ -23,6 +25,7 @@
   margin-right: 3px;
   margin-bottom: 10px;
 }
+
 .text-paragraph__title {
   text-align: center;
   line-height: 30px;
@@ -32,6 +35,7 @@
   font-size: 20px;
   color: #862518;
 }
+
 .text-paragraph__end {
   text-align: center;
   line-height: 30px;
@@ -55,24 +59,30 @@
   border: none;
   border-radius: 41px;
   cursor: pointer;
-  white-space: nowrap; /* предотвращает перенос текста */
-  min-width: 280px; /* минимальная ширина, чтобы текст не сжимался */
+  white-space: nowrap;
+  min-width: 280px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition:
     transform 0.2s,
     background-color 0.2s;
 }
 
+.reward-button:active {
+  transform: scale(0.98);
+}
+
 /* Контейнер для поздравления */
 .congratulations-container {
   position: fixed;
-  top: 110px;
+  top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  height: calc(100vh - 110px);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   z-index: 999;
+  background-color: #862518;
 }
 
 /* Красный фон с повторяющимся текстом */
@@ -92,7 +102,6 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 200%; /* В 2 раза больше высоты для бесшовности */
   animation: textScroll 15s linear infinite;
 }
 
@@ -101,7 +110,7 @@
   color: #7e2216;
   font-size: 33px;
   font-weight: 900;
-  line-height: 1.3; /* Больше межстрочный интервал */
+  line-height: 1.3;
   text-transform: uppercase;
   letter-spacing: 3px;
   text-align: center;
@@ -124,16 +133,12 @@
   border-radius: 41px;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.start-journey-button:hover {
-  background-color: #a12f1f;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(134, 37, 24, 0.3);
+  z-index: 10;
 }
 
 .start-journey-button:active {
-  transform: translateY(0);
+  background-color: #a12f1f;
+  transform: translateY(-2px);
 }
 
 /* Анимация бесконечного скролла */
@@ -142,7 +147,7 @@
     transform: translateY(0);
   }
   100% {
-    transform: translateY(-50%); /* Сдвигаем на половину высоты */
+    transform: translateY(-50%);
   }
 }
 
@@ -157,6 +162,8 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .reward-overlay > * {
@@ -192,6 +199,24 @@
   }
 }
 
+.quest-image-container {
+  width: 100%;
+  overflow: hidden;
+}
+
 .quest-image-container img {
   width: 100%;
+  height: auto;
+  display: block;
+}
+
+.top-image-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.top-image-container img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
