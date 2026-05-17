@@ -198,6 +198,32 @@ import menu134 from "../assets/restaurants/restaurant-13/menu3.svg";
 import plate131 from "../assets/restaurants/restaurant-13/plate1.jpg";
 import logo13 from "../assets/restaurants/restaurant-13/logo.svg";
 
+// Ресторан 14
+import rest14Outside from "../assets/restaurants/restaurant-14/outside.jpg";
+import rest14Inside1 from "../assets/restaurants/restaurant-14/inside1.jpg";
+import rest14Inside2 from "../assets/restaurants/restaurant-14/inside2.jpg";
+import rest14Inside3 from "../assets/restaurants/restaurant-14/inside3.jpg";
+import menu141 from "../assets/restaurants/restaurant-14/menu.svg";
+import menu142 from "../assets/restaurants/restaurant-14/menu1.svg";
+import menu143 from "../assets/restaurants/restaurant-14/menu2.svg";
+import menu144 from "../assets/restaurants/restaurant-14/menu3.svg";
+import menu145 from "../assets/restaurants/restaurant-14/menu4.svg";
+import menu146 from "../assets/restaurants/restaurant-14/menu5.svg";
+import menu147 from "../assets/restaurants/restaurant-14/menu6.svg";
+import plate141 from "../assets/restaurants/restaurant-14/plate1.jpg";
+import logo14 from "../assets/restaurants/restaurant-14/logo.svg";
+
+// Ресторан 15
+import rest15Outside from "../assets/restaurants/restaurant-15/outside.jpg";
+import rest15Inside1 from "../assets/restaurants/restaurant-15/inside1.jpg";
+import rest15Inside2 from "../assets/restaurants/restaurant-15/inside2.jpg";
+import rest15Inside3 from "../assets/restaurants/restaurant-15/inside3.jpg";
+import menu151 from "../assets/restaurants/restaurant-15/menu.svg";
+import menu152 from "../assets/restaurants/restaurant-15/menu1.svg";
+import menu153 from "../assets/restaurants/restaurant-15/menu2.svg";
+import plate151 from "../assets/restaurants/restaurant-15/plate1.jpg";
+import logo15 from "../assets/restaurants/restaurant-15/logo.svg";
+
 // Тестовые данные ресторанов с реальными импортами
 const RESTAURANTS = [
   {
@@ -552,6 +578,57 @@ const RESTAURANTS = [
     mapLat: "57.772176",
     mapLon: "40.936518",
     mapName: "Всплыли!Снимай",
+  },
+  {
+    id: 14,
+    name: "гастробар «казна»",
+    description:
+      "«Здесь вершатся судьбы и заключаются сделки» - так описал трактир «Казна» костромич, писатель Алексей Писемский в романе «Тысяча душ».Возрождая легенду на историческом месте, мы продолжаем традицию — быть главной гостиной города, где история и современность встречаются за одним столом. В нашем меню — отсылки к той эпохе: сытная русская кухня, авторские настойки и винная карта для важных бесед и тёплых встреч.",
+    location: { x: 525, y: 670 },
+    type: "restaurant",
+    logo: logo14,
+    address: "ул. Молочная Гора, 5",
+    coordinates: { lat: 57.772176, lon: 40.936518 },
+    photos: [rest14Outside, rest14Inside1, rest14Inside2, rest14Inside3],
+    menu: [
+      { image: menu141 },
+      { image: menu142 },
+      { image: menu143 },
+      { image: menu144 },
+      { image: menu145 },
+      { image: menu146 },
+      { image: menu147 },
+    ],
+    localDishes: [{ image: plate141 }],
+    exclusiveDescription:
+      "«Сливочная похлебка из белых грибов» — это то, ради чего вы захотите бывать в Костроме чаще. Аджика с которой подается суп готовится по рецепту бабушки шеф повара,а еще, по секрету, у барной стойки в заведении, выложены монеты и если вы найдете 7 определенных,то официант с радостью вынесет вам настойки в подарок!",
+    averageCheck: 1000,
+    mapOid: "128079208654",
+    mapLat: "57.765494",
+    mapLon: "40.922860",
+    mapName: "Казна",
+  },
+
+  {
+    id: 15,
+    name: "блинная лавка «О! Ладушки»",
+    description:
+      "Кафе «О! Ладушки» — это место, где вы можете насладиться вкусными блинами, варениками, сырниками и другими блюдами, а также выпить чай или кофе.В кафе царит уютная атмосфера, которая создается за счет приглушенного света, деревянной мебели и приятной музыки. Кроме того, в кафе можно купить посуду, текстиль и другие товары для дома.",
+    location: { x: 610, y: 630 },
+    type: "restaurant",
+    logo: logo15,
+    address: "улица Пряничные Ряды, 1",
+    coordinates: { lat: 57.772176, lon: 40.936518 },
+    photos: [rest15Outside, rest15Inside1, rest15Inside2, rest15Inside3],
+    menu: [{ image: menu151 }, { image: menu152 }, { image: menu153 }],
+    localDishes: [{ image: plate151 }],
+    exclusiveDescription:
+      "«Блин с кислой капустой и беконом» — для настоящих любителей эксперементов и Костромской кухни. Нежные блинчик с сочным ароматом жареного бекона и свежей кислинкой капустки — простое, аппетитное наслаждение!",
+    averageCheck: 800,
+    mapOid: "7849428348",
+    mapLat: "57.765619",
+    mapLon: "40.925107",
+    mapName: "O!Ладушки",
   },
 ];
 
