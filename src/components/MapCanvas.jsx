@@ -811,7 +811,7 @@ export default forwardRef(function MapCanvasBlock(
     const dx = userPx.x - startQP.x;
     const dy = userPx.y - startQP.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const REACH_RADIUS = 0;
+    const REACH_RADIUS = 25;
     if (dist < REACH_RADIUS) {
       if (mode === "step2") {
         onQuestPointReached?.(2);
