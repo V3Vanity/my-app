@@ -1,5 +1,6 @@
 import React from "react";
 import "/src/components/HintModal.css";
+import closeIcon from "../assets/close.svg";
 
 export default function HintModal({ isOpen, onClose, imageSrc, address }) {
   if (!isOpen) return null;
@@ -7,9 +8,9 @@ export default function HintModal({ isOpen, onClose, imageSrc, address }) {
   return (
     <div className="hint-modal-overlay" onClick={onClose}>
       <div className="hint-modal" onClick={(e) => e.stopPropagation()}>
-        {/* Кнопка закрытия */}
+        {/* Кнопка закрытия с иконкой */}
         <button className="hint-close-btn" onClick={onClose}>
-          ×
+          <img src={closeIcon} alt="Закрыть" />
         </button>
 
         {/* Заголовок */}

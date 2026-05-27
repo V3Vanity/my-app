@@ -1,0 +1,54 @@
+.audio-button {
+  position: absolute;
+  top: 75px;
+  left: 10px;
+  width: 50px;
+  height: 50px;
+  background-color: #862518;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  padding: 0;
+}
+
+.audio-button img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0) invert(1);
+}
+
+.audio-button:active {
+  background-color: #6a1e15;
+  transform: scale(0.95);
+}
+
+.audio-button.playing {
+  background-color: #6a1e15;
+  animation: audioPulse 1s infinite;
+}
+
+@keyframes audioPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (hover: hover) {
+  .audio-button:hover {
+    background-color: #6a1e15;
+  }
+}

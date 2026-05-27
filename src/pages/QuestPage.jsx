@@ -31,6 +31,23 @@ import hint10Image from "../assets/hint-img-10.png";
 import hint11Image from "../assets/hint-img-11.png";
 import hint12Image from "../assets/hint-img-12.png";
 import hint13Image from "../assets/hint-img-13.png";
+
+import startAudio from "../assets/audio/start.wav";
+import hare1Audio from "../assets/audio/hare-1.wav";
+import hare2Audio from "../assets/audio/hare-2.wav";
+import hare3Audio from "../assets/audio/hare-3.wav";
+import hare4Audio from "../assets/audio/hare-4.wav";
+import hare5Audio from "../assets/audio/hare-5.wav";
+import hare6Audio from "../assets/audio/hare-6.wav";
+import hare7Audio from "../assets/audio/hare-7.wav";
+import hare8Audio from "../assets/audio/hare-8.wav";
+import hare9Audio from "../assets/audio/hare-9.wav";
+import hare10Audio from "../assets/audio/hare-10.wav";
+import hare11Audio from "../assets/audio/hare-11.wav";
+import hare12Audio from "../assets/audio/hare-12.wav";
+import hare13Audio from "../assets/audio/hare-13.wav";
+import hare14Audio from "../assets/audio/hare-14.wav";
+
 import "../styles/fonts.css";
 import "/src/pages/QuestPage.css";
 
@@ -46,6 +63,24 @@ export default function QuestPage() {
     return saved ? JSON.parse(saved) : null;
   });
   const mapRef = useRef(null);
+
+  const stepAudioMap = {
+    0: startAudio,
+    1: hare1Audio,
+    2: hare2Audio,
+    3: hare3Audio,
+    4: hare4Audio,
+    5: hare5Audio,
+    6: hare6Audio,
+    7: hare7Audio,
+    8: hare8Audio,
+    9: hare9Audio,
+    10: hare10Audio,
+    11: hare11Audio,
+    12: hare12Audio,
+    13: hare13Audio,
+    14: hare14Audio,
+  };
 
   // Сохраняем выбранную награду в localStorage
   useEffect(() => {
@@ -258,6 +293,7 @@ export default function QuestPage() {
               onNextStep={handleNextStep}
               showBackButton={true}
               onBack={handleBack}
+              audioSrc={stepAudioMap[0]}
             />
           )}
 
@@ -283,6 +319,7 @@ export default function QuestPage() {
           hintImage={hint1Image}
           hintAddress="Проспект Мира, 4"
           stepNumber={3}
+          audioSrc={stepAudioMap[1]}
         >
           <p className="text-paragraph">
             &emsp;Ты идёшь по проспекту Мира — старой, широкой улице, где дома
@@ -341,6 +378,7 @@ export default function QuestPage() {
           hintImage={hint2Image}
           hintAddress="Симановского, 4 "
           stepNumber={5}
+          audioSrc={stepAudioMap[2]}
         >
           <p className="text-paragraph">
             &emsp;Перед тобой возвышается дом, что старше многих поколений
@@ -430,6 +468,7 @@ export default function QuestPage() {
           hintImage={hint3Image}
           hintAddress="ул. Мучные Ряды"
           stepNumber={7}
+          audioSrc={stepAudioMap[3]}
         >
           <p className="text-paragraph">
             &emsp;Ты ступил на улицу Симановского и идёшь по её вымощенному
@@ -516,6 +555,7 @@ export default function QuestPage() {
           hintImage={hint4Image}
           hintAddress="Симановского, 4 "
           stepNumber={9}
+          audioSrc={stepAudioMap[4]}
         >
           <p className="text-paragraph">
             &emsp;Ты держишь в руках письмо от Зайца-Пожарного и идёшь вдоль
@@ -584,6 +624,7 @@ export default function QuestPage() {
           hintImage={hint5Image}
           hintAddress="Улица Молочная гора"
           stepNumber={11}
+          audioSrc={stepAudioMap[5]}
         >
           <p className="text-paragraph">
             &emsp;Перед тобой открывается широкая арка Гостиного двора. Стоит
@@ -654,6 +695,7 @@ export default function QuestPage() {
           hintImage={hint6Image}
           hintAddress="Фабричный район"
           stepNumber={13}
+          audioSrc={stepAudioMap[6]}
         >
           <p className="text-paragraph">
             &emsp;Письмо от Зайчихи-Купчихи приводит тебя на Молочную Гору —
@@ -744,6 +786,7 @@ export default function QuestPage() {
           hintImage={hint7Image}
           hintAddress="Центральный парк"
           stepNumber={15}
+          audioSrc={stepAudioMap[7]}
         >
           <p className="text-paragraph">
             &emsp;Следуя совету Зимогора, ты спускаешься к Волге. Воздух здесь
@@ -837,6 +880,7 @@ export default function QuestPage() {
           hintImage={hint8Image}
           hintAddress="улица 1 Мая"
           stepNumber={17}
+          audioSrc={stepAudioMap[8]}
         >
           <p className="text-paragraph">
             &emsp;Ты идёшь вдоль набережной, как советовал Заяц-Моряк. Волга
@@ -931,6 +975,7 @@ export default function QuestPage() {
           hintImage={hint9Image}
           hintAddress="Советская площадь, 4"
           stepNumber={19}
+          audioSrc={stepAudioMap[9]}
         >
           <p className="text-paragraph">
             &emsp;Ты подходишь к белоснежной ротонде на берегу Волги — Беседке
@@ -997,6 +1042,7 @@ export default function QuestPage() {
           hintImage={hint10Image}
           hintAddress="Советская ул, 15"
           stepNumber={21}
+          audioSrc={stepAudioMap[10]}
         >
           <p className="text-paragraph">
             &emsp;Ты поднимаешься вверх от Беседки Островского, следуя по
@@ -1063,6 +1109,7 @@ export default function QuestPage() {
           hintImage={hint11Image}
           hintAddress="Советская площадь"
           stepNumber={23}
+          audioSrc={stepAudioMap[11]}
         >
           <p className="text-paragraph">
             &emsp;Ты переходишь дорогу от трактира и оказываешься на улице
@@ -1098,10 +1145,7 @@ export default function QuestPage() {
           <p className="text-paragraph">
             &emsp;Ты ощущаешь лёгкое тепло фонаря и шорох старинной мостовой под
             ногами. Письмо в руках словно указывает путь: через улицу к площади,
-            где тебя ждёт новый знакомый и ещё одна тайна города.Ты ощущаешь
-            лёгкое тепло фонаря и шорох старинной мостовой под ногами. Письмо в
-            руках словно указывает путь: через улицу к площади, где тебя ждёт
-            новый знакомый и ещё одна тайна города.
+            где тебя ждёт новый знакомый и ещё одна тайна города.
           </p>
         </TextBlock>
       )}
@@ -1123,6 +1167,7 @@ export default function QuestPage() {
           hintImage={hint12Image}
           hintAddress="ул. Красные Ряды, 1"
           stepNumber={25}
+          audioSrc={stepAudioMap[12]}
         >
           <p className="text-paragraph">
             &emsp;Площадь Советская — одно из тех мест Костромы, где город
@@ -1202,6 +1247,7 @@ export default function QuestPage() {
           hintImage={hint13Image}
           hintAddress="ул. Табачные Ряды, 1"
           stepNumber={27}
+          audioSrc={stepAudioMap[13]}
         >
           <p className="text-paragraph">
             &emsp;Ты выходишь к торговым рядам — месту, где веками ценили
@@ -1287,6 +1333,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           stepNumber={29}
+          audioSrc={stepAudioMap[14]}
         >
           <p className="text-paragraph">
             &emsp;Ты подходишь к Табачным рядам — величественному зданию начала

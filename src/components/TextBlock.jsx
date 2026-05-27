@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect, useCallback, memo } from "react";
 import "/src/components/TextBlock.css";
 import HintModal from "../components/HintModal.jsx";
+import AudioButton from "../components/AudioButton.jsx";
+import promptIcon from "../assets/prompt.svg"; // ← добавить импорт иконки
 
 const TextBlock = memo(
   ({
@@ -11,6 +13,7 @@ const TextBlock = memo(
     hintImage,
     hintAddress,
     stepNumber,
+    audioSrc,
   }) => {
     const containerRef = useRef(null);
     const [showButton, setShowButton] = useState(false);
@@ -61,10 +64,15 @@ const TextBlock = memo(
       <>
         <div className="text-block-container">
           <div className="text-block-scroll" ref={containerRef}>
-            {/* Кнопка Подсказки сверху справа - не показываем на шаге 32 */}
+            {/* Кнопка аудио - слева */}
+            {audioSrc && stepNumber !== 32 && (
+              <AudioButton audioSrc={audioSrc} />
+            )}
+
+            {/* Кнопка Подсказки сверху справа - с иконкой вместо "?" */}
             {hintImage && hintAddress && stepNumber !== 32 && (
               <button className="hint-button" onClick={handleHintClick}>
-                ?
+                <img src={promptIcon} alt="Подсказка" />
               </button>
             )}
 
