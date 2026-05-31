@@ -6,7 +6,6 @@ import { AuthContext } from "./AuthContext";
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
   const processingRef = useRef(false);
 
   const updateUserState = (userData) => {
@@ -14,10 +13,19 @@ export const AuthProvider = ({ children }) => {
     setUser(userData || null);
   };
 
-  const loadUserData = async (email) => {
-    if (!email) return null;
-    console.log("loadUserData for:", email);
-    return { email };
+  // 🔧 ИСПРАВЛЕНО: загружаем ПОЛНЫЙ объект пользователя
+  const loadUserData = async (supabaseUser) => {
+    if (!supabaseUser) return null;
+
+    console.log("loadUserData for:", supabaseUser.email);
+
+    // Возвращаем ВСЕ данные пользователя из Supabase Auth
+    return {
+      id: supabaseUser.id, // 👈 ДОБАВЛЯЕМ ID!
+      email: supabaseUser.email,
+      name: supabaseUser.user_metadata?.name,
+      created_at: supabaseUser.created_at,
+    };
   };
 
   const login = useCallback(async (email, password) => {
@@ -32,12 +40,10 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Login response:", { data, error });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data?.user?.email) {
-        const userInfo = await loadUserData(data.user.email);
+      if (data?.user) {
+        const userInfo = await loadUserData(data.user);
         updateUserState(userInfo);
       }
 
@@ -64,27 +70,18 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Register response:", {
         user: data?.user,
-        session: data?.session
-          ? "Session created"
-          : "No session (email confirmation needed)",
+        session: data?.session ? "Session created" : "No session",
         error,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // НЕ входим автоматически после регистрации
-      if (data?.user?.email) {
+      if (data?.user) {
         console.log("User registered:", data.user.email);
         console.log("Confirmation email sent to:", data.user.email);
 
-        // Если Supabase создал сессию — всё равно не входим, ждём подтверждения email
         if (data.session) {
-          console.log(
-            "⚠️ Session created — but waiting for email confirmation",
-          );
-          // Выходим из созданной сессии
+          console.log("⚠️ Session created — waiting for email confirmation");
           await supabase.auth.signOut({ scope: "local" });
           updateUserState(null);
         }
@@ -100,40 +97,21 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     console.log("=== LOGOUT START ===");
-
     processingRef.current = true;
     updateUserState(null);
 
     try {
-      console.log("Calling supabase.auth.signOut()...");
-
-      const { error } = await supabase.auth.signOut({
-        scope: "local",
-      });
-
-      console.log("SignOut response:", { error });
-
-      if (error) {
-        console.error("Logout error:", error);
-      }
-
-      console.log("Clearing localStorage...");
+      await supabase.auth.signOut({ scope: "local" });
 
       Object.keys(localStorage).forEach((key) => {
         if (key.includes("supabase") || key.startsWith("sb-")) {
-          console.log("Removing:", key);
           localStorage.removeItem(key);
         }
       });
-
       sessionStorage.clear();
-
-      console.log("Current localStorage:", { ...localStorage });
     } catch (err) {
       console.error("Logout exception:", err);
     } finally {
-      console.log("Redirecting to / ...");
-
       setTimeout(() => {
         processingRef.current = false;
         window.location.replace("/");
@@ -149,11 +127,10 @@ export const AuthProvider = ({ children }) => {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-
         console.log("Initial session:", session);
 
-        if (session?.user?.email) {
-          const userInfo = await loadUserData(session.user.email);
+        if (session?.user) {
+          const userInfo = await loadUserData(session.user);
           updateUserState(userInfo);
         } else {
           updateUserState(null);
@@ -163,7 +140,6 @@ export const AuthProvider = ({ children }) => {
         updateUserState(null);
       } finally {
         setLoading(false);
-        console.log("Loading set to false");
       }
     };
 
@@ -174,7 +150,6 @@ export const AuthProvider = ({ children }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("=== AUTH STATE CHANGE ===");
       console.log("Event:", event);
-      console.log("Session:", session?.user?.email);
       console.log("processingRef.current:", processingRef.current);
 
       if (processingRef.current) {
@@ -183,46 +158,17 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        switch (event) {
-          case "SIGNED_IN":
-            if (session?.user?.email) {
-              console.log("✅ Handling SIGNED_IN");
-              const userInfo = await loadUserData(session.user.email);
-              updateUserState(userInfo);
-            }
-            break;
-
-          case "SIGNED_OUT":
-            console.log("✅ Handling SIGNED_OUT");
-            updateUserState(null);
-            break;
-
-          case "USER_UPDATED":
-            if (session?.user?.email) {
-              console.log("✅ Handling USER_UPDATED");
-              const userInfo = await loadUserData(session.user.email);
-              updateUserState(userInfo);
-            }
-            break;
-
-          case "TOKEN_REFRESHED":
-            console.log("✅ Handling TOKEN_REFRESHED");
-            if (session?.user?.email) {
-              const userInfo = await loadUserData(session.user.email);
-              updateUserState(userInfo);
-            }
-            break;
-
-          case "INITIAL_SESSION":
-            console.log("✅ Handling INITIAL_SESSION");
-            if (session?.user?.email) {
-              const userInfo = await loadUserData(session.user.email);
-              updateUserState(userInfo);
-            }
-            break;
-
-          default:
-            console.log("ℹ️ Unhandled event:", event);
+        if (
+          (event === "SIGNED_IN" ||
+            event === "USER_UPDATED" ||
+            event === "TOKEN_REFRESHED" ||
+            event === "INITIAL_SESSION") &&
+          session?.user
+        ) {
+          const userInfo = await loadUserData(session.user);
+          updateUserState(userInfo);
+        } else if (event === "SIGNED_OUT") {
+          updateUserState(null);
         }
       } catch (error) {
         console.error("Auth state change error:", error);

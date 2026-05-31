@@ -391,3 +391,48 @@
     padding: 0.4rem 0.5rem;
   }
 }
+/* Скелетон загрузки */
+.profile-skeleton {
+  padding: 20px 24px;
+}
+
+.skeleton-item {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 248, 233, 0.1);
+}
+
+.skeleton-line {
+  height: 20px;
+  background: linear-gradient(90deg, #a59170 25%, #c8b28d 50%, #a59170 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-line:first-child {
+  width: 80px;
+}
+
+.skeleton-line.short {
+  width: 150px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Индикатор загрузки */
+.profile-loading {
+  text-align: center;
+  padding: 40px;
+  color: #fff8e9;
+}

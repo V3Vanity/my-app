@@ -1,19 +1,63 @@
 // src/components/ProfileModal.jsx
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { supabase } from "../supabase/client";
 import "./ProfileModal.css";
 
 const ProfileModal = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
-  const [userData, setUserData] = useState({
-    name: "",
-    email: "",
-    subscriptionStatus: "active",
-    subscriptionExpires: "2025-12-31",
-    purchaseDate: "2024-03-30",
-  });
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // ВСЕ ХУКИ ДОЛЖНЫ БЫТЬ ЗДЕСЬ, перед условным возвратом
+  const loadUserProfile = useCallback(async () => {
+    if (!user?.id) return;
+
+    setLoading(true);
+
+    try {
+      // Убрал name из SELECT
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select(
+          "has_paid_access, subscription_status, subscription_created_at, paid_at, name",
+        )
+        .eq("id", user.id)
+        .maybeSingle();
+
+      console.log("📊 Данные из Supabase:", data);
+
+      if (error) {
+        console.error("Ошибка загрузки профиля:", error);
+      }
+
+      const newUserData = {
+        name:
+          data?.name ||
+          user?.user_metadata?.name ||
+          user?.email?.split("@")[0] ||
+          "Пользователь",
+        email: user?.email || "",
+        has_paid_access: data?.has_paid_access || false,
+        subscription_status: data?.subscription_status || "inactive",
+        subscription_created_at: data?.subscription_created_at || null,
+        paid_at: data?.paid_at || null,
+      };
+
+      console.log("📊 newUserData:", newUserData);
+      setUserData(newUserData);
+    } catch (err) {
+      console.error("Ошибка:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      loadUserProfile();
+    }
+  }, [isOpen, user?.id, loadUserProfile]);
+
   const handleClose = useCallback(
     (e) => {
       if (e.target === e.currentTarget) {
@@ -26,9 +70,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
   const handleLogout = useCallback(async () => {
     try {
       localStorage.removeItem("app_access");
-      localStorage.removeItem("user_name");
-      localStorage.removeItem("user_email");
-      localStorage.removeItem("auth_token");
+      localStorage.removeItem("app_access_timestamp");
 
       if (typeof logout === "function") {
         await logout();
@@ -37,7 +79,6 @@ const ProfileModal = ({ isOpen, onClose }) => {
         sessionStorage.clear();
         window.location.replace("/");
       }
-
       onClose();
     } catch (error) {
       console.error("Logout error:", error);
@@ -47,29 +88,29 @@ const ProfileModal = ({ isOpen, onClose }) => {
     }
   }, [logout, onClose]);
 
+  const handleRenewSubscription = () => {
+    onClose();
+    const pricingSection = document.getElementById("pricing");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const formatDate = useCallback((dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("ru-RU", options);
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString("ru-RU", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      const email =
-        user?.email || localStorage.getItem("user_email") || "user@example.com";
-      const storedName = localStorage.getItem("user_name");
-
-      setUserData({
-        name: storedName || email.split("@")[0] || "Пользователь",
-        email: email,
-        subscriptionStatus: "active",
-        subscriptionExpires: "2025-12-31",
-        purchaseDate: "2024-03-30",
-      });
-    }
-  }, [isOpen, user]);
-
-  // Условный возврат ТОЛЬКО после всех хуков
   if (!isOpen) return null;
+
+  const isActive =
+    userData?.has_paid_access === true &&
+    userData?.subscription_status === "active";
+  const showSkeleton = loading && !userData;
 
   return (
     <div className="profile-modal-overlay" onClick={handleClose}>
@@ -91,120 +132,142 @@ const ProfileModal = ({ isOpen, onClose }) => {
           <h2 className="profile-modal-title">Мой профиль</h2>
         </div>
 
-        <div className="profile-info">
-          <div className="profile-info-item">
-            <div className="profile-info-label">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M20 21V19C20 16.8 18.2 15 16 15H8C5.8 15 4 16.8 4 19V21"
-                  stroke="#fff8e9"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-                <circle
-                  cx="12"
-                  cy="7"
-                  r="4"
-                  stroke="#fff8e9"
-                  strokeWidth="1.5"
-                />
-              </svg>
-              <span>Имя</span>
-            </div>
-            <div className="profile-info-value">{userData.name}</div>
+        {showSkeleton ? (
+          <div className="profile-skeleton">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="skeleton-item">
+                <div className="skeleton-line"></div>
+                <div className="skeleton-line short"></div>
+              </div>
+            ))}
           </div>
+        ) : (
+          <>
+            <div className="profile-info">
+              <div className="profile-info-item">
+                <div className="profile-info-label">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M20 21V19C20 16.8 18.2 15 16 15H8C5.8 15 4 16.8 4 19V21"
+                      stroke="#fff8e9"
+                      strokeWidth="1.5"
+                    />
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      stroke="#fff8e9"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                  <span>Имя</span>
+                </div>
+                <div className="profile-info-value">
+                  {userData?.name || "—"}
+                </div>
+              </div>
 
-          <div className="profile-info-item">
-            <div className="profile-info-label">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"
-                  stroke="#fff8e9"
-                  strokeWidth="1.5"
-                />
-                <path d="M22 6L12 13L2 6" stroke="#fff8e9" strokeWidth="1.5" />
-              </svg>
-              <span>Email</span>
-            </div>
-            <div className="profile-info-value">{userData.email}</div>
-          </div>
+              <div className="profile-info-item">
+                <div className="profile-info-label">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"
+                      stroke="#fff8e9"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M22 6L12 13L2 6"
+                      stroke="#fff8e9"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                  <span>Email</span>
+                </div>
+                <div className="profile-info-value">
+                  {userData?.email || "—"}
+                </div>
+              </div>
 
-          <div className="profile-info-item">
-            <div className="profile-info-label">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
-                  stroke="#fff8e9"
-                  strokeWidth="1.5"
-                />
-                <path d="M12 6V12L16 14" stroke="#fff8e9" strokeWidth="1.5" />
-              </svg>
-              <span>Дата покупки</span>
-            </div>
-            <div className="profile-info-value">
-              {formatDate(userData.purchaseDate)}
-            </div>
-          </div>
+              {userData?.paid_at && (
+                <div className="profile-info-item">
+                  <div className="profile-info-label">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
+                        stroke="#fff8e9"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M12 6V12L16 14"
+                        stroke="#fff8e9"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                    <span>Дата покупки</span>
+                  </div>
+                  <div className="profile-info-value">
+                    {formatDate(userData.paid_at)}
+                  </div>
+                </div>
+              )}
 
-          <div className="profile-info-item">
-            <div className="profile-info-label">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M9 12H15M12 9V15M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                  stroke="#fff8e9"
-                  strokeWidth="1.5"
-                />
-              </svg>
-              <span>Статус подписки</span>
+              <div className="profile-info-item">
+                <div className="profile-info-label">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M9 12H15M12 9V15M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                      stroke="#fff8e9"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                  <span>Статус подписки</span>
+                </div>
+                <div className="profile-info-value">
+                  <span
+                    className={`subscription-badge ${isActive ? "active" : "inactive"}`}
+                  >
+                    {isActive ? "✓ Активна" : "✗ Неактивна"}
+                  </span>
+                </div>
+              </div>
+
+              {userData?.subscription_created_at && isActive && (
+                <div className="profile-info-item">
+                  <div className="profile-info-label">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 8V12L15 15M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                        stroke="#fff8e9"
+                        strokeWidth="1.5"
+                      />
+                    </svg>
+                    <span>Подписка оформлена</span>
+                  </div>
+                  <div className="profile-info-value">
+                    {formatDate(userData.subscription_created_at)}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="profile-info-value">
-              <span
-                className={`subscription-badge ${userData.subscriptionStatus}`}
+
+            <div className="profile-actions">
+              {!isActive && (
+                <button
+                  className="profile-action-btn renew-btn"
+                  onClick={handleRenewSubscription}
+                >
+                  Купить подписку
+                </button>
+              )}
+              <button
+                className="profile-action-btn logout-btn"
+                onClick={handleLogout}
               >
-                {userData.subscriptionStatus === "active"
-                  ? "✓ Активна"
-                  : "Неактивна"}
-              </span>
+                Выйти из аккаунта
+              </button>
             </div>
-          </div>
-
-          {userData.subscriptionStatus === "active" && (
-            <div className="profile-info-item">
-              <div className="profile-info-label">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 8V12L15 15M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                    stroke="#fff8e9"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-                <span>Действует до</span>
-              </div>
-              <div className="profile-info-value">
-                {formatDate(userData.subscriptionExpires)}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="profile-actions">
-          <button className="profile-action-btn renew-btn">
-            Продлить подписку
-          </button>
-          <button
-            className="profile-action-btn logout-btn"
-            onClick={handleLogout}
-          >
-            Выйти из аккаунта
-          </button>
-        </div>
-
-        <div className="profile-test-info">
-          <p>ℹ️ Тестовый режим</p>
-          <small>
-            Данные для тестирования: подписка активна до 31 декабря 2025
-          </small>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

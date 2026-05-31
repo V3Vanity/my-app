@@ -3,12 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import MainApp from "./pages/main";
 import { useAuth } from "./hooks/useAuth";
+import { supabase } from "./supabase/client";
 import "./App.css";
 
 // Импорт модальных окон
 import { AuthModal } from "./components/AuthModal";
 import ProfileModal from "./components/ProfileModal";
 import { RequisitesModal } from "./components/RequisitesModal";
+import { YooKassaPayment } from "./components/YooKassaPayment";
 
 // Импорт изображений
 import aboutTitleSvg from "./assets/about-title.svg";
@@ -42,24 +44,72 @@ function App() {
   const [hasAccess, setHasAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSection, setActiveSection] = useState("home");
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
+  // Оптимизированная проверка доступа с кешированием
   useEffect(() => {
-    // Проверяем наличие доступа
-    const accessToken = localStorage.getItem("app_access");
+    const checkAccess = async () => {
+      setIsLoading(true);
 
-    // В тестовом режиме: если есть токен ИЛИ пользователь авторизован
-    if (accessToken || isAuthenticated) {
-      setHasAccess(true);
-      // Автоматически устанавливаем app_access если его нет
-      if (!accessToken && isAuthenticated) {
-        localStorage.setItem("app_access", "true");
+      // Если пользователь не авторизован — доступа нет
+      if (!isAuthenticated || !user?.id) {
+        setHasAccess(false);
+        setIsLoading(false);
+        return;
       }
-    } else {
-      setHasAccess(false);
-    }
-    setIsLoading(false);
-  }, [isAuthenticated]);
+
+      // 1. Сначала проверяем localStorage (кеш)
+      const cachedAccess = localStorage.getItem("app_access");
+      const cachedTimestamp = localStorage.getItem("app_access_timestamp");
+      const now = Date.now();
+
+      // Если кешу меньше 5 минут — используем его
+      if (
+        cachedAccess === "true" &&
+        cachedTimestamp &&
+        now - parseInt(cachedTimestamp) < 5 * 60 * 1000
+      ) {
+        setHasAccess(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Если кеш устарел или нет — идем в БД
+      try {
+        const { data, error } = await supabase
+          .from("user_profiles")
+          .select("has_paid_access, subscription_status")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Ошибка проверки доступа:", error);
+          setHasAccess(false);
+        } else {
+          const hasActiveAccess =
+            data?.has_paid_access === true &&
+            data?.subscription_status === "active";
+          setHasAccess(hasActiveAccess);
+
+          // Обновляем кеш
+          if (hasActiveAccess) {
+            localStorage.setItem("app_access", "true");
+            localStorage.setItem("app_access_timestamp", String(now));
+          } else {
+            localStorage.removeItem("app_access");
+            localStorage.removeItem("app_access_timestamp");
+          }
+        }
+      } catch (err) {
+        console.error("Ошибка:", err);
+        setHasAccess(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAccess();
+  }, [isAuthenticated, user]);
 
   // Плавная прокрутка к секции
   const scrollToSection = (sectionId) => {
@@ -80,20 +130,17 @@ function App() {
     const demoVideoRef = useRef(null);
     const cityVideoRef = useRef(null);
 
-    // Функция для настройки Intersection Observer (ОБНОВЛЕННАЯ ВЕРСИЯ ДЛЯ ЯНДЕКС БРАУЗЕРА)
+    // Функция для настройки Intersection Observer
     const setupVideoObserver = useCallback((videoRef, threshold = 0.3) => {
       const video = videoRef.current;
       if (!video) return null;
 
-      // Флаг для отслеживания, был ли уже разблокирован звук
       let soundUnlocked = false;
 
-      // Функция для разблокировки звука (вызывается при клике/тапе)
       const unlockSound = () => {
         if (soundUnlocked) return;
         video.muted = false;
         soundUnlocked = true;
-        // Удаляем обработчики после разблокировки
         document.removeEventListener("click", unlockSound);
         document.removeEventListener("touchstart", unlockSound);
       };
@@ -102,26 +149,21 @@ function App() {
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              // Видео появилось на экране
               if (soundUnlocked) {
-                // Звук уже разблокирован - играем со звуком
                 video
                   .play()
                   .catch((error) => console.log("Play error:", error));
               } else {
-                // Звук еще не разблокирован - играем без звука
                 video.muted = true;
                 video
                   .play()
                   .then(() => {
-                    // Как только видео начало играть, добавляем слушатели для разблокировки звука
                     document.addEventListener("click", unlockSound);
                     document.addEventListener("touchstart", unlockSound);
                   })
                   .catch((error) => console.log("Play error:", error));
               }
             } else {
-              // Видео ушло с экрана - ставим на паузу
               if (!video.paused) {
                 video.pause();
               }
@@ -135,7 +177,7 @@ function App() {
       return observer;
     }, []);
 
-    // Настраиваем наблюдатели для видео при монтировании компонента
+    // Настраиваем наблюдатели для видео
     useEffect(() => {
       const demoObserver = setupVideoObserver(demoVideoRef, 0.3);
       const cityObserver = setupVideoObserver(cityVideoRef, 0.3);
@@ -172,21 +214,9 @@ function App() {
       return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Обработчик кнопки "Купить" / "Начать путешествие"
-    const handlePurchaseOrStart = () => {
-      // В тестовом режиме просто переходим в приложение если авторизован
-      if (isAuthenticated) {
-        localStorage.setItem("app_access", "true");
-        window.open("/app", "_blank");
-      } else {
-        setShowAuthModal(true);
-      }
-    };
-
     // Обработчик кнопки в первом блоке
     const handleAboutBtnClick = () => {
-      if (isAuthenticated) {
-        localStorage.setItem("app_access", "true");
+      if (isAuthenticated && hasAccess) {
         window.open("/app", "_blank");
       } else {
         scrollToSection("pricing");
@@ -262,10 +292,10 @@ function App() {
                   Чем заняться?
                 </p>
                 <button
-                  className={`landing-about-btn ${isAuthenticated ? "active" : ""}`}
+                  className={`landing-about-btn ${hasAccess ? "active" : ""}`}
                   onClick={handleAboutBtnClick}
                 >
-                  {isAuthenticated ? "Начать путешествие" : "Купить"}
+                  {hasAccess ? "Начать путешествие" : "Купить"}
                 </button>
               </div>
 
@@ -521,7 +551,7 @@ function App() {
                         className="review-icon-svg"
                       />
                     </div>
-                    <h4 className="landing-review-author">Виктория, Москва </h4>
+                    <h4 className="landing-review-author">Виктория, Москва</h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
@@ -541,7 +571,7 @@ function App() {
                         className="review-icon-svg"
                       />
                     </div>
-                    <h4 className="landing-review-author">Николай, Рязань </h4>
+                    <h4 className="landing-review-author">Николай, Рязань</h4>
                   </div>
                   <div className="landing-review-content">
                     <p className="landing-review-text">
@@ -665,14 +695,32 @@ function App() {
 
                 <div className="landing-pricing-price-glass">990₽</div>
 
-                <button
-                  className="landing-pricing-btn"
-                  onClick={handlePurchaseOrStart}
-                >
-                  {isAuthenticated
-                    ? "Начать путешествие"
-                    : "Купить воспоминания"}
-                </button>
+                {isAuthenticated ? (
+                  hasAccess ? (
+                    <button
+                      className="landing-pricing-btn"
+                      onClick={() => window.open("/app", "_blank")}
+                    >
+                      Перейти в приложение
+                    </button>
+                  ) : (
+                    <YooKassaPayment
+                      amount="990.00"
+                      onError={(err) => {
+                        alert(
+                          `Ошибка: ${err.message}. Попробуйте позже или обратитесь в поддержку.`,
+                        );
+                      }}
+                    />
+                  )
+                ) : (
+                  <button
+                    className="landing-pricing-btn"
+                    onClick={() => setShowAuthModal(true)}
+                  >
+                    Войти для покупки
+                  </button>
+                )}
               </div>
             </div>
 
@@ -778,7 +826,7 @@ function App() {
             </div>
           </div>
 
-          {/* Реквизиты для ЮMoney */}
+          {/* Реквизиты */}
           <div className="landing-footer-requisites">
             <div className="landing-footer-requisites-content">
               <span className="requisites-text">
@@ -799,9 +847,7 @@ function App() {
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
           onSuccess={() => {
-            // После успешного входа устанавливаем доступ
-            localStorage.setItem("app_access", "true");
-            window.open("/app", "_blank");
+            window.location.reload();
           }}
         />
 
