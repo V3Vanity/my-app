@@ -22,6 +22,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
           "has_paid_access, subscription_status, subscription_created_at, paid_at, name",
         )
         .eq("id", user.id)
+        .limit(1)
         .maybeSingle();
 
       console.log("📊 Данные из Supabase:", data);

@@ -1,4 +1,8 @@
 // src/App.jsx
+const ACCESS_CACHE_KEY = "app_access";
+const ACCESS_CACHE_TIME_KEY = "app_access_timestamp";
+const ACCESS_CACHE_TTL = 5 * 60 * 1000;
+
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import MainApp from "./pages/main";
@@ -80,6 +84,7 @@ function App() {
           .from("user_profiles")
           .select("has_paid_access, subscription_status")
           .eq("id", user.id)
+          .limit(1)
           .maybeSingle();
 
         if (error) {
