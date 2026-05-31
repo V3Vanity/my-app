@@ -1,0 +1,316 @@
+/* ReviewsPage.css - стили как у других страниц */
+
+.reviews-page-container {
+  position: fixed;
+  top: 55px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 375px;
+  max-width: 100%;
+  height: calc(100vh - 55px);
+  background-color: #c8b28d;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  padding-bottom: 30px;
+  padding-top: 30px;
+  box-sizing: border-box;
+}
+
+/* Скрываем скроллбар но оставляем возможность скролла */
+.reviews-page-container::-webkit-scrollbar {
+  width: 3px;
+}
+
+.reviews-page-container::-webkit-scrollbar-track {
+  background: rgba(255, 248, 233, 0.1);
+  border-radius: 3px;
+}
+
+.reviews-page-container::-webkit-scrollbar-thumb {
+  background: #862518;
+  border-radius: 3px;
+}
+
+/* Заголовок */
+.reviews-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.reviews-header h1 {
+  font-family: "UNCAGE", sans-serif;
+  font-size: 24px;
+  color: #862518;
+  margin-bottom: 8px;
+}
+
+.reviews-header p {
+  font-size: 13px;
+  color: #432f2d;
+}
+
+/* Форма отзыва */
+.review-form-container {
+  background: rgba(255, 248, 233, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 248, 233, 0.3);
+}
+
+.review-form-container h3 {
+  font-size: 16px;
+  color: #432f2d;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 14px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 248, 233, 0.9);
+  border: 1px solid rgba(139, 124, 0, 0.3);
+  border-radius: 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #2c241a;
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: #862518;
+  background: #fff8e9;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Выпадающий список городов */
+.city-group {
+  position: relative;
+}
+
+.city-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff8e9;
+  border-radius: 12px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+}
+
+.city-option {
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #2c241a;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.city-option:hover {
+  background: #c8b28d;
+}
+
+.city-option.no-result {
+  color: #999;
+  cursor: default;
+}
+
+/* Кнопка отправки */
+.submit-review-btn {
+  width: 100%;
+  padding: 12px;
+  background: #862518;
+  color: #d9cfb8;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.submit-review-btn:hover {
+  background: #6e1f14;
+  transform: translateY(-1px);
+}
+
+.submit-review-btn:disabled {
+  opacity: 0.6;
+  transform: none;
+}
+
+/* Список отзывов */
+.reviews-list {
+  margin-top: 8px;
+}
+
+.reviews-list h3 {
+  font-size: 16px;
+  color: #862518;
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+/* Карточка отзыва */
+.review-card {
+  background: rgba(255, 248, 233, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(255, 248, 233, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.review-card:active {
+  transform: scale(0.98);
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.review-avatar {
+  width: 40px;
+  height: 40px;
+  background: #862518;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.review-avatar span {
+  font-size: 16px;
+  font-weight: bold;
+  color: #d9cfb8;
+}
+
+.review-info {
+  flex: 1;
+}
+
+.review-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #862518;
+  margin: 0 0 2px 0;
+}
+
+.review-city {
+  font-size: 11px;
+  color: #432f2d;
+}
+
+.review-date {
+  font-size: 9px;
+  color: #432f2d;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.review-content p {
+  font-size: 13px;
+  color: #2c241a;
+  line-height: 1.45;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+/* Загрузка */
+.reviews-loading {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(134, 37, 24, 0.2);
+  border-top-color: #862518;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.reviews-loading p {
+  font-size: 13px;
+  color: #432f2d;
+}
+
+/* Пустой список */
+.reviews-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(255, 248, 233, 0.1);
+  border-radius: 20px;
+  color: #432f2d;
+  font-size: 13px;
+}
+
+/* Адаптация для разных экранов */
+@media (max-width: 500px) {
+  .reviews-page-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 374px) {
+  .reviews-page-container {
+    padding: 12px;
+    padding-bottom: 20px;
+  }
+
+  .review-header {
+    gap: 8px;
+  }
+
+  .review-date {
+    width: 100%;
+    margin-left: 50px;
+    margin-top: -6px;
+  }
+
+  .review-info {
+    min-width: 100px;
+  }
+
+  .review-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .review-avatar span {
+    font-size: 14px;
+  }
+}
