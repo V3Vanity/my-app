@@ -1,8 +1,9 @@
 // src/components/ProfileModal.jsx
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { supabase } from "../supabase/client";
 import "./ProfileModal.css";
+
+const API_URL = "http://v3vanity.beget.tech/backend/api";
 
 const ProfileModal = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
@@ -10,54 +11,52 @@ const ProfileModal = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
 
   const loadUserProfile = useCallback(async () => {
-    if (!user?.id) return;
+    if (!isOpen) return; // Не загружаем, если модалка закрыта
 
     setLoading(true);
 
     try {
-      // Убрал name из SELECT
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select(
-          "has_paid_access, subscription_status, subscription_created_at, paid_at, name",
-        )
-        .eq("id", user.id)
-        .limit(1)
-        .maybeSingle();
+      const response = await fetch(`${API_URL}/auth/me.php`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      console.log("📊 Данные из Supabase:", data);
-
-      if (error) {
-        console.error("Ошибка загрузки профиля:", error);
+      if (!response.ok) {
+        throw new Error("Ошибка загрузки профиля");
       }
 
+      const data = await response.json();
+
+      console.log("📊 Данные из PHP API:", data);
+
       const newUserData = {
-        name:
-          data?.name ||
-          user?.user_metadata?.name ||
-          user?.email?.split("@")[0] ||
-          "Пользователь",
-        email: user?.email || "",
-        has_paid_access: data?.has_paid_access || false,
-        subscription_status: data?.subscription_status || "inactive",
-        subscription_created_at: data?.subscription_created_at || null,
-        paid_at: data?.paid_at || null,
+        name: data.user?.name || user?.email?.split("@")[0] || "Пользователь",
+        email: data.user?.email || user?.email || "",
+        has_paid_access:
+          data.user?.has_paid_access === true ||
+          data.user?.has_paid_access === 1,
+        subscription_status: data.user?.subscription_status || "inactive",
+        subscription_created_at: data.user?.subscription_created_at || null,
+        paid_at: data.user?.paid_at || null,
       };
 
       console.log("📊 newUserData:", newUserData);
       setUserData(newUserData);
     } catch (err) {
-      console.error("Ошибка:", err);
+      console.error("Ошибка загрузки профиля:", err);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [isOpen, user]);
 
   useEffect(() => {
-    if (isOpen && user?.id) {
+    if (isOpen) {
       loadUserProfile();
     }
-  }, [isOpen, user?.id, loadUserProfile]);
+  }, [isOpen, loadUserProfile]);
 
   const handleClose = useCallback(
     (e) => {

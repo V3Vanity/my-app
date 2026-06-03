@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect, useRef, useCallback } from "react";
 import MainApp from "./pages/main";
 import { useAuth } from "./hooks/useAuth";
-import { supabase } from "./supabase/client";
 import "./App.css";
 
 // Импорт модальных окон
@@ -78,22 +77,26 @@ function App() {
         return;
       }
 
-      // 2. Если кеш устарел или нет — идем в БД
+      // 2. Если кеш устарел или нет — идем в PHP API
       try {
-        const { data, error } = await supabase
-          .from("user_profiles")
-          .select("has_paid_access, subscription_status")
-          .eq("id", user.id)
-          .limit(1)
-          .maybeSingle();
+        const response = await fetch(
+          "http://v3vanity.beget.tech/backend/api/auth/check-access.php",
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
 
-        if (error) {
-          console.error("Ошибка проверки доступа:", error);
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Ошибка проверки доступа:", data.error);
           setHasAccess(false);
         } else {
-          const hasActiveAccess =
-            data?.has_paid_access === true &&
-            data?.subscription_status === "active";
+          const hasActiveAccess = data.hasAccess === true;
           setHasAccess(hasActiveAccess);
 
           // Обновляем кеш
@@ -106,7 +109,7 @@ function App() {
           }
         }
       } catch (err) {
-        console.error("Ошибка:", err);
+        console.error("Ошибка при проверке доступа:", err);
         setHasAccess(false);
       } finally {
         setIsLoading(false);

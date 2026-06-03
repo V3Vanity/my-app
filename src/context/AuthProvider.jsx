@@ -1,184 +1,94 @@
 // src/context/AuthProvider.jsx
-import { useEffect, useRef, useState, useCallback } from "react";
-import { supabase } from "../supabase/client";
+import { useEffect, useState, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
+
+const API_URL = "http://v3vanity.beget.tech/backend/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const processingRef = useRef(false);
 
-  const updateUserState = (userData) => {
-    console.log("updateUserState called with:", userData);
-    setUser(userData || null);
-  };
-
-  // 🔧 ИСПРАВЛЕНО: загружаем ПОЛНЫЙ объект пользователя
-  const loadUserData = async (supabaseUser) => {
-    if (!supabaseUser) return null;
-
-    console.log("loadUserData for:", supabaseUser.email);
-
-    // Возвращаем ВСЕ данные пользователя из Supabase Auth
-    return {
-      id: supabaseUser.id, // 👈 ДОБАВЛЯЕМ ID!
-      email: supabaseUser.email,
-      name: supabaseUser.user_metadata?.name,
-      created_at: supabaseUser.created_at,
-    };
-  };
-
-  const login = useCallback(async (email, password) => {
-    console.log("=== LOGIN START ===");
-    processingRef.current = true;
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      console.log("Login response:", { data, error });
-
-      if (error) throw error;
-
-      if (data?.user) {
-        const userInfo = await loadUserData(data.user);
-        updateUserState(userInfo);
-      }
-
-      return data;
-    } finally {
-      setTimeout(() => {
-        processingRef.current = false;
-      }, 1000);
-    }
-  }, []);
-
-  const register = useCallback(async (email, password, name) => {
-    console.log("=== REGISTER START ===");
-    processingRef.current = true;
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { name },
-        },
-      });
-
-      console.log("Register response:", {
-        user: data?.user,
-        session: data?.session ? "Session created" : "No session",
-        error,
-      });
-
-      if (error) throw error;
-
-      if (data?.user) {
-        console.log("User registered:", data.user.email);
-        console.log("Confirmation email sent to:", data.user.email);
-
-        if (data.session) {
-          console.log("⚠️ Session created — waiting for email confirmation");
-          await supabase.auth.signOut({ scope: "local" });
-          updateUserState(null);
-        }
-      }
-
-      return data;
-    } finally {
-      setTimeout(() => {
-        processingRef.current = false;
-      }, 1000);
-    }
-  }, []);
-
-  const logout = useCallback(async () => {
-    console.log("=== LOGOUT START ===");
-    processingRef.current = true;
-    updateUserState(null);
-
-    try {
-      await supabase.auth.signOut({ scope: "local" });
-
-      Object.keys(localStorage).forEach((key) => {
-        if (key.includes("supabase") || key.startsWith("sb-")) {
-          localStorage.removeItem(key);
-        }
-      });
-      sessionStorage.clear();
-    } catch (err) {
-      console.error("Logout exception:", err);
-    } finally {
-      setTimeout(() => {
-        processingRef.current = false;
-        window.location.replace("/");
-      }, 200);
-    }
-  }, []);
-
+  // Проверка авторизации при загрузке
   useEffect(() => {
-    console.log("=== AuthProvider useEffect ===");
-
-    const initializeAuth = async () => {
+    const checkAuth = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        console.log("Initial session:", session);
+        const response = await fetch(`${API_URL}/auth/me.php`, {
+          credentials: "include",
+        });
 
-        if (session?.user) {
-          const userInfo = await loadUserData(session.user);
-          updateUserState(userInfo);
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
         } else {
-          updateUserState(null);
+          setUser(null);
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
-        updateUserState(null);
+        console.error("Auth check error:", error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeAuth();
+    checkAuth();
+  }, []);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("=== AUTH STATE CHANGE ===");
-      console.log("Event:", event);
-      console.log("processingRef.current:", processingRef.current);
+  // Регистрация
+  const register = useCallback(async (email, password, name) => {
+    console.log("=== REGISTER API CALL ===");
 
-      if (processingRef.current) {
-        console.log("⚠️ Skipping - manual operation in progress");
-        return;
-      }
-
-      try {
-        if (
-          (event === "SIGNED_IN" ||
-            event === "USER_UPDATED" ||
-            event === "TOKEN_REFRESHED" ||
-            event === "INITIAL_SESSION") &&
-          session?.user
-        ) {
-          const userInfo = await loadUserData(session.user);
-          updateUserState(userInfo);
-        } else if (event === "SIGNED_OUT") {
-          updateUserState(null);
-        }
-      } catch (error) {
-        console.error("Auth state change error:", error);
-      }
+    const response = await fetch(`${API_URL}/auth/register.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password, name }),
     });
 
-    return () => {
-      console.log("Unsubscribing from auth changes");
-      subscription.unsubscribe();
-    };
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Ошибка регистрации");
+    }
+
+    console.log("Register response:", data);
+    return data;
+  }, []);
+
+  // Логин
+  const login = useCallback(async (email, password) => {
+    console.log("=== LOGIN API CALL ===");
+
+    const response = await fetch(`${API_URL}/auth/login.php`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Ошибка входа");
+    }
+
+    setUser(data.user);
+    console.log("Login response:", data);
+    return data;
+  }, []);
+
+  // Выход
+  const logout = useCallback(async () => {
+    try {
+      await fetch(`${API_URL}/auth/logout.php`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setUser(null);
+      window.location.href = "/";
+    }
   }, []);
 
   const value = {

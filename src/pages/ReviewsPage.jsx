@@ -1,7 +1,8 @@
 // src/pages/ReviewsPage.jsx
 import React, { useState, useEffect, useCallback } from "react";
-import { supabase } from "../supabase/client";
 import "./ReviewsPage.css";
+
+const API_URL = "http://v3vanity.beget.tech/backend/api";
 
 // Список городов России
 const russianCities = [
@@ -109,7 +110,7 @@ const russianCities = [
   "Шатура",
 ].sort();
 
-// Константы для кеширования (вынесены за пределы компонента)
+// Константы для кеширования
 const CACHE_KEY = "reviews_cache";
 const CACHE_TIME_KEY = "reviews_cache_time";
 const CACHE_TTL = 5 * 60 * 1000;
@@ -156,13 +157,18 @@ export default function ReviewsPage() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from("reviews")
-        .select("id, name, city, text, created_at")
-        .order("created_at", { ascending: false })
-        .limit(100);
+      const response = await fetch(`${API_URL}/reviews/get.php`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (error) throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка загрузки отзывов");
+      }
 
       if (data) {
         setReviews(data);
@@ -174,7 +180,7 @@ export default function ReviewsPage() {
     } finally {
       setLoading(false);
     }
-  }, []); // Пустой массив зависимостей — константы не нужны
+  }, []);
 
   // Загрузка при монтировании
   useEffect(() => {
@@ -211,16 +217,23 @@ export default function ReviewsPage() {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from("reviews").insert([
-        {
+      const response = await fetch(`${API_URL}/reviews/create.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           name: formData.name.trim(),
           city: formData.city.trim(),
           text: formData.text.trim(),
-          created_at: new Date().toISOString(),
-        },
-      ]);
+        }),
+      });
 
-      if (error) throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Ошибка отправки отзыва");
+      }
 
       setFormData({ name: "", city: "", text: "" });
       setCitySearch("");
