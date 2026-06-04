@@ -40,7 +40,7 @@ import {
   historyPoints,
   familyPoints,
 } from "./mapData.js";
-const DEBUG_USER = true;
+const DEBUG_USER = false;
 const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
 
 export default forwardRef(function MapCanvasBlock(
@@ -239,7 +239,15 @@ export default forwardRef(function MapCanvasBlock(
       if (!affineRef.current) return null;
       const [ax, bx, cx] = affineRef.current.ax;
       const [ay, by, cy] = affineRef.current.ay;
-      return { x: ax * lon + bx * lat + cx, y: ay * lon + by * lat + cy };
+
+      // РУЧНОЕ СМЕЩЕНИЕ - ИЗМЕНЯЙТЕ ЭТИ ЗНАЧЕНИЯ
+      const OFFSET_X = -40; // положительное = вправо, отрицательное = влево
+      const OFFSET_Y = -65; // положительное = вниз, отрицательное = вверх
+
+      return {
+        x: ax * lon + bx * lat + cx + OFFSET_X,
+        y: ay * lon + by * lat + cy + OFFSET_Y,
+      };
     },
     [affineRef],
   );
