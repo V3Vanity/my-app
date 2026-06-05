@@ -80,7 +80,7 @@ function App() {
       // 2. Если кеш устарел или нет — идем в PHP API
       try {
         const response = await fetch(
-          "http://v3vanity.beget.tech/backend/api/auth/check-access.php",
+          "https://kostromagid.ru/backend/api/auth/check-access.php",
           {
             method: "GET",
             credentials: "include",

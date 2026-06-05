@@ -17,13 +17,14 @@ $data = json_decode($rawInput, true);
 
 $amount = isset($data['amount']) ? $data['amount'] : '990.00';
 $description = isset($data['description']) ? $data['description'] : 'Доступ к электронному путеводителю по Костроме';
-$returnUrl = isset($data['returnUrl']) ? $data['returnUrl'] : 'https://your-domain.com/app';
+$returnUrl = isset($data['returnUrl']) ? $data['returnUrl'] : 'https://kostromagid.ru/app'; // 1. ОБНОВИЛИ returnUrl
 
-// Настройки YooKassa (бери из переменных окружения или пропиши здесь)
-$shopId = getenv('YOOKASSA_SHOP_ID') ?: 'your_shop_id';
-$secretKey = getenv('YOOKASSA_SECRET_KEY') ?: 'your_secret_key';
+// 2. ПРОПИСАЛИ КЛЮЧИ НАПРЯМУЮ
+$shopId = '1372262';
+$secretKey = 'test_pXy3xM219hL0r136NkuvpIhl1iL9ackc0a2tAThxzSY';
 
-if ($shopId === 'your_shop_id' || $secretKey === 'your_secret_key') {
+// Проверка, что ключи не пустые (можно оставить для надежности)
+if (empty($shopId) || empty($secretKey)) {
     http_response_code(500);
     echo json_encode(["error" => "Платежная система не настроена"]);
     exit();
@@ -68,7 +69,6 @@ if ($httpCode === 200 || $httpCode === 201) {
         $stmt = $db->prepare("INSERT INTO payments (id, user_id, amount, status) VALUES (?, ?, ?, 'pending')");
         $stmt->execute([$payment['id'], $user['id'], $amount]);
     } catch (PDOException $e) {
-        // Логируем ошибку, но не прерываем оплату
         error_log("Save payment error: " . $e->getMessage());
     }
     
@@ -78,6 +78,9 @@ if ($httpCode === 200 || $httpCode === 201) {
         "paymentId" => $payment['id']
     ]);
 } else {
+    // Логируем ответ от ЮKassa для отладки
+    error_log("YooKassa error: " . $response);
     http_response_code(500);
     echo json_encode(["error" => "Ошибка создания платежа"]);
 }
+?>

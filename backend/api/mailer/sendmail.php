@@ -38,7 +38,7 @@ function sendVerificationEmail($to, $name, $token)
         $mail->Subject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
         
         // Ссылка для подтверждения (на HTML страницу)
-        $verifyLink = "http://v3vanity.beget.tech/verify-success.html?token=" . $token;
+        $verifyLink = "https://kostromagid.ru/verify-success.html?token=" . $token;
         
         // HTML письмо
         $mail->isHTML(true);

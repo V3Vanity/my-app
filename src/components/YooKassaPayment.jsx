@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 
-const API_URL = "http://v3vanity.beget.tech/backend/api";
+const API_URL = "https://kostromagid.ru/backend/api";
 
 export const YooKassaPayment = ({ amount = "990.00", onError }) => {
   const [loading, setLoading] = useState(false);

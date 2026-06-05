@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AuthContext } from "./AuthContext";
 
-const API_URL = "http://v3vanity.beget.tech/backend/api";
+const API_URL = "https://kostromagid.ru/backend/api";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

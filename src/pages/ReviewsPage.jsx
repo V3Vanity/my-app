@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./ReviewsPage.css";
 
-const API_URL = "http://v3vanity.beget.tech/backend/api";
+const API_URL = "https://kostromagid.ru/backend/api";
 
 // Список городов России
 const russianCities = [
