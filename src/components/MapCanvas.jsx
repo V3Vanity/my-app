@@ -239,11 +239,7 @@ export default forwardRef(function MapCanvasBlock(
       if (!affineRef.current) return null;
       const [ax, bx, cx] = affineRef.current.ax;
       const [ay, by, cy] = affineRef.current.ay;
-
-      return {
-        x: ax * lon + bx * lat + cx,
-        y: ay * lon + by * lat + cy,
-      };
+      return { x: ax * lon + bx * lat + cx, y: ay * lon + by * lat + cy };
     },
     [affineRef],
   );
@@ -281,7 +277,6 @@ export default forwardRef(function MapCanvasBlock(
 
     // Приоритетные группы узлов
     const priorityNodes = [
-      // Все узлы, начинающиеся с Q, W, D, Y
       ...nodes.filter((n) => n.id.startsWith("Q")).map((n) => n.id),
       ...nodes.filter((n) => n.id.startsWith("W")).map((n) => n.id),
       ...nodes.filter((n) => n.id.startsWith("D")).map((n) => n.id),
@@ -290,7 +285,7 @@ export default forwardRef(function MapCanvasBlock(
       ...nodes.filter((n) => n.id.startsWith("E")).map((n) => n.id),
     ];
 
-    // Узлы, которые хотим избегать (можно добавить позже)
+    // Узлы, которые хотим избегать
     const avoidNodes = [
       "M1",
       "Q1",
@@ -310,39 +305,25 @@ export default forwardRef(function MapCanvasBlock(
       "Z11",
       "Z12",
       "Z13",
-      "D3",
     ];
 
-    // Проверяем принадлежность узлов к приоритетным группам
     const isNode1Priority = priorityNodes.includes(node1Id);
     const isNode2Priority = priorityNodes.includes(node2Id);
     const isNode1Avoid = avoidNodes.includes(node1Id);
     const isNode2Avoid = avoidNodes.includes(node2Id);
 
-    // Приоритетные пути (оба узла из Q, W, D, Y)
     if (isNode1Priority && isNode2Priority) {
-      // Уменьшаем вес на 70% - делаем очень привлекательными
       distance = distance * 0.3;
-      console.log(
-        `Priority path: ${node1Id} → ${node2Id} = ${distance.toFixed(2)}`,
-      );
-    }
-    // Пути, ведущие к приоритетным узлам
-    else if (isNode1Priority || isNode2Priority) {
-      // Умеренное уменьшение веса на 40%
+    } else if (isNode1Priority || isNode2Priority) {
       distance = distance * 0.6;
     }
 
-    // Штрафы для нежелательных узлов
     if (isNode1Avoid && isNode2Avoid) {
-      // Оба узла нежелательные - большой штраф
       distance = distance * 3;
     } else if (isNode1Avoid || isNode2Avoid) {
-      // Один узел нежелательный - средний штраф
       distance = distance * 1.8;
     }
 
-    // Дополнительный бонус для связок внутри одной группы
     const sameGroup =
       (node1Id.startsWith("Q") && node2Id.startsWith("Q")) ||
       (node1Id.startsWith("W") && node2Id.startsWith("W")) ||
@@ -350,7 +331,6 @@ export default forwardRef(function MapCanvasBlock(
       (node1Id.startsWith("Y") && node2Id.startsWith("Y"));
 
     if (sameGroup) {
-      // Дополнительный бонус за перемещение внутри одной группы
       distance = distance * 0.8;
     }
 
@@ -362,10 +342,8 @@ export default forwardRef(function MapCanvasBlock(
     (startId, endId) => {
       console.log(`Building weighted route from ${startId} to ${endId}`);
 
-      // Создаем граф с весами
       const graph = {};
 
-      // Для каждого ребра добавляем вес = расстояние между узлами
       edges.forEach(({ from, to }) => {
         const distance = calculateDistance(from, to);
 
@@ -376,12 +354,10 @@ export default forwardRef(function MapCanvasBlock(
         graph[to].push({ node: from, weight: distance });
       });
 
-      // Дейкстра
       const distances = {};
       const previous = {};
       const unvisited = new Set();
 
-      // Инициализация
       nodes.forEach((node) => {
         distances[node.id] = Infinity;
         previous[node.id] = null;
@@ -391,7 +367,6 @@ export default forwardRef(function MapCanvasBlock(
       distances[startId] = 0;
 
       while (unvisited.size > 0) {
-        // Находим узел с минимальным расстоянием среди непосещённых
         let current = null;
         let minDistance = Infinity;
 
@@ -403,11 +378,10 @@ export default forwardRef(function MapCanvasBlock(
         }
 
         if (current === null || current === endId) break;
-        if (distances[current] === Infinity) break; // Нет пути
+        if (distances[current] === Infinity) break;
 
         unvisited.delete(current);
 
-        // Обновляем расстояния до соседей
         for (const neighbor of graph[current] || []) {
           if (!unvisited.has(neighbor.node)) continue;
 
@@ -419,7 +393,6 @@ export default forwardRef(function MapCanvasBlock(
         }
       }
 
-      // Восстанавливаем путь
       if (distances[endId] === Infinity) {
         console.warn("No path found");
         return null;
@@ -474,7 +447,7 @@ export default forwardRef(function MapCanvasBlock(
     [clampOffset],
   );
 
-  // --- построение маршрута к храму (используем Дейкстру) ---
+  // --- построение маршрута к храму ---
   const buildRouteToTemple = useCallback(
     (templeId) => {
       console.log("buildRouteToTemple called with:", templeId);
@@ -504,7 +477,6 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      // Используем Дейкстру вместо BFS
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToTemple.id,
@@ -531,7 +503,7 @@ export default forwardRef(function MapCanvasBlock(
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к музею (используем Дейкстру) ---
+  // --- построение маршрута к музею ---
   const buildRouteToMuseum = useCallback(
     (museumId) => {
       console.log("buildRouteToMuseum called with:", museumId);
@@ -561,7 +533,6 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      // Используем Дейкстру вместо BFS
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToMuseum.id,
@@ -588,7 +559,7 @@ export default forwardRef(function MapCanvasBlock(
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к искусству (используем Дейкстру) ---
+  // --- построение маршрута к искусству ---
   const buildRouteToArt = useCallback(
     (artId) => {
       console.log("buildRouteToArt called with:", artId);
@@ -618,7 +589,6 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      // Используем Дейкстру
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToArt.id,
@@ -645,7 +615,7 @@ export default forwardRef(function MapCanvasBlock(
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к истории (используем Дейкстру) ---
+  // --- построение маршрута к истории ---
   const buildRouteToHistory = useCallback(
     (historyId) => {
       console.log("buildRouteToHistory called with:", historyId);
@@ -678,7 +648,6 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      // Используем Дейкстру
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToHistory.id,
@@ -705,7 +674,7 @@ export default forwardRef(function MapCanvasBlock(
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута к семейным местам (используем Дейкстру) ---
+  // --- построение маршрута к семейным местам ---
   const buildRouteToFamily = useCallback(
     (familyId) => {
       console.log("buildRouteToFamily called with:", familyId);
@@ -738,7 +707,6 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      // Используем Дейкстру
       const path = buildRouteDijkstra(
         nearestNodeToUser.id,
         nearestNodeToFamily.id,
@@ -765,7 +733,7 @@ export default forwardRef(function MapCanvasBlock(
     [userGPS, gpsToPixel, findNearestNode, buildRouteDijkstra],
   );
 
-  // --- построение маршрута из GPS пользователя для квеста (используем Дейкстру) ---
+  // --- построение маршрута из GPS пользователя для квеста ---
   const rebuildRouteFromUser = useCallback(() => {
     if (mode !== "step2") {
       return;
@@ -780,13 +748,12 @@ export default forwardRef(function MapCanvasBlock(
     if (!startQP) return;
 
     let nearestNode = findNearestNode(userPx);
-    // Используем Дейкстру вместо BFS
     const path = buildRouteDijkstra(nearestNode.id, "START");
     if (!path) return;
 
-    // УБИРАЕМ СМЕЩЕНИЕ - больше не используем iconCenterOffset
+    // Убрано смещение iconCenterOffset
     const routeWithUser = [
-      { id: "USER", ...userPx },
+      { id: "USER", x: userPx.x, y: userPx.y },
       ...path
         .map((id) => {
           const node = nodes.find((n) => n.id === id);
@@ -794,7 +761,7 @@ export default forwardRef(function MapCanvasBlock(
             ? {
                 id: node.id,
                 x: node.x,
-                y: node.y, // ← УБРАНО смещение
+                y: node.y,
               }
             : null;
         })
@@ -804,7 +771,7 @@ export default forwardRef(function MapCanvasBlock(
     routeWithUser.push({
       id: "START",
       x: startQP.x,
-      y: startQP.y, // ← УБРАНО смещение
+      y: startQP.y,
     });
 
     setRouteNodes(routeWithUser);
@@ -864,7 +831,7 @@ export default forwardRef(function MapCanvasBlock(
     currentMapMode,
   ]);
 
-  // Объединенная функция построения маршрутов для квеста (используем Дейкстру)
+  // Объединенная функция построения маршрутов для квеста
   const buildRouteBetweenPoints = useCallback(
     (startOrder, targetOrder) => {
       const startQP = questPoints.find((qp) => qp.order === startOrder);
@@ -896,11 +863,7 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      // Размер иконки зайца 40px, центр иконки на 20px ниже верхнего края
-      const iconSize = 40;
-      const iconCenterOffset = iconSize / 2; // 20px - смещение к центру иконки
-
-      // Промежуточные точки (nodes) - без смещения
+      // Убрано смещение iconCenterOffset
       const route = path
         .map((id) => {
           const node = nodes.find((n) => n.id === id);
@@ -908,24 +871,22 @@ export default forwardRef(function MapCanvasBlock(
             ? {
                 id: node.id,
                 x: node.x,
-                y: node.y, // без смещения
+                y: node.y,
               }
             : null;
         })
         .filter(Boolean);
 
-      // СТАРТОВАЯ точка зайца - со смещением к центру иконки
       route.unshift({
         id: startQP.id,
         x: startQP.x,
-        y: startQP.y - iconCenterOffset, // ← смещение к центру иконки
+        y: startQP.y,
       });
 
-      // КОНЕЧНАЯ точка зайца - со смещением к центру иконки
       route.push({
         id: targetQP.id,
         x: targetQP.x,
-        y: targetQP.y - iconCenterOffset, // ← смещение к центру иконки
+        y: targetQP.y,
       });
 
       setRouteNodes(route);
@@ -1224,16 +1185,6 @@ export default forwardRef(function MapCanvasBlock(
     [foundQuestPoints, mode],
   );
 
-  // ========== ФУНКЦИЯ ПРИНУДИТЕЛЬНОГО ПЕРЕХОДА КО ВТОРОМУ ЗАЙЦУ ==========
-  const forceGoToSecondHare = useCallback(() => {
-    if (mode === "step2") {
-      console.log(
-        "🔧 Принудительный переход ко второму зайцу (GPS не работает)",
-      );
-      onQuestPointReached?.(2);
-    }
-  }, [mode, onQuestPointReached]);
-
   // ========== ФУНКЦИЯ ОТРИСОВКИ ==========
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
@@ -1265,22 +1216,19 @@ export default forwardRef(function MapCanvasBlock(
     ctx.scale(zoomRef.current, zoomRef.current);
 
     // --- ОТЛАДКА: отрисовка всех узлов графа (временная) ---
-    const SHOW_DEBUG_NODES = false; // false / true
+    const SHOW_DEBUG_NODES = false;
     if (SHOW_DEBUG_NODES) {
       nodes.forEach((node) => {
-        // Рисуем точку узла
         ctx.fillStyle = "#00FF00";
         ctx.beginPath();
         ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
         ctx.fill();
 
-        // Добавляем ID узла для идентификации
         ctx.fillStyle = "black";
         ctx.font = "bold 10px 'Advent Pro', sans-serif";
         ctx.textAlign = "center";
         ctx.fillText(node.id, node.x, node.y - 10);
 
-        // Рисуем координаты для особо важных узлов
         if (
           node.id === "START" ||
           node.id === "L" ||
@@ -1294,7 +1242,6 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
-    // --- ОТЛАДКА: отрисовка всех соединений (рёбер графа) ---
     if (SHOW_DEBUG_NODES) {
       ctx.strokeStyle = "rgba(0, 255, 0, 0.3)";
       ctx.lineWidth = 2;
@@ -1325,7 +1272,7 @@ export default forwardRef(function MapCanvasBlock(
       });
     }
 
-    // --- draw route on top ---
+    // --- draw route on top (с корректировкой в центр иконок) ---
     if (routeNodes && routeNodes.length > 1) {
       if (
         mode === "temple" ||
@@ -1335,20 +1282,50 @@ export default forwardRef(function MapCanvasBlock(
         mode === "family"
       ) {
         ctx.strokeStyle = "#FFD700";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
       } else {
-        ctx.strokeStyle = "#ffffffaa";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
       }
 
       ctx.beginPath();
+      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      ctx.shadowBlur = 4;
 
       routeNodes.forEach((n, i) => {
         if (!n) return;
 
-        // Используем координаты из routeNodes
         let x = n.x;
         let y = n.y;
+
+        // Корректируем координаты, чтобы линия уходила в центр иконки
+        if (n.id === "USER") {
+          // Пользователь - красная точка, уже в центре
+        } else if (n.id === "START" || n.id?.startsWith("QP")) {
+          // Квестовые точки - иконка 40px, рисуется со смещением -40 по Y
+          // Центр иконки: y + 20
+          y = n.y - 20;
+        } else if (
+          n.isTemple ||
+          n.isMuseum ||
+          n.isArt ||
+          n.isHistory ||
+          n.isFamily
+        ) {
+          // Храмы, музеи и т.д. - иконка 45px, рисуется со смещением -45 по Y
+          // Центр иконки: y + 22.5
+          y = n.y - 22.5;
+        } else if (
+          n.id?.startsWith("MUSEUM") ||
+          n.id === "ART_1" ||
+          n.id === "ART_2" ||
+          n.id === "ART_3" ||
+          n.id === "HISTORY_1" ||
+          n.id === "FAMILY_1" ||
+          n.id === "FAMILY_2"
+        ) {
+          y = n.y + 22.5;
+        }
 
         if (i === 0) {
           ctx.moveTo(x, y);
@@ -1358,17 +1335,7 @@ export default forwardRef(function MapCanvasBlock(
       });
 
       ctx.stroke();
-
-      // --- ОТЛАДКА: показываем точки маршрута ---
-      if (SHOW_DEBUG_NODES) {
-        routeNodes.forEach((n, i) => {
-          if (!n) return;
-          ctx.fillStyle = i === 0 ? "#FF0000" : "#FF00FF";
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
-          ctx.fill();
-        });
-      }
+      ctx.shadowColor = "transparent";
     }
 
     // --- Отрисовка квестовых точек ---
@@ -1416,7 +1383,6 @@ export default forwardRef(function MapCanvasBlock(
           iconSize,
         );
 
-        // --- ОТЛАДКА: показываем центр иконки и порядок ---
         if (SHOW_DEBUG_NODES) {
           ctx.fillStyle = "yellow";
           ctx.beginPath();
@@ -1459,7 +1425,6 @@ export default forwardRef(function MapCanvasBlock(
           ctx.fill();
         }
 
-        // --- ОТЛАДКА: показываем координаты ресторанов ---
         if (SHOW_DEBUG_NODES) {
           ctx.fillStyle = "orange";
           ctx.beginPath();
@@ -1500,7 +1465,6 @@ export default forwardRef(function MapCanvasBlock(
             ctx.shadowColor = "transparent";
           }
 
-          // --- ОТЛАДКА: показываем центр иконки храма и attachTo ---
           if (SHOW_DEBUG_NODES) {
             ctx.fillStyle = "purple";
             ctx.beginPath();
@@ -1560,7 +1524,6 @@ export default forwardRef(function MapCanvasBlock(
     // --- ОТРИСОВКА ИСКУССТВА ---
     if (mode === "art" && artPoints && artPoints.length > 0) {
       const iconSize = 45;
-      // Используем иконку музея для искусства (или можно добавить свою)
       const icon = museumIconsRef.current.default;
 
       artPoints.forEach((art) => {
@@ -1583,7 +1546,7 @@ export default forwardRef(function MapCanvasBlock(
             ctx.shadowColor = "transparent";
           }
         } else {
-          ctx.fillStyle = "#FF69B4"; // Розовый цвет для искусства
+          ctx.fillStyle = "#FF69B4";
           ctx.beginPath();
           ctx.arc(art.x, art.y - iconSize / 2, 8, 0, Math.PI * 2);
           ctx.fill();
@@ -1594,7 +1557,6 @@ export default forwardRef(function MapCanvasBlock(
     // --- ОТРИСОВКА ИСТОРИИ ---
     if (mode === "history" && historyPoints && historyPoints.length > 0) {
       const iconSize = 45;
-      // Используем иконку музея для истории (или можно добавить свою)
       const icon = museumIconsRef.current.default;
 
       historyPoints.forEach((history) => {
@@ -1617,7 +1579,7 @@ export default forwardRef(function MapCanvasBlock(
             ctx.shadowColor = "transparent";
           }
         } else {
-          ctx.fillStyle = "#8B4513"; // Коричневый цвет для истории
+          ctx.fillStyle = "#8B4513";
           ctx.beginPath();
           ctx.arc(history.x, history.y - iconSize / 2, 8, 0, Math.PI * 2);
           ctx.fill();
@@ -1628,7 +1590,6 @@ export default forwardRef(function MapCanvasBlock(
     // --- ОТРИСОВКА СЕМЕЙНЫХ МЕСТ ---
     if (mode === "family" && familyPoints && familyPoints.length > 0) {
       const iconSize = 45;
-      // Используем иконку музея для семейных мест (или можно добавить свою)
       const icon = museumIconsRef.current.default;
 
       familyPoints.forEach((family) => {
@@ -1651,7 +1612,7 @@ export default forwardRef(function MapCanvasBlock(
             ctx.shadowColor = "transparent";
           }
         } else {
-          ctx.fillStyle = "#FFA500"; // Оранжевый цвет для семейных мест
+          ctx.fillStyle = "#FFA500";
           ctx.beginPath();
           ctx.arc(family.x, family.y - iconSize / 2, 8, 0, Math.PI * 2);
           ctx.fill();
@@ -1674,7 +1635,6 @@ export default forwardRef(function MapCanvasBlock(
         ctx.arc(up.x, up.y, 12, 0, Math.PI * 2);
         ctx.stroke();
 
-        // --- ОТЛАДКА: показываем координаты пользователя ---
         if (SHOW_DEBUG_NODES) {
           ctx.fillStyle = "white";
           ctx.font = "10px 'Advent Pro', sans-serif";
@@ -1702,7 +1662,7 @@ export default forwardRef(function MapCanvasBlock(
   useEffect(() => {
     let isMounted = true;
     let loadedCount = 0;
-    const totalImages = 1 + (restaurants?.length || 0) + 5; // +5 для temple, museum, art, history и family
+    const totalImages = 1 + (restaurants?.length || 0) + 5;
 
     const updateProgress = () => {
       loadedCount++;
@@ -1759,7 +1719,6 @@ export default forwardRef(function MapCanvasBlock(
       loadImage(museumIcon).then((img) => {
         if (img && isMounted) {
           museumIconsRef.current.default = img;
-          // Для искусства, истории и семейных мест используем ту же иконку
           artIconsRef.current.default = img;
           historyIconsRef.current.default = img;
           familyIconsRef.current.default = img;
@@ -2389,7 +2348,6 @@ export default forwardRef(function MapCanvasBlock(
       }
     },
 
-    // НОВЫЕ МЕТОДЫ ДЛЯ СЕМЕЙНЫХ МЕСТ
     buildRouteToFamily: (familyId) => {
       buildRouteToFamily(familyId);
     },
@@ -2548,25 +2506,14 @@ export default forwardRef(function MapCanvasBlock(
             {followMode === "user" ? "🚶" : "🏁"}
           </button>
 
-          {/* КНОПКА ДЛЯ ВТОРОГО ШАГА (ЗЕЛЁНАЯ) */}
-          {mode === "step2" && (
-            <div className="map-continue-container">
-              <button
-                className="map-continue-button"
-                onClick={forceGoToSecondHare}
-              >
-                Продолжить
-              </button>
-            </div>
-          )}
-
-          {/* КНОПКА ДЛЯ ОСТАЛЬНЫХ ШАГОВ */}
-          {mode !== "step2" && (
+          {/* Кнопка "Продолжить" теперь видна для всех шагов, включая step2 */}
+          {mode !== "step30" && (
             <div className="map-continue-container">
               <button
                 className="map-continue-button"
                 onClick={() => {
                   const stepMap = {
+                    step2: 2,
                     step4: 4,
                     step6: 6,
                     step8: 8,
