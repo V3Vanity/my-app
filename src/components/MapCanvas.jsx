@@ -41,7 +41,7 @@ import {
   familyPoints,
 } from "./mapData.js";
 const DEBUG_USER = false;
-const debugUserGPS = { lat: 57.7723, lon: 40.9349 };
+const debugUserGPS = { lat: 57.771139, lon: 40.934234 };
 
 export default forwardRef(function MapCanvasBlock(
   {
@@ -240,13 +240,9 @@ export default forwardRef(function MapCanvasBlock(
       const [ax, bx, cx] = affineRef.current.ax;
       const [ay, by, cy] = affineRef.current.ay;
 
-      // РУЧНОЕ СМЕЩЕНИЕ - ИЗМЕНЯЙТЕ ЭТИ ЗНАЧЕНИЯ
-      const OFFSET_X = -40; // положительное = вправо, отрицательное = влево
-      const OFFSET_Y = -65; // положительное = вниз, отрицательное = вверх
-
       return {
-        x: ax * lon + bx * lat + cx + OFFSET_X,
-        y: ay * lon + by * lat + cy + OFFSET_Y,
+        x: ax * lon + bx * lat + cx,
+        y: ay * lon + by * lat + cy,
       };
     },
     [affineRef],
@@ -291,6 +287,7 @@ export default forwardRef(function MapCanvasBlock(
       ...nodes.filter((n) => n.id.startsWith("D")).map((n) => n.id),
       ...nodes.filter((n) => n.id.startsWith("Y")).map((n) => n.id),
       ...nodes.filter((n) => n.id.startsWith("U")).map((n) => n.id),
+      ...nodes.filter((n) => n.id.startsWith("E")).map((n) => n.id),
     ];
 
     // Узлы, которые хотим избегать (можно добавить позже)
@@ -300,7 +297,6 @@ export default forwardRef(function MapCanvasBlock(
       "Q2",
       "P1",
       "R1",
-      "U1", // обходные узлы
       "Z1",
       "Z2",
       "Z3",
@@ -313,7 +309,8 @@ export default forwardRef(function MapCanvasBlock(
       "Z10",
       "Z11",
       "Z12",
-      "Z13", // окраины
+      "Z13",
+      "D3",
     ];
 
     // Проверяем принадлежность узлов к приоритетным группам
@@ -787,9 +784,7 @@ export default forwardRef(function MapCanvasBlock(
     const path = buildRouteDijkstra(nearestNode.id, "START");
     if (!path) return;
 
-    const iconSize = 40;
-    const iconCenterOffset = iconSize / 2;
-
+    // УБИРАЕМ СМЕЩЕНИЕ - больше не используем iconCenterOffset
     const routeWithUser = [
       { id: "USER", ...userPx },
       ...path
@@ -799,7 +794,7 @@ export default forwardRef(function MapCanvasBlock(
             ? {
                 id: node.id,
                 x: node.x,
-                y: node.y - iconCenterOffset,
+                y: node.y, // ← УБРАНО смещение
               }
             : null;
         })
@@ -809,7 +804,7 @@ export default forwardRef(function MapCanvasBlock(
     routeWithUser.push({
       id: "START",
       x: startQP.x,
-      y: startQP.y - iconCenterOffset,
+      y: startQP.y, // ← УБРАНО смещение
     });
 
     setRouteNodes(routeWithUser);
@@ -892,7 +887,6 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
-      // Используем Дейкстру вместо BFS
       const path = buildRouteDijkstra(
         nearestNodeToStart.id,
         nearestNodeToTarget.id,
@@ -902,9 +896,11 @@ export default forwardRef(function MapCanvasBlock(
         return;
       }
 
+      // Размер иконки зайца 40px, центр иконки на 20px ниже верхнего края
       const iconSize = 40;
-      const iconCenterOffset = iconSize / 2;
+      const iconCenterOffset = iconSize / 2; // 20px - смещение к центру иконки
 
+      // Промежуточные точки (nodes) - без смещения
       const route = path
         .map((id) => {
           const node = nodes.find((n) => n.id === id);
@@ -912,22 +908,24 @@ export default forwardRef(function MapCanvasBlock(
             ? {
                 id: node.id,
                 x: node.x,
-                y: node.y - iconCenterOffset,
+                y: node.y, // без смещения
               }
             : null;
         })
         .filter(Boolean);
 
+      // СТАРТОВАЯ точка зайца - со смещением к центру иконки
       route.unshift({
         id: startQP.id,
         x: startQP.x,
-        y: startQP.y - iconCenterOffset,
+        y: startQP.y - iconCenterOffset, // ← смещение к центру иконки
       });
 
+      // КОНЕЧНАЯ точка зайца - со смещением к центру иконки
       route.push({
         id: targetQP.id,
         x: targetQP.x,
-        y: targetQP.y - iconCenterOffset,
+        y: targetQP.y - iconCenterOffset, // ← смещение к центру иконки
       });
 
       setRouteNodes(route);
@@ -1257,7 +1255,7 @@ export default forwardRef(function MapCanvasBlock(
     ctx.scale(zoomRef.current, zoomRef.current);
 
     // --- ОТЛАДКА: отрисовка всех узлов графа (временная) ---
-    const SHOW_DEBUG_NODES = false; // false / true
+    const SHOW_DEBUG_NODES = true; // false / true
     if (SHOW_DEBUG_NODES) {
       nodes.forEach((node) => {
         // Рисуем точку узла

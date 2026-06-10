@@ -44,79 +44,86 @@ import tgQr2 from "./assets/tg-qr-2.svg";
 import vkQr2 from "./assets/vk-qr-2.svg";
 
 function App() {
-  const [hasAccess, setHasAccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const { isAuthenticated, user } = useAuth();
 
   // Оптимизированная проверка доступа с кешированием
   useEffect(() => {
-    const checkAccess = async () => {
-      setIsLoading(true);
+    // ВРЕМЕННО: даём доступ сразу без проверок для локального тестирования
+    setHasAccess(true);
+    setIsLoading(false);
 
-      // Если пользователь не авторизован — доступа нет
-      if (!isAuthenticated || !user?.id) {
-        setHasAccess(false);
-        setIsLoading(false);
-        return;
-      }
+    // Оригинальный код с проверками закомментирован
+    /*
+  const checkAccess = async () => {
+    setIsLoading(true);
 
-      // 1. Сначала проверяем localStorage (кеш)
-      const cachedAccess = localStorage.getItem("app_access");
-      const cachedTimestamp = localStorage.getItem("app_access_timestamp");
-      const now = Date.now();
+    // Если пользователь не авторизован — доступа нет
+    if (!isAuthenticated || !user?.id) {
+      setHasAccess(false);
+      setIsLoading(false);
+      return;
+    }
 
-      // Если кешу меньше 5 минут — используем его
-      if (
-        cachedAccess === "true" &&
-        cachedTimestamp &&
-        now - parseInt(cachedTimestamp) < 5 * 60 * 1000
-      ) {
-        setHasAccess(true);
-        setIsLoading(false);
-        return;
-      }
+    // 1. Сначала проверяем localStorage (кеш)
+    const cachedAccess = localStorage.getItem("app_access");
+    const cachedTimestamp = localStorage.getItem("app_access_timestamp");
+    const now = Date.now();
 
-      // 2. Если кеш устарел или нет — идем в PHP API
-      try {
-        const response = await fetch(
-          "https://kostromagid.ru/backend/api/auth/check-access.php",
-          {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
+    // Если кешу меньше 5 минут — используем его
+    if (
+      cachedAccess === "true" &&
+      cachedTimestamp &&
+      now - parseInt(cachedTimestamp) < 5 * 60 * 1000
+    ) {
+      setHasAccess(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // 2. Если кеш устарел или нет — идем в PHP API
+    try {
+      const response = await fetch(
+        "https://kostromagid.ru/backend/api/auth/check-access.php",
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
           },
-        );
+        },
+      );
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-          console.error("Ошибка проверки доступа:", data.error);
-          setHasAccess(false);
-        } else {
-          const hasActiveAccess = data.hasAccess === true;
-          setHasAccess(hasActiveAccess);
-
-          // Обновляем кеш
-          if (hasActiveAccess) {
-            localStorage.setItem("app_access", "true");
-            localStorage.setItem("app_access_timestamp", String(now));
-          } else {
-            localStorage.removeItem("app_access");
-            localStorage.removeItem("app_access_timestamp");
-          }
-        }
-      } catch (err) {
-        console.error("Ошибка при проверке доступа:", err);
+      if (!response.ok) {
+        console.error("Ошибка проверки доступа:", data.error);
         setHasAccess(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      } else {
+        const hasActiveAccess = data.hasAccess === true;
+        setHasAccess(hasActiveAccess);
 
-    checkAccess();
+        // Обновляем кеш
+        if (hasActiveAccess) {
+          localStorage.setItem("app_access", "true");
+          localStorage.setItem("app_access_timestamp", String(now));
+        } else {
+          localStorage.removeItem("app_access");
+          localStorage.removeItem("app_access_timestamp");
+        }
+      }
+    } catch (err) {
+      console.error("Ошибка при проверке доступа:", err);
+      setHasAccess(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  checkAccess();
+  */
   }, [isAuthenticated, user]);
 
   // Плавная прокрутка к секции
@@ -879,10 +886,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route
-          path="/app/*"
-          element={hasAccess ? <MainApp /> : <Navigate to="/" replace />}
-        />
+        <Route path="/app/*" element={<MainApp />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
