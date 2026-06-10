@@ -1224,6 +1224,16 @@ export default forwardRef(function MapCanvasBlock(
     [foundQuestPoints, mode],
   );
 
+  // ========== ФУНКЦИЯ ПРИНУДИТЕЛЬНОГО ПЕРЕХОДА КО ВТОРОМУ ЗАЙЦУ ==========
+  const forceGoToSecondHare = useCallback(() => {
+    if (mode === "step2") {
+      console.log(
+        "🔧 Принудительный переход ко второму зайцу (GPS не работает)",
+      );
+      onQuestPointReached?.(2);
+    }
+  }, [mode, onQuestPointReached]);
+
   // ========== ФУНКЦИЯ ОТРИСОВКИ ==========
   const drawMap = useCallback(() => {
     const canvas = canvasRef.current;
@@ -1255,7 +1265,7 @@ export default forwardRef(function MapCanvasBlock(
     ctx.scale(zoomRef.current, zoomRef.current);
 
     // --- ОТЛАДКА: отрисовка всех узлов графа (временная) ---
-    const SHOW_DEBUG_NODES = true; // false / true
+    const SHOW_DEBUG_NODES = false; // false / true
     if (SHOW_DEBUG_NODES) {
       nodes.forEach((node) => {
         // Рисуем точку узла
@@ -2538,6 +2548,19 @@ export default forwardRef(function MapCanvasBlock(
             {followMode === "user" ? "🚶" : "🏁"}
           </button>
 
+          {/* КНОПКА ДЛЯ ВТОРОГО ШАГА (ЗЕЛЁНАЯ) */}
+          {mode === "step2" && (
+            <div className="map-continue-container">
+              <button
+                className="map-continue-button"
+                onClick={forceGoToSecondHare}
+              >
+                Продолжить
+              </button>
+            </div>
+          )}
+
+          {/* КНОПКА ДЛЯ ОСТАЛЬНЫХ ШАГОВ */}
           {mode !== "step2" && (
             <div className="map-continue-container">
               <button
