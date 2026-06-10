@@ -694,7 +694,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint6Image}
-          hintAddress="Фабричный район"
+          hintAddress="Не доходя до кафе Лесная улица, 2"
           stepNumber={13}
           audioSrc={stepAudioMap[6]}
         >
@@ -785,7 +785,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint7Image}
-          hintAddress="Центральный парк"
+          hintAddress="ул. Чайковского, 9"
           stepNumber={15}
           audioSrc={stepAudioMap[7]}
         >
@@ -879,7 +879,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint8Image}
-          hintAddress="улица 1 Мая"
+          hintAddress="Горная ул., 3"
           stepNumber={17}
           audioSrc={stepAudioMap[8]}
         >
@@ -974,7 +974,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint9Image}
-          hintAddress="Советская площадь, 4"
+          hintAddress="Советская ул., 15, Кострома"
           stepNumber={19}
           audioSrc={stepAudioMap[9]}
         >
@@ -1035,7 +1035,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint10Image}
-          hintAddress="Советская ул, 15"
+          hintAddress="Советская площадь"
           stepNumber={21}
           audioSrc={stepAudioMap[10]}
         >
@@ -1118,7 +1118,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint11Image}
-          hintAddress="Советская площадь"
+          hintAddress="ул. Красные Ряды, 1, Кострома"
           stepNumber={23}
           audioSrc={stepAudioMap[11]}
         >
@@ -1176,7 +1176,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint12Image}
-          hintAddress="ул. Красные Ряды, 1"
+          hintAddress="ул. Табачные Ряды, 1, Кострома"
           stepNumber={25}
           audioSrc={stepAudioMap[12]}
         >
@@ -1262,7 +1262,7 @@ export default function QuestPage() {
           onBack={handleBack}
           onNextStep={handleNextStep}
           hintImage={hint13Image}
-          hintAddress="ул. Табачные Ряды, 1"
+          hintAddress="ул. Пряничные Ряды, 1"
           stepNumber={27}
           audioSrc={stepAudioMap[13]}
         >
