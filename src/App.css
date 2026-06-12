@@ -514,25 +514,43 @@ body {
   display: block;
   position: relative;
   z-index: 2;
+  pointer-events: none;
 }
 
+/* ===== ВИДЕО КОНТЕЙНЕРЫ - ИСПРАВЛЕНЫ ДЛЯ КНОПОК ===== */
 .landing-video-container {
   position: absolute;
   top: 2%;
-  left: 51%;
+  left: 50%;
   transform: translateX(-50%);
-  width: 85%;
-  height: 95%;
-  border-radius: 45px;
+  width: 86%;
+  height: 97%;
+  border-radius: 38px;
   z-index: 1;
-  overflow: hidden;
+  overflow: visible;
+  pointer-events: auto;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .landing-demo-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 20px;
+  border-radius: 35px;
+  cursor: pointer;
+  background: #000;
+}
+
+/* Стили для контролов видео */
+.landing-demo-video::-webkit-media-controls {
+  z-index: 20;
+}
+
+.landing-demo-video::-webkit-media-controls-panel {
+  z-index: 20;
 }
 
 /* ===== СЕКЦИЯ "ВАМ ТОЖЕ ЗНАКОМО?" ===== */
@@ -890,26 +908,42 @@ body {
   display: block;
   position: relative;
   z-index: 2;
+  pointer-events: none;
 }
 
+/* ===== ВИДЕО ГОРОДА - ИСПРАВЛЕНЫ КНОПКИ ===== */
 .landing-city-video-wrapper {
   position: absolute;
-  top: 7%;
+  top: 6%;
   left: 50%;
   transform: translateX(-50%);
-  width: 96%;
-  height: 86%;
-  border-radius: 76px;
-  overflow: hidden;
+  width: 94%;
+  height: 88%;
+  border-radius: 55px;
+  overflow: visible;
   z-index: 1;
-  padding: 8px 8px 8px 8px;
+  padding: 0;
+  pointer-events: auto;
+  background: #000;
 }
 
 .landing-city-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 70% 0%;
+  object-position: 50% 50%;
+  border-radius: 50px;
+  cursor: pointer;
+  background: #000;
+}
+
+/* Стили для контролов видео города */
+.landing-city-video::-webkit-media-controls {
+  z-index: 20;
+}
+
+.landing-city-video::-webkit-media-controls-panel {
+  z-index: 20;
 }
 
 /* ===== СЕКЦИЯ "КУПИТЬ ДОСТУП" ===== */
@@ -1357,6 +1391,17 @@ body {
     max-width: 280px;
   }
 
+  /* Адаптив видео контейнера */
+  .landing-video-container {
+    border-radius: 28px;
+    width: 86%;
+    height: 96%;
+  }
+
+  .landing-demo-video {
+    border-radius: 25px;
+  }
+
   /* Другие секции */
   .landing-feeling-content,
   .landing-guide-content {
@@ -1493,6 +1538,16 @@ body {
 
   .landing-city-phone-frame {
     width: 380px;
+  }
+
+  .landing-city-video-wrapper {
+    border-radius: 35px;
+    width: 94%;
+    height: 87%;
+  }
+
+  .landing-city-video {
+    border-radius: 32px;
   }
 
   /* Секция покупки */
@@ -1696,13 +1751,15 @@ body {
     max-width: 260px;
   }
 
+  /* Адаптив видео контейнера для 480px */
   .landing-video-container {
-    top: 2%;
-    left: 51%;
-    transform: translateX(-50%);
-    width: 85%;
-    height: 97%;
-    border-radius: 45px;
+    border-radius: 20px;
+    width: 86%;
+    height: 94%;
+  }
+
+  .landing-demo-video {
+    border-radius: 18px;
   }
 
   /* Другие секции */
@@ -1798,7 +1855,7 @@ body {
     top: -22px;
   }
 
-  /* Видео города */
+  /* Видео города - 480px */
   .landing-city-video-section {
     padding: 60px 1rem 2rem;
   }
@@ -1812,12 +1869,13 @@ body {
   }
 
   .landing-city-video-wrapper {
-    border-radius: 43px;
-    top: 5%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    height: 90%;
+    border-radius: 25px;
+    width: 94%;
+    height: 86%;
+  }
+
+  .landing-city-video {
+    border-radius: 22px;
   }
 
   /* Секция покупки */
@@ -1859,205 +1917,205 @@ body {
     padding: 12px 32px;
     font-size: 14px;
   }
+}
 
-  /* ===== АДАПТИВ ПОДВАЛА ===== */
-  @media (max-width: 768px) {
-    .landing-footer {
-      padding: 35px 1.5rem 25px;
-    }
-
-    .landing-footer-container {
-      gap: 2rem;
-    }
-
-    .landing-footer-right-group {
-      gap: 2rem;
-    }
-
-    .landing-footer-col {
-      min-width: 220px;
-    }
-
-    .landing-footer-contact-title {
-      font-size: 0.85rem;
-    }
-
-    .landing-footer-email-text {
-      font-size: 0.7rem;
-    }
-
-    .landing-footer-qr-image {
-      width: 60px;
-      height: 60px;
-    }
-
-    .landing-footer-qr-label {
-      font-size: 0.65rem;
-    }
-
-    .landing-footer-requisites {
-      margin-top: 30px;
-      padding-top: 20px;
-    }
-
-    .requisites-text,
-    .requisites-link {
-      font-size: 9px;
-    }
+/* ===== АДАПТИВ ПОДВАЛА ===== */
+@media (max-width: 768px) {
+  .landing-footer {
+    padding: 35px 1.5rem 25px;
   }
 
-  @media (max-width: 600px) {
-    .landing-footer {
-      padding: 30px 1rem 20px;
-    }
-
-    .landing-footer-right-group {
-      flex-direction: column;
-      align-items: center;
-      gap: 2rem;
-    }
-
-    .landing-footer-col {
-      min-width: auto;
-      width: 100%;
-      max-width: 280px;
-    }
-
-    .landing-footer-qr-image {
-      width: 55px;
-      height: 55px;
-    }
-
-    .landing-footer-qr-label {
-      font-size: 0.6rem;
-    }
+  .landing-footer-container {
+    gap: 2rem;
   }
 
-  @media (max-width: 480px) {
-    .landing-footer {
-      padding: 25px 0.75rem 20px;
-    }
-
-    .landing-footer-contact-title {
-      font-size: 0.75rem;
-    }
-
-    .landing-footer-email-text {
-      font-size: 0.6rem;
-    }
-
-    .landing-footer-qr-image {
-      width: 50px;
-      height: 50px;
-    }
-
-    .landing-footer-qr-label {
-      font-size: 0.55rem;
-    }
-
-    .landing-footer-requisites {
-      margin-top: 25px;
-      padding-top: 15px;
-    }
-
-    .requisites-text,
-    .requisites-link {
-      font-size: 8px;
-    }
-
-    .landing-footer-requisites-content {
-      flex-direction: column;
-      gap: 5px;
-    }
+  .landing-footer-right-group {
+    gap: 2rem;
   }
 
-  /* Дополнительные адаптивные правки */
-  @media (max-width: 968px) {
-    .landing-footer {
-      padding: 40px 1.5rem 30px;
-    }
-
-    .landing-footer-container {
-      flex-wrap: nowrap;
-      gap: 1.5rem;
-    }
-
-    .landing-footer-col-large {
-      max-width: 35%;
-      flex: 1;
-    }
-
-    .landing-footer-text {
-      width: 100%;
-      font-size: 0.85rem;
-    }
-
-    .landing-footer-right-group {
-      gap: 1.5rem;
-      flex: 1;
-    }
-
-    .landing-footer-right-group .landing-footer-col {
-      min-width: auto;
-      flex: 1;
-    }
-
-    .landing-footer-col {
-      padding-left: 0;
-    }
-
-    .landing-footer-contact-title {
-      font-size: 0.85rem;
-      text-align: left;
-    }
-
-    .landing-footer-email {
-      justify-content: flex-start;
-    }
-
-    .landing-footer-email-text {
-      font-size: 0.75rem;
-    }
-
-    .landing-footer-qr-row {
-      justify-content: flex-start;
-      padding-left: 0;
-    }
-
-    .landing-footer-qr-image {
-      width: 55px;
-      height: 55px;
-    }
-
-    .landing-footer-qr-label {
-      font-size: 0.65rem;
-    }
+  .landing-footer-col {
+    min-width: 220px;
   }
 
-  @media (max-width: 600px) {
-    .landing-footer-container {
-      gap: 0.75rem;
-    }
+  .landing-footer-contact-title {
+    font-size: 0.85rem;
+  }
 
-    .landing-footer-text {
-      font-size: 0.7rem;
-    }
+  .landing-footer-email-text {
+    font-size: 0.7rem;
+  }
 
-    .landing-footer-contact-title {
-      font-size: 0.7rem;
-    }
+  .landing-footer-qr-image {
+    width: 60px;
+    height: 60px;
+  }
 
-    .landing-footer-email-text {
-      font-size: 0.6rem;
-    }
+  .landing-footer-qr-label {
+    font-size: 0.65rem;
+  }
 
-    .landing-footer-qr-image {
-      width: 40px;
-      height: 40px;
-    }
+  .landing-footer-requisites {
+    margin-top: 30px;
+    padding-top: 20px;
+  }
 
-    .landing-footer-qr-label {
-      font-size: 0.5rem;
-    }
+  .requisites-text,
+  .requisites-link {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-footer {
+    padding: 30px 1rem 20px;
+  }
+
+  .landing-footer-right-group {
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .landing-footer-col {
+    min-width: auto;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .landing-footer-qr-image {
+    width: 55px;
+    height: 55px;
+  }
+
+  .landing-footer-qr-label {
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-footer {
+    padding: 25px 0.75rem 20px;
+  }
+
+  .landing-footer-contact-title {
+    font-size: 0.75rem;
+  }
+
+  .landing-footer-email-text {
+    font-size: 0.6rem;
+  }
+
+  .landing-footer-qr-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  .landing-footer-qr-label {
+    font-size: 0.55rem;
+  }
+
+  .landing-footer-requisites {
+    margin-top: 25px;
+    padding-top: 15px;
+  }
+
+  .requisites-text,
+  .requisites-link {
+    font-size: 8px;
+  }
+
+  .landing-footer-requisites-content {
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+/* Дополнительные адаптивные правки */
+@media (max-width: 968px) {
+  .landing-footer {
+    padding: 40px 1.5rem 30px;
+  }
+
+  .landing-footer-container {
+    flex-wrap: nowrap;
+    gap: 1.5rem;
+  }
+
+  .landing-footer-col-large {
+    max-width: 35%;
+    flex: 1;
+  }
+
+  .landing-footer-text {
+    width: 100%;
+    font-size: 0.85rem;
+  }
+
+  .landing-footer-right-group {
+    gap: 1.5rem;
+    flex: 1;
+  }
+
+  .landing-footer-right-group .landing-footer-col {
+    min-width: auto;
+    flex: 1;
+  }
+
+  .landing-footer-col {
+    padding-left: 0;
+  }
+
+  .landing-footer-contact-title {
+    font-size: 0.85rem;
+    text-align: left;
+  }
+
+  .landing-footer-email {
+    justify-content: flex-start;
+  }
+
+  .landing-footer-email-text {
+    font-size: 0.75rem;
+  }
+
+  .landing-footer-qr-row {
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+
+  .landing-footer-qr-image {
+    width: 55px;
+    height: 55px;
+  }
+
+  .landing-footer-qr-label {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-footer-container {
+    gap: 0.75rem;
+  }
+
+  .landing-footer-text {
+    font-size: 0.7rem;
+  }
+
+  .landing-footer-contact-title {
+    font-size: 0.7rem;
+  }
+
+  .landing-footer-email-text {
+    font-size: 0.6rem;
+  }
+
+  .landing-footer-qr-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .landing-footer-qr-label {
+    font-size: 0.5rem;
   }
 }
