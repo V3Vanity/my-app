@@ -679,6 +679,8 @@ function App() {
                   loop
                   playsInline
                   controls
+                  defaultMuted={false}
+                  volume={0.15}
                 >
                   <source src="/city-video.mp4" type="video/mp4" />
                   Ваш браузер не поддерживает видео.
