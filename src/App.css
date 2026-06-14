@@ -176,6 +176,7 @@ body {
 .auth-buttons {
   display: flex;
   align-items: center;
+  margin-right: 10px;
 }
 
 .auth-buttons .nav-link {
@@ -185,7 +186,7 @@ body {
 .nav-link {
   background: none;
   border: none;
-  color: #cbb99c;
+  color: #673600;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -369,7 +370,6 @@ body {
 }
 
 .landing-about-btn {
-  text-transform: uppercase;
   background: #89674f;
   color: #fff8e9;
   border: none;
@@ -412,6 +412,7 @@ body {
   margin: 0 auto;
   width: 100%;
   max-width: 61%;
+  padding-top: 40px;
 }
 
 .landing-about-info-icon {
@@ -1342,7 +1343,7 @@ body {
 
   .landing-about-info-block {
     gap: 0.1rem;
-    justify-content: end;
+    justify-content: start;
     max-width: 90%;
   }
 
@@ -1660,7 +1661,7 @@ body {
   }
 
   .nav-link {
-    font-size: 9px;
+    font-size: 11px;
   }
 
   .landing-header.scrolled::before {
@@ -1682,34 +1683,39 @@ body {
 
   /* Секция "О нас" */
   .landing-about-section {
-    background-image: url("./assets/about-right-image-2.png");
-    padding: 200px 1rem 300px;
-    background-position: top;
+    padding: 230px 1rem 100px;
+    background-position: calc(-200%) 50px;
   }
 
   .landing-about-card {
     padding: 41px 25px;
-    max-width: 322px;
+    max-width: 380px;
     min-height: 293px;
     margin: 0 auto 10px;
     background: rgb(255 248 233 / 0%);
   }
 
   .landing-about-title-svg {
-    max-width: 200px;
+    max-width: 310px;
     margin-bottom: 13px;
   }
 
   .landing-about-description {
-    width: 218px;
+    width: 100%;
+    max-width: 250px;
     margin: 0 auto 20px;
-    font-size: 10px;
+    font-size: 9px;
+    text-align: justify;
+    text-align-last: justify;
+    hyphens: auto;
+    word-spacing: -0.5px;
   }
 
   .landing-about-btn {
-    padding: 12px 40px;
-    font-size: 14px;
+    padding: 10px 66px;
+    font-size: 16px;
     background-color: #673600;
+    margin: auto;
   }
 
   .landing-about-icon-svg {
@@ -1726,7 +1732,7 @@ body {
   .landing-about-info-text {
     font-size: 0.85rem;
     text-align: left;
-    max-width: 150px;
+    min-width: 280px;
   }
 
   /* Секция "Что внутри?" */
@@ -2117,5 +2123,65 @@ body {
 
   .landing-footer-qr-label {
     font-size: 0.5rem;
+  }
+}
+
+/* Логотип только для мобильной версии - скрыт на десктопе */
+.header-logo-mobile {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  margin-right: auto;
+  transition: all 0.4s ease;
+  flex-shrink: 0;
+}
+
+.logo-image-mobile {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+/* Показываем логотип только на мобильных устройствах */
+@media (max-width: 768px) {
+  .header-logo-mobile {
+    display: flex;
+  }
+
+  .logo-image-mobile {
+    height: 40px;
+  }
+
+  /* При свернутой шапке скрываем логотип на мобильных */
+  .landing-header.scrolled .header-logo-mobile {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    margin: 0;
+  }
+
+  /* При наведении на свернутую шапку показываем логотип */
+  .landing-header.scrolled:hover .header-logo-mobile {
+    opacity: 1;
+    visibility: visible;
+    width: auto;
+    margin-right: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-image-mobile {
+    height: 40px;
+  }
+}
+
+@media (max-width: 360px) {
+  .nav-link {
+    font-size: 8px;
+  }
+
+  .landing-about-section {
+    padding-top: 150px;
+    background-position: calc(120px) 50px;
   }
 }

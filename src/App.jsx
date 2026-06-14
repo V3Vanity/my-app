@@ -42,6 +42,7 @@ import tgQr1 from "./assets/tg-qr-1.svg";
 import vkQr1 from "./assets/vk-qr-1.svg";
 import tgQr2 from "./assets/tg-qr-2.svg";
 import vkQr2 from "./assets/vk-qr-2.svg";
+import gidLogoSvg from "./assets/gid-logo.svg";
 
 function App() {
   const [hasAccess, setHasAccess] = useState(false);
@@ -236,6 +237,15 @@ function App() {
         {/* Шапка */}
         <header className="landing-header">
           <div className="header-container">
+            {/* Логотип только для мобильной версии */}
+            <div className="header-logo-mobile">
+              <img
+                src={gidLogoSvg}
+                alt="Логотип Гид по Костроме"
+                className="logo-image-mobile"
+              />
+            </div>
+
             <nav className="nav-menu">
               <button
                 className={`nav-link ${activeSection === "about" ? "active" : ""}`}
@@ -303,7 +313,7 @@ function App() {
                   className={`landing-about-btn ${hasAccess ? "active" : ""}`}
                   onClick={handleAboutBtnClick}
                 >
-                  {hasAccess ? "Начать путешествие" : "Купить"}
+                  {hasAccess ? "Начать путешествие" : "купить"}
                 </button>
               </div>
 
