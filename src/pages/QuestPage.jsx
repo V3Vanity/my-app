@@ -52,6 +52,54 @@ import hare14Audio from "../assets/audio/hare-14.wav";
 import "../styles/fonts.css";
 import "/src/pages/QuestPage.css";
 
+// Компонент для оптимизированного изображения с ленивой загрузкой
+const OptimizedImage = ({ src, alt, className, priority = false }) => {
+  const [imageSrc, setImageSrc] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    if (priority) {
+      // Приоритетные изображения загружаем сразу
+      setImageSrc(src);
+    } else {
+      // Остальные - через Intersection Observer
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setImageSrc(src);
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: "200px" }, // Начинаем загрузку за 200px до появления
+      );
+
+      if (imgRef.current) {
+        observer.observe(imgRef.current);
+      }
+
+      return () => observer.disconnect();
+    }
+  }, [src, priority]);
+
+  return (
+    <div ref={imgRef} className={className} style={{ display: "inline-block" }}>
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          alt={alt}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          onLoad={() => setIsLoaded(true)}
+          style={{ opacity: isLoaded ? 1 : 0, transition: "opacity 0.2s" }}
+        />
+      )}
+    </div>
+  );
+};
+
 export default function QuestPage() {
   const [currentStep, setCurrentStep] = useState(() => {
     const saved = localStorage.getItem("questStep");
@@ -152,6 +200,91 @@ export default function QuestPage() {
     if (currentStep > 0) {
       localStorage.setItem("questStep", currentStep);
     }
+  }, [currentStep]);
+
+  // Предзагрузка критических изображений для текущего шага
+  useEffect(() => {
+    const preloadImagesForStep = () => {
+      const imagesToPreload = [];
+
+      // Определяем какие изображения нужны для текущего шага
+      switch (currentStep) {
+        case 0:
+          imagesToPreload.push(topImage, questImage);
+          break;
+        case 1:
+        case 2:
+        case 3:
+          imagesToPreload.push(hint1Image, step2Image);
+          break;
+        case 4:
+        case 5:
+          imagesToPreload.push(hint2Image, step5Image);
+          break;
+        case 6:
+        case 7:
+          imagesToPreload.push(hint3Image, step7Image);
+          break;
+        case 8:
+        case 9:
+          imagesToPreload.push(hint4Image, step9Image);
+          break;
+        case 10:
+        case 11:
+          imagesToPreload.push(hint5Image, step11Image);
+          break;
+        case 12:
+        case 13:
+          imagesToPreload.push(hint6Image, step13Image);
+          break;
+        case 14:
+        case 15:
+          imagesToPreload.push(hint7Image, step15Image);
+          break;
+        case 16:
+        case 17:
+          imagesToPreload.push(hint8Image, step17Image);
+          break;
+        case 18:
+        case 19:
+          imagesToPreload.push(hint9Image, step19Image);
+          break;
+        case 20:
+        case 21:
+          imagesToPreload.push(hint10Image, step21Image);
+          break;
+        case 22:
+        case 23:
+          imagesToPreload.push(hint11Image, step23Image);
+          break;
+        case 24:
+        case 25:
+          imagesToPreload.push(hint12Image, step25Image);
+          break;
+        case 26:
+        case 27:
+          imagesToPreload.push(hint13Image, step27Image);
+          break;
+        case 28:
+        case 29:
+          imagesToPreload.push(step29Image);
+          break;
+        case 32:
+        case 33:
+          imagesToPreload.push(finishBg);
+          break;
+        default:
+          break;
+      }
+
+      // Предзагружаем изображения
+      imagesToPreload.forEach((src) => {
+        const img = new Image();
+        img.src = src;
+      });
+    };
+
+    preloadImagesForStep();
   }, [currentStep]);
 
   const handleStartJourney = () => {
@@ -269,7 +402,12 @@ export default function QuestPage() {
         // Стартовый экран квеста
         <>
           <div className="top-image-container">
-            <img src={topImage} alt="Топ" />
+            <OptimizedImage
+              src={topImage}
+              alt="Топ"
+              className="top-image-container"
+              priority={true}
+            />
           </div>
 
           <div style={{ padding: "16px", textAlign: "center" }}>
@@ -282,7 +420,12 @@ export default function QuestPage() {
           </div>
 
           <div className="quest-image-container">
-            <img src={questImage} alt="Квест" />
+            <OptimizedImage
+              src={questImage}
+              alt="Квест"
+              className="quest-image-container"
+              priority={true}
+            />
           </div>
         </>
       ) : (
@@ -346,7 +489,11 @@ export default function QuestPage() {
             красивым, аккуратным почерком написано:
           </p>
 
-          <img src={step2Image} alt="Мазайский заяц" className="text-image" />
+          <OptimizedImage
+            src={step2Image}
+            alt="Мазайский заяц"
+            className="text-image"
+          />
 
           <p className="text-paragraph">
             &emsp;Почтальон слегка подпрыгнул, будто одобряя твою
@@ -429,7 +576,11 @@ export default function QuestPage() {
             «Пора идти дальше»
           </p>
 
-          <img src={step5Image} alt="Мазайский заяц" className="text-image" />
+          <OptimizedImage
+            src={step5Image}
+            alt="Мазайский заяц"
+            className="text-image"
+          />
 
           <p className="text-paragraph">
             &emsp;Зайчиха Трубач ещё мгновение стояла неподвижно, словно
@@ -513,7 +664,7 @@ export default function QuestPage() {
             твой путь продолжается.
           </p>
 
-          <img
+          <OptimizedImage
             src={step7Image}
             alt="Третий мазайский заяц"
             className="text-image"
@@ -588,7 +739,11 @@ export default function QuestPage() {
             наполняли город жизнью.
           </p>
 
-          <img src={step9Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step9Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
 
           <p className="text-paragraph">
             &emsp;Ты держишь в руках письмо от Зайца-Сыродела. Он поднимает
@@ -675,7 +830,11 @@ export default function QuestPage() {
             следующему зайцу, к новой странице древнего купеческого города.
           </p>
 
-          <img src={step11Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step11Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 12 && (
@@ -756,7 +915,11 @@ export default function QuestPage() {
             вытягивает лапу к тебе, держа новый листок — новую подсказку.
           </p>
 
-          <img src={step13Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step13Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
 
           <p className="text-paragraph">
             Он кивает еле заметно:
@@ -849,7 +1012,11 @@ export default function QuestPage() {
             капитан, дающий приказ матросу.
           </p>
 
-          <img src={step15Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step15Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
 
           <p className="text-paragraph">
             &emsp;Заяц-Моряк снова смотрит вдаль и, будто бы беззвучно, говорит:
@@ -955,7 +1122,11 @@ export default function QuestPage() {
             там, куда ведут аллеи парка.
           </p>
 
-          <img src={step17Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step17Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 18 && (
@@ -1016,7 +1187,11 @@ export default function QuestPage() {
             укажет следующая история.
           </p>
 
-          <img src={step19Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step19Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 20 && (
@@ -1099,7 +1274,11 @@ export default function QuestPage() {
             шаль воспоминаний.
           </p>
 
-          <img src={step21Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step21Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 22 && (
@@ -1157,7 +1336,11 @@ export default function QuestPage() {
             И кажется, он уже приготовил для тебя письмо
           </p>
 
-          <img src={step23Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step23Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 24 && (
@@ -1243,7 +1426,11 @@ export default function QuestPage() {
             <br />
           </p>
 
-          <img src={step25Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step25Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 26 && (
@@ -1298,7 +1485,11 @@ export default function QuestPage() {
             портного, сшито из самых тёплых слов.
           </p>
 
-          <img src={step27Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step27Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 28 && (
@@ -1350,7 +1541,11 @@ export default function QuestPage() {
             ядренистую белую капусту-зайчика».
           </p>
 
-          <img src={step29Image} alt="Заяц-Часовой" className="text-image" />
+          <OptimizedImage
+            src={step29Image}
+            alt="Заяц-Часовой"
+            className="text-image"
+          />
         </TextBlock>
       )}
       {currentStep === 30 && (
