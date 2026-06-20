@@ -20,8 +20,8 @@ $description = isset($data['description']) ? $data['description'] : 'Досту�
 $returnUrl = isset($data['returnUrl']) ? $data['returnUrl'] : 'https://kostromagid.ru/app'; // 1. ОБНОВИЛИ returnUrl
 
 // 2. ПРОПИСАЛИ КЛЮЧИ НАПРЯМУЮ
-$shopId = '1372262';
-$secretKey = 'test_pXy3xM219hL0r136NkuvpIhl1iL9ackc0a2tAThxzSY';
+$shopId = '1321454';
+$secretKey = 'live_kb_BdpOp7FV7Irvl4wPVB6GmnTZdu9kQ1lNIQclncxc';
 
 // Проверка, что ключи не пустые (можно оставить для надежности)
 if (empty($shopId) || empty($secretKey)) {
