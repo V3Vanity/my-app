@@ -16,7 +16,9 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
   // Состояния для соглашений
   const [agreeLocation, setAgreeLocation] = useState(false);
   const [agreeOffer, setAgreeOffer] = useState(false);
+  const [agreePersonalData, setAgreePersonalData] = useState(false);
   const [showOfferText, setShowOfferText] = useState(false);
+  const [showPersonalDataText, setShowPersonalDataText] = useState(false);
 
   const { login, register } = useAuth();
 
@@ -33,7 +35,9 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       setRegisteredEmail("");
       setAgreeLocation(false);
       setAgreeOffer(false);
+      setAgreePersonalData(false);
       setShowOfferText(false);
+      setShowPersonalDataText(false);
     }
   }, [isOpen]);
 
@@ -44,7 +48,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setError("");
     setShowEmailConfirmation(false);
 
-    if (!isLogin && (!agreeLocation || !agreeOffer)) {
+    if (!isLogin && (!agreeLocation || !agreeOffer || !agreePersonalData)) {
       setError("Для регистрации необходимо принять все условия");
       return;
     }
@@ -90,6 +94,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         // Сохраняем соглашения
         localStorage.setItem("location_consent", "true");
         localStorage.setItem("offer_consent", "true");
+        localStorage.setItem("personal_data_consent", "true");
         localStorage.setItem("offer_consent_date", new Date().toISOString());
 
         // Показываем окно подтверждения email ВМЕСТО автоматического входа
@@ -102,6 +107,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         setName("");
         setAgreeLocation(false);
         setAgreeOffer(false);
+        setAgreePersonalData(false);
       }
     } catch (err) {
       console.error("Auth error:", err);
@@ -133,6 +139,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
     setName("");
     setAgreeLocation(false);
     setAgreeOffer(false);
+    setAgreePersonalData(false);
   };
 
   const handleCloseConfirmation = () => {
@@ -213,6 +220,27 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                           }}
                         >
                           Договора оферты
+                        </button>
+                      </span>
+                    </label>
+
+                    <label className="agreement-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={agreePersonalData}
+                        onChange={(e) => setAgreePersonalData(e.target.checked)}
+                      />
+                      <span className="agreement-text">
+                        Я даю согласие на{" "}
+                        <button
+                          type="button"
+                          className="agreement-link"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowPersonalDataText(true);
+                          }}
+                        >
+                          обработку персональных данных
                         </button>
                       </span>
                     </label>
@@ -367,13 +395,11 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
 
                 <h3>8. Реквизиты</h3>
                 <p>
-                  ИП [Твои ФИО]
+                  Владелец:[Коробко Юлия Евгеньевна]
                   <br />
-                  ИНН: [твой ИНН]
+                  ИНН: [440120991310]
                   <br />
-                  ОГРНИП: [твой ОГРНИП]
-                  <br />
-                  Email: [твой email]
+                  Email: [ korobkoulia05@mail.ru ]
                 </p>
 
                 <p>
@@ -388,6 +414,141 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }) => {
                 }}
               >
                 Принимаю условия
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно с текстом согласия на обработку персональных данных */}
+      {showPersonalDataText && (
+        <div
+          className="offer-modal-overlay"
+          onClick={() => setShowPersonalDataText(false)}
+        >
+          <div className="offer-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="offer-modal-close"
+              onClick={() => setShowPersonalDataText(false)}
+            >
+              ×
+            </button>
+            <div className="offer-content">
+              <h2>Согласие на обработку персональных данных</h2>
+              <div className="offer-text">
+                <p>
+                  Я, действуя своей волей и в своем интересе, даю согласие
+                  владельцу сайта [Коробко Юлии Евгеньевной] (ИНН: [
+                  440120991310]) на обработку своих персональных данных в
+                  соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О
+                  персональных данных».
+                </p>
+
+                <h3>1. Перечень персональных данных</h3>
+                <p>Настоящее согласие дается на обработку следующих данных:</p>
+                <ul>
+                  <li>Фамилия, имя, отчество</li>
+                  <li>Адрес электронной почты (email)</li>
+                  <li>Номер телефона (при указании)</li>
+                  <li>
+                    Данные геолокации (для работы карты и построения маршрутов)
+                  </li>
+                  <li>
+                    IP-адрес, данные о браузере и устройстве (техническая
+                    информация)
+                  </li>
+                </ul>
+
+                <h3>2. Цели обработки</h3>
+                <ul>
+                  <li>
+                    Предоставление доступа к электронному путеводителю и
+                    связанным с ним услугам
+                  </li>
+                  <li>
+                    Обработка платежей и оформление подписки (с привлечением
+                    платежных сервисов)
+                  </li>
+                  <li>
+                    Направление уведомлений, связанных с использованием
+                    приложения
+                  </li>
+                  <li>Улучшение качества предоставляемых услуг</li>
+                  <li>Ведение статистики и аналитики</li>
+                </ul>
+
+                <h3>3. Способы и сроки обработки</h3>
+                <p>
+                  3.1. Обработка персональных данных осуществляется как с
+                  использованием средств автоматизации, так и без их
+                  использования.
+                </p>
+                <p>
+                  3.2. Срок обработки персональных данных — до момента
+                  достижения целей обработки, но не более 5 (пяти) лет с момента
+                  последнего взаимодействия.
+                </p>
+                <p>
+                  3.3. Оператор имеет право привлекать к обработке персональных
+                  данных третьих лиц (платежные системы, хостинг-провайдеры,
+                  сервисы аналитики) с соблюдением требований законодательства.
+                </p>
+
+                <h3>4. Права субъекта персональных данных</h3>
+                <p>Я уведомлен(а) о том, что имею право:</p>
+                <ul>
+                  <li>Отозвать настоящее согласие в любой момент</li>
+                  <li>
+                    Требовать уточнения, блокирования или уничтожения своих
+                    персональных данных
+                  </li>
+                  <li>
+                    Получать информацию о сроках и способах обработки данных
+                  </li>
+                  <li>
+                    Обжаловать действия или бездействие Оператора в
+                    уполномоченный орган
+                  </li>
+                </ul>
+
+                <h3>5. Порядок отзыва согласия</h3>
+                <p>
+                  Отзыв согласия осуществляется путем направления письменного
+                  заявления на электронную почту: [korobkoulia05@mail.ru]. В
+                  случае отзыва согласия Оператор прекращает обработку
+                  персональных данных и уничтожает их в течение 30 (тридцати)
+                  дней, за исключением случаев, когда обработка может быть
+                  продолжена в соответствии с законодательством.
+                </p>
+
+                <h3>6. Трансграничная передача</h3>
+                <p>
+                  Оператор не осуществляет трансграничную передачу персональных
+                  данных. Серверы и системы хранения данных находятся на
+                  территории Российской Федерации.
+                </p>
+
+                <h3>7. Контактная информация</h3>
+                <p>
+                  Владелец: [Коробко Юлия Евгеньевна]
+                  <br />
+                  ИНН: [440120991310]
+                  <br />
+                  Email: [ korobkoulia05@mail.ru ]
+                </p>
+
+                <p>
+                  <strong>Дата публикации:</strong> 1 марта 2025 г.
+                </p>
+              </div>
+              <button
+                className="offer-accept-btn"
+                onClick={() => {
+                  setAgreePersonalData(true);
+                  setShowPersonalDataText(false);
+                }}
+              >
+                Я согласен(на)
               </button>
             </div>
           </div>

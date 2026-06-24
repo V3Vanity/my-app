@@ -54,7 +54,7 @@
   left: 50%; /* по центру горизонтали */
   transform: translateX(-50%);
   z-index: 10; /* поверх карты */
-  width: auto;
+  width: 100%;
   text-align: center;
 }
 

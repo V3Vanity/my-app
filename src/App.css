@@ -1888,7 +1888,6 @@ body {
   /* Секция покупки */
   .landing-pricing-section {
     padding: 200px 1rem 300px;
-    background-image: url("./assets/about-right-image-2.png");
     background-size: cover;
     background-position: top;
     background-repeat: no-repeat;
