@@ -32,6 +32,8 @@
 
 ## 📦 Запуск
 
+Сайт: kostromagid.ru
+
 ```bash
 git clone https://github.com/V3Vanity/my-app.git
 cd my-app
