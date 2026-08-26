@@ -1,16 +1,39 @@
-# React + Vite
+# 🔥 Репозиторий: my-app (Гид по Костроме)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Ключевой проект — полноценное веб-приложение для туристов**
 
-Currently, two official plugins are available:
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🗺️ О проекте
 
-## React Compiler
+Интерактивный гид по Костроме с самописной картой на Canvas, квест-системой и платной подпиской.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Функционал
 
-## Expanding the ESLint configuration
+- **Интерактивная карта** на Canvas (зум, перетаскивание, 100+ узлов маршрутов)
+- **Квест-система** с 14 этапами, аудио-гидом и визуальными подсказками
+- **Авторизация и регистрация** с подтверждением email
+- **Платная подписка** через ЮKassa
+- **6 категорий**: храмы, музеи, искусство, история, семья, гастрономия
+- **Система отзывов** с кешированием
+- **100% адаптивный дизайн**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠️ Технологии
+
+| Frontend | Backend | Интеграции |
+|----------|---------|------------|
+| React | PHP | ЮKassa |
+| JavaScript | MySQL | Яндекс.Карты |
+| Canvas API | REST API | |
+| Vite | | |
+
+## 📦 Запуск
+
+```bash
+git clone https://github.com/V3Vanity/my-app.git
+cd my-app
+npm install
+npm run dev
